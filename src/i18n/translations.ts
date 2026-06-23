@@ -216,6 +216,11 @@ const fr: Dict = {
       errorRate: "Trop de requêtes — réessayez dans un instant.",
       errorGeneric: "La génération a échoué. Réessayez.",
       newTrack: "Titre généré",
+      myCreations: "Vos créations IA",
+      myCreationsDesc: "Vos titres générés, sauvegardés sur cet appareil.",
+      emptyHint: "Aucune création pour l'instant — générez votre premier titre ci-dessus.",
+      delete: "Supprimer",
+      deleted: "Création supprimée",
     },
   },
   avatarLab: {
