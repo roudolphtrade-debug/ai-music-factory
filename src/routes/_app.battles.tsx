@@ -5,6 +5,7 @@ import { SectionHeading } from "@/components/premium/SectionHeading";
 import { StatusChip, GoldBadge } from "@/components/premium/Chips";
 import { VoteButton } from "@/components/premium/VoteButton";
 import { battles, battleHistory, artistImages } from "@/data/mock";
+import { useI18n } from "@/i18n/context";
 
 export const Route = createFileRoute("/_app/battles")({
   head: () => ({
@@ -17,39 +18,45 @@ export const Route = createFileRoute("/_app/battles")({
 });
 
 function BattlesPage() {
+  const { t } = useI18n();
+
   return (
     <div className="space-y-10">
       <SectionHeading
-        eyebrow="The Arena"
-        title="Battles"
-        description="Two artists. Two tracks. One winner — decided by the community in real time."
+        eyebrow={t("battles.eyebrow")}
+        title={t("battles.title")}
+        description={t("battles.desc")}
         action={
           <Button variant="gold" size="lg">
-            <Swords className="h-4 w-4" /> Join next battle
+            <Swords className="h-4 w-4" /> {t("battles.joinNext")}
           </Button>
         }
       />
 
       {/* LIVE BATTLES */}
       <section className="space-y-5">
-        <SectionHeading eyebrow="Now" title="Live & upcoming" />
+        <SectionHeading eyebrow={t("battles.now")} title={t("battles.liveUpcoming")} />
         <div className="grid gap-5 lg:grid-cols-2">
           {battles.map((b) => {
             const total = b.a.votes + b.b.votes || 1;
             const aPct = Math.round((b.a.votes / total) * 100);
+            const round = `${t(`battles.${b.round.phase}`)} · ${t("battles.bracket")} ${b.round.bracket}`;
+            const ends = t(b.ends.key === "left" ? "time.left" : "time.startsIn", { t: b.ends.text });
             return (
               <article
                 key={b.id}
                 className="overflow-hidden rounded-2xl border border-border bg-noir-gradient p-6"
               >
                 <div className="mb-5 flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">{b.round}</span>
+                  <span className="text-xs text-muted-foreground">{round}</span>
                   <StatusChip status={b.status} />
                 </div>
 
                 <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
                   <Contender side={b.a} align="left" live={b.status === "Live"} />
-                  <span className="font-display text-2xl font-semibold text-muted-foreground">VS</span>
+                  <span className="font-display text-2xl font-semibold text-muted-foreground">
+                    {t("common.vs")}
+                  </span>
                   <Contender side={b.b} align="right" live={b.status === "Live"} />
                 </div>
 
@@ -66,7 +73,7 @@ function BattlesPage() {
                   </div>
                 )}
 
-                <p className="mt-4 text-center text-xs text-muted-foreground">{b.ends}</p>
+                <p className="mt-4 text-center text-xs text-muted-foreground">{ends}</p>
               </article>
             );
           })}
@@ -76,7 +83,7 @@ function BattlesPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* BRACKET / RANKING */}
         <section className="rounded-2xl border border-border bg-card p-6">
-          <SectionHeading eyebrow="Standings" title="Season 7 bracket" />
+          <SectionHeading eyebrow={t("battles.standings")} title={t("battles.seasonBracket")} />
           <div className="mt-4 space-y-2">
             {["Seraphine 9", "MIDAS PRIME", "ORACLE", "SØL Aurelius", "Nyla Solenne", "VISR"].map(
               (name, i) => (
@@ -92,9 +99,9 @@ function BattlesPage() {
                     {i + 1}
                   </span>
                   <span className="flex-1 font-medium text-foreground">{name}</span>
-                  {i < 2 && <GoldBadge variant="outline">Advancing</GoldBadge>}
+                  {i < 2 && <GoldBadge variant="outline">{t("common.advancing")}</GoldBadge>}
                   <span className="text-xs tabular-nums text-muted-foreground">
-                    {6 - i} wins
+                    {t("common.wins", { n: 6 - i })}
                   </span>
                 </div>
               ),
@@ -105,8 +112,8 @@ function BattlesPage() {
         {/* HISTORY */}
         <section className="rounded-2xl border border-border bg-card p-6">
           <SectionHeading
-            eyebrow="Archive"
-            title="Battle history"
+            eyebrow={t("battles.archive")}
+            title={t("battles.history")}
             action={<History className="h-4 w-4 text-gold" />}
           />
           <div className="mt-4 space-y-3">
@@ -119,9 +126,11 @@ function BattlesPage() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm text-foreground">
                     <span className="font-semibold">{h.winner}</span>{" "}
-                    <span className="text-muted-foreground">def. {h.loser}</span>
+                    <span className="text-muted-foreground">{t("common.def")} {h.loser}</span>
                   </p>
-                  <p className="text-xs text-muted-foreground">{h.round}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t(`battles.${h.round.phase}`)} · {t("battles.season")} {h.round.season}
+                  </p>
                 </div>
                 <span className="text-xs tabular-nums text-muted-foreground">{h.margin}</span>
               </div>
@@ -142,6 +151,7 @@ function Contender({
   align: "left" | "right";
   live: boolean;
 }) {
+  const { t } = useI18n();
   return (
     <div
       className={`flex flex-col items-center gap-3 text-center ${
@@ -161,7 +171,7 @@ function Contender({
         <VoteButton initialVotes={side.votes} size="sm" />
       ) : (
         <span className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground">
-          Voting soon
+          {t("common.votingSoon")}
         </span>
       )}
     </div>

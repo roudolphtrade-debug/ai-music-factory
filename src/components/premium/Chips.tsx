@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { ShieldCheck } from "lucide-react";
+import { useI18n } from "@/i18n/context";
 
 export function GoldBadge({
   children,
@@ -59,6 +60,7 @@ const statusStyles: Record<string, string> = {
 };
 
 export function StatusChip({ status }: { status: string }) {
+  const { t } = useI18n();
   return (
     <span
       className={cn(
@@ -69,7 +71,7 @@ export function StatusChip({ status }: { status: string }) {
       {(status === "Live" || status === "Published") && (
         <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse-gold" />
       )}
-      {status}
+      {t(`status.${status.toLowerCase()}`)}
     </span>
   );
 }

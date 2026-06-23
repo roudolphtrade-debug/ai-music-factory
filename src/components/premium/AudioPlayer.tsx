@@ -3,8 +3,10 @@ import { Play, Pause, SkipBack, SkipForward, Volume2, Heart, Shuffle, Repeat } f
 import { nowPlaying, artistImages } from "@/data/mock";
 import { Equalizer } from "./Equalizer";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/i18n/context";
 
 export function AudioPlayer() {
+  const { t } = useI18n();
   const [playing, setPlaying] = useState(true);
   const [progress, setProgress] = useState(34);
   const [liked, setLiked] = useState(false);
@@ -69,7 +71,7 @@ export function AudioPlayer() {
         <div className="hidden flex-1 items-center justify-end gap-4 lg:flex">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Equalizer active={playing} />
-            <span>{nowPlaying.listeners} listening</span>
+            <span>{t("player.listening", { n: nowPlaying.listeners })}</span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <Volume2 className="h-4 w-4" />

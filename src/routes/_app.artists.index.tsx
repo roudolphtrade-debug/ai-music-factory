@@ -3,6 +3,8 @@ import { useState } from "react";
 import { SectionHeading } from "@/components/premium/SectionHeading";
 import { ArtistCard } from "@/components/premium/ArtistCard";
 import { artists } from "@/data/mock";
+import { useI18n } from "@/i18n/context";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/artists/")({
   head: () => ({
@@ -14,9 +16,10 @@ export const Route = createFileRoute("/_app/artists/")({
   component: ArtistsPage,
 });
 
-const filters = ["All", "Ambient Pop", "Hyperpop", "Techno", "Trap", "Neo-Soul", "Synthwave"];
+const genreFilters = ["Ambient Pop", "Hyperpop", "Techno", "Trap", "Neo-Soul", "Synthwave"];
 
 function ArtistsPage() {
+  const { t } = useI18n();
   const [active, setActive] = useState("All");
 
   const filtered =
@@ -25,23 +28,24 @@ function ArtistsPage() {
   return (
     <div className="space-y-8">
       <SectionHeading
-        eyebrow="Discover"
-        title="Virtual artists"
-        description="A roster of AI-native icons — each with a distinct identity, sound and following."
+        eyebrow={t("artists.eyebrow")}
+        title={t("artists.title")}
+        description={t("artists.desc")}
       />
 
       <div className="flex flex-wrap gap-2">
-        {filters.map((f) => (
+        {["All", ...genreFilters].map((f) => (
           <button
             key={f}
             onClick={() => setActive(f)}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+            className={cn(
+              "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
               active === f
                 ? "bg-gold-gradient text-primary-foreground"
-                : "border border-border text-muted-foreground hover:border-[color-mix(in_oklab,var(--gold)_40%,transparent)] hover:text-foreground"
-            }`}
+                : "border border-border text-muted-foreground hover:border-[color-mix(in_oklab,var(--gold)_40%,transparent)] hover:text-foreground",
+            )}
           >
-            {f}
+            {f === "All" ? t("common.all") : f}
           </button>
         ))}
       </div>

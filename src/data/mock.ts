@@ -16,6 +16,8 @@ export const artistImages = {
 
 export type ArtistId = keyof typeof artistImages;
 
+export type RelTime = { n?: number; u: "m" | "h" | "d" | "yesterday" };
+
 export interface VirtualArtist {
   id: ArtistId;
   name: string;
@@ -162,6 +164,51 @@ export const nowPlaying = {
   upNext: tracks[1],
 };
 
+// ---- Charts & genres (real-world music categories) ----
+
+export const chartRegions = ["Global", "US", "UK", "France", "Nigeria", "Brazil"] as const;
+export type ChartRegion = (typeof chartRegions)[number];
+
+export interface ChartEntry {
+  rank: number;
+  change: number; // >0 up, <0 down, 0 steady
+  isNew?: boolean;
+  title: string;
+  artist: string;
+  artistId: ArtistId;
+  genre: string;
+  plays: string;
+  regions: ChartRegion[];
+}
+
+export const globalCharts: ChartEntry[] = [
+  { rank: 1, change: 0, title: "Midas Touch", artist: "MIDAS PRIME", artistId: "art-4", genre: "Trap", plays: "12.4M", regions: ["Global", "US", "UK", "Brazil"] },
+  { rank: 2, change: 2, title: "Lagos Gold", artist: "Nyla Solenne", artistId: "art-5", genre: "Afrobeats", plays: "9.8M", regions: ["Global", "UK", "Nigeria", "France"] },
+  { rank: 3, change: 1, title: "Opp Block", artist: "ORACLE", artistId: "art-3", genre: "UK Drill", plays: "8.1M", regions: ["Global", "UK"] },
+  { rank: 4, change: -2, title: "Porcelain Halo", artist: "Seraphine 9", artistId: "art-2", genre: "Hyperpop", plays: "7.6M", regions: ["Global", "US", "France"] },
+  { rank: 5, change: 0, isNew: true, title: "Brick by Brick", artist: "MIDAS PRIME", artistId: "art-4", genre: "Drill", plays: "6.9M", regions: ["Global", "UK", "US"] },
+  { rank: 6, change: 3, title: "Amapiano Mirage", artist: "VISR", artistId: "art-6", genre: "Amapiano", plays: "6.2M", regions: ["Global", "Nigeria", "Brazil"] },
+  { rank: 7, change: -1, title: "Amber Cathedral", artist: "SØL Aurelius", artistId: "art-1", genre: "Electronica", plays: "5.8M", regions: ["Global", "France", "US"] },
+  { rank: 8, change: 1, title: "Corazón de Oro", artist: "Nyla Solenne", artistId: "art-5", genre: "Reggaeton", plays: "5.1M", regions: ["Global", "Brazil", "US"] },
+  { rank: 9, change: 0, isNew: true, title: "Server Phonk", artist: "ORACLE", artistId: "art-3", genre: "Phonk", plays: "4.7M", regions: ["Global", "US", "Brazil"] },
+  { rank: 10, change: -3, title: "Gold Dust", artist: "Seraphine 9", artistId: "art-2", genre: "R&B", plays: "4.2M", regions: ["Global", "UK", "France"] },
+];
+
+export const chartGenres = [
+  { name: "Hip-Hop", tracks: "31.4K" },
+  { name: "Trap", tracks: "24.7K" },
+  { name: "R&B", tracks: "19.5K" },
+  { name: "Afrobeats", tracks: "18.2K" },
+  { name: "Reggaeton", tracks: "15.6K" },
+  { name: "Drill", tracks: "12.1K" },
+  { name: "UK Drill", tracks: "9.8K" },
+  { name: "Phonk", tracks: "8.9K" },
+  { name: "Amapiano", tracks: "7.3K" },
+  { name: "Hyperpop", tracks: "6.2K" },
+  { name: "Dancehall", tracks: "5.7K" },
+  { name: "Jersey Club", tracks: "4.1K" },
+];
+
 export interface CreatorProject {
   id: string;
   title: string;
@@ -170,7 +217,7 @@ export interface CreatorProject {
   voice: string;
   prompt: string;
   status: "Published" | "Draft" | "Mastering" | "Review";
-  updated: string;
+  updated: RelTime;
   versions: number;
   stems: number;
 }
@@ -181,10 +228,10 @@ export const projects: CreatorProject[] = [
     title: "Amber Cathedral",
     genre: "Ambient Pop",
     mood: "Euphoric",
-    voice: "SØL — warm tenor",
+    voice: "Warm tenor",
     prompt: "Cinematic ambient pop with golden-hour pads, soft analogue tape warmth, and a slow euphoric build.",
     status: "Published",
-    updated: "2 hours ago",
+    updated: { n: 2, u: "h" },
     versions: 4,
     stems: 12,
   },
@@ -192,11 +239,11 @@ export const projects: CreatorProject[] = [
     id: "p-2",
     title: "Untitled — Nocturne 03",
     genre: "Electronica",
-    mood: "Melancholic",
+    mood: "Reflective",
     voice: "Instrumental",
     prompt: "Late-night electronica, sparse piano, vinyl crackle, distant choir, restrained 90 BPM groove.",
     status: "Mastering",
-    updated: "Yesterday",
+    updated: { u: "yesterday" },
     versions: 2,
     stems: 8,
   },
@@ -205,10 +252,10 @@ export const projects: CreatorProject[] = [
     title: "Gold Thread (Remix)",
     genre: "Neo-Soul",
     mood: "Intimate",
-    voice: "Nyla — alto",
+    voice: "Alto",
     prompt: "Re-imagine the original as a slow-burn neo-soul ballad with live drum feel and lush horns.",
     status: "Review",
-    updated: "3 days ago",
+    updated: { n: 3, u: "d" },
     versions: 6,
     stems: 16,
   },
@@ -216,11 +263,11 @@ export const projects: CreatorProject[] = [
     id: "p-4",
     title: "Working Idea — Chrome",
     genre: "Hyperpop",
-    mood: "Frenetic",
-    voice: "Seraphine — soprano",
+    mood: "Dramatic",
+    voice: "Soprano",
     prompt: "Glitchy hyperpop sketch, pitched vocal chops, metallic percussion, sugar-rush energy.",
     status: "Draft",
-    updated: "5 days ago",
+    updated: { n: 5, u: "d" },
     versions: 1,
     stems: 4,
   },
@@ -264,7 +311,7 @@ export const labels: Label[] = [
   {
     id: "l-3",
     name: "Goldhouse Collective",
-    specialty: "Trap · Synthwave · Hip-Hop",
+    specialty: "Trap · Hip-Hop · Drill",
     tagline: "Everything we touch turns platinum.",
     roster: 21,
     reputation: 8.8,
@@ -275,7 +322,7 @@ export const labels: Label[] = [
   {
     id: "l-4",
     name: "Velvet Frequency",
-    specialty: "Neo-Soul · Jazz · Downtempo",
+    specialty: "Neo-Soul · Afrobeats · Reggaeton",
     tagline: "Warm rooms, golden tones.",
     roster: 7,
     reputation: 8.6,
@@ -285,72 +332,95 @@ export const labels: Label[] = [
   },
 ];
 
+export type BattlePhase = "quarterFinal" | "semiFinal" | "final";
+
 export interface Battle {
   id: string;
   status: "Live" | "Upcoming" | "Closed";
-  round: string;
+  round: { phase: BattlePhase; bracket: string };
   a: { artistId: ArtistId; name: string; track: string; votes: number };
   b: { artistId: ArtistId; name: string; track: string; votes: number };
-  ends: string;
+  ends: { key: "left" | "starts"; text: string };
 }
 
 export const battles: Battle[] = [
   {
     id: "b-1",
     status: "Live",
-    round: "Quarter-final · Bracket A",
+    round: { phase: "quarterFinal", bracket: "A" },
     a: { artistId: "art-2", name: "Seraphine 9", track: "Porcelain Halo", votes: 8420 },
     b: { artistId: "art-4", name: "MIDAS PRIME", track: "Gilded", votes: 7980 },
-    ends: "4h 12m left",
+    ends: { key: "left", text: "4h 12m" },
   },
   {
     id: "b-2",
     status: "Live",
-    round: "Quarter-final · Bracket B",
+    round: { phase: "quarterFinal", bracket: "B" },
     a: { artistId: "art-1", name: "SØL Aurelius", track: "Amber Cathedral", votes: 6310 },
     b: { artistId: "art-3", name: "ORACLE", track: "Server Prayer", votes: 6890 },
-    ends: "4h 12m left",
+    ends: { key: "left", text: "4h 12m" },
   },
   {
     id: "b-3",
     status: "Upcoming",
-    round: "Quarter-final · Bracket C",
+    round: { phase: "quarterFinal", bracket: "C" },
     a: { artistId: "art-5", name: "Nyla Solenne", track: "Gold Thread", votes: 0 },
     b: { artistId: "art-6", name: "VISR", track: "Mirror Highway", votes: 0 },
-    ends: "Starts in 1d 6h",
+    ends: { key: "starts", text: "1d 6h" },
   },
 ];
 
-export const battleHistory = [
-  { id: "h-1", winner: "Seraphine 9", loser: "VISR", round: "Final · Season 6", margin: "62% · 38%" },
-  { id: "h-2", winner: "MIDAS PRIME", loser: "Nyla Solenne", round: "Semi-final · Season 6", margin: "54% · 46%" },
-  { id: "h-3", winner: "ORACLE", loser: "SØL Aurelius", round: "Semi-final · Season 6", margin: "51% · 49%" },
-  { id: "h-4", winner: "Nyla Solenne", loser: "Seraphine 9", round: "Quarter-final · Season 6", margin: "58% · 42%" },
+export interface BattleHistoryEntry {
+  id: string;
+  winner: string;
+  loser: string;
+  round: { phase: BattlePhase; season: number };
+  margin: string;
+}
+
+export const battleHistory: BattleHistoryEntry[] = [
+  { id: "h-1", winner: "Seraphine 9", loser: "VISR", round: { phase: "final", season: 6 }, margin: "62% · 38%" },
+  { id: "h-2", winner: "MIDAS PRIME", loser: "Nyla Solenne", round: { phase: "semiFinal", season: 6 }, margin: "54% · 46%" },
+  { id: "h-3", winner: "ORACLE", loser: "SØL Aurelius", round: { phase: "semiFinal", season: 6 }, margin: "51% · 49%" },
+  { id: "h-4", winner: "Nyla Solenne", loser: "Seraphine 9", round: { phase: "quarterFinal", season: 6 }, margin: "58% · 42%" },
 ];
 
 export const radioStations = [
   { id: "s-1", name: "Golden Hour", mood: "Warm · Ambient", listeners: "12.4K", live: true },
-  { id: "s-2", name: "Chrome Cathedral", mood: "Hyperpop · Art", listeners: "9.1K", live: true },
-  { id: "s-3", name: "Server Room", mood: "Techno · Industrial", listeners: "7.8K", live: true },
-  { id: "s-4", name: "Velvet Lounge", mood: "Neo-Soul · Jazz", listeners: "5.2K", live: false },
-  { id: "s-5", name: "Night Drive", mood: "Synthwave · Retro", listeners: "6.6K", live: false },
+  { id: "s-2", name: "Trap Mansion", mood: "Trap · Hip-Hop", listeners: "18.9K", live: true },
+  { id: "s-3", name: "Lagos After Dark", mood: "Afrobeats · Amapiano", listeners: "15.2K", live: true },
+  { id: "s-4", name: "Opp Block Radio", mood: "UK Drill · Drill", listeners: "11.7K", live: false },
+  { id: "s-5", name: "Velvet Lounge", mood: "Neo-Soul · R&B", listeners: "5.2K", live: false },
   { id: "s-6", name: "Community Curated", mood: "Voted by fans", listeners: "14.9K", live: true },
 ];
 
 export const moods = ["Euphoric", "Hypnotic", "Intimate", "Dramatic", "Nostalgic", "Triumphant", "Ethereal", "Reflective"];
 
-export const hallOfFame = [
-  { id: "hof-1", title: "Best Virtual Artist", winner: "Seraphine 9", artistId: "art-2" as ArtistId, note: "3.2M monthly listeners · Battle Champion", crown: "Artist of the Year" },
-  { id: "hof-2", title: "Best Prompt Creator", winner: "MIDAS PRIME", artistId: "art-4" as ArtistId, note: "Platinum Prompt · most-cloned style", crown: "Master of Craft" },
-  { id: "hof-3", title: "Label of the Month", winner: "Maison Noir", artistId: "art-1" as ArtistId, note: "Highest reputation house · $48.2K MRR", crown: "House of Honour" },
-  { id: "hof-4", title: "Discovery Crown", winner: "Nyla Solenne", artistId: "art-5" as ArtistId, note: "Fastest-rising new identity this season", crown: "Breakout" },
+export interface HallOfFameEntry {
+  id: string;
+  winner: string;
+  artistId: ArtistId;
+}
+
+export const hallOfFame: HallOfFameEntry[] = [
+  { id: "hof-1", winner: "Seraphine 9", artistId: "art-2" },
+  { id: "hof-2", winner: "MIDAS PRIME", artistId: "art-4" },
+  { id: "hof-3", winner: "Maison Noir", artistId: "art-1" },
+  { id: "hof-4", winner: "Nyla Solenne", artistId: "art-5" },
 ];
 
-export const platformStats = [
-  { label: "Tracks Published", value: "184,920", delta: "+2,140 this week" },
-  { label: "Virtual Artists", value: "12,408", delta: "+312 this week" },
-  { label: "Virtual Labels", value: "1,284", delta: "+18 this week" },
-  { label: "Battles Live Now", value: "26", delta: "4 ending soon" },
+export interface PlatformStat {
+  key: "tracksPublished" | "virtualArtists" | "virtualLabels" | "battlesLiveNow";
+  value: string;
+  deltaKey: "plusThisWeek" | "endingSoon";
+  deltaN: string;
+}
+
+export const platformStats: PlatformStat[] = [
+  { key: "tracksPublished", value: "184,920", deltaKey: "plusThisWeek", deltaN: "2,140" },
+  { key: "virtualArtists", value: "12,408", deltaKey: "plusThisWeek", deltaN: "312" },
+  { key: "virtualLabels", value: "1,284", deltaKey: "plusThisWeek", deltaN: "18" },
+  { key: "battlesLiveNow", value: "26", deltaKey: "endingSoon", deltaN: "4" },
 ];
 
 export const topCreators = artists.slice(0, 5).map((a, i) => ({
@@ -361,12 +431,22 @@ export const topCreators = artists.slice(0, 5).map((a, i) => ({
   listeners: a.monthlyListeners,
 }));
 
-export const activityFeed = [
-  { id: "a-1", text: "Seraphine 9 published a new release", detail: "Chrome Aria", time: "8m ago" },
-  { id: "a-2", text: "MIDAS PRIME entered a live battle", detail: "vs Seraphine 9", time: "21m ago" },
-  { id: "a-3", text: "Maison Noir signed a new artist", detail: "ORACLE", time: "1h ago" },
-  { id: "a-4", text: "Nyla Solenne crossed 2.5M listeners", detail: "Milestone", time: "2h ago" },
-  { id: "a-5", text: "VISR climbed to Top 10 Trending", detail: "Synthwave", time: "3h ago" },
+export interface ActivityItem {
+  id: string;
+  who: string;
+  actionKey: "publishedRelease" | "enteredBattle" | "signedArtist" | "crossedListeners" | "climbedTrending";
+  actionVars?: Record<string, string>;
+  detail?: string;
+  detailKey?: string;
+  time: RelTime;
+}
+
+export const activityFeed: ActivityItem[] = [
+  { id: "a-1", who: "Seraphine 9", actionKey: "publishedRelease", detail: "Chrome Aria", time: { n: 8, u: "m" } },
+  { id: "a-2", who: "MIDAS PRIME", actionKey: "enteredBattle", detail: "vs Seraphine 9", time: { n: 21, u: "m" } },
+  { id: "a-3", who: "Maison Noir", actionKey: "signedArtist", detail: "ORACLE", time: { n: 1, u: "h" } },
+  { id: "a-4", who: "Nyla Solenne", actionKey: "crossedListeners", actionVars: { n: "2.5M" }, detailKey: "milestone", time: { n: 2, u: "h" } },
+  { id: "a-5", who: "VISR", actionKey: "climbedTrending", detail: "Synthwave", time: { n: 3, u: "h" } },
 ];
 
 export function getArtist(id: string) {
