@@ -1,6 +1,7 @@
 import { Play, Pause } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePlayer } from "@/audio/PlayerProvider";
+import { useLibrary } from "@/library/LibraryProvider";
 import type { PlayableTrack } from "@/audio/tracks";
 
 type Size = "sm" | "md" | "lg" | "xl";
@@ -40,8 +41,14 @@ export function PlayButton({
   label?: string;
 }) {
   const { toggle, isActive, isTrackPlaying } = usePlayer();
+  const { recordPlay } = useLibrary();
   const active = isActive(track.id);
   const playing = isTrackPlaying(track.id);
+
+  const onClick = () => {
+    if (!playing) recordPlay(track.id);
+    toggle(track, queue);
+  };
 
   const variants: Record<Variant, string> = {
     gold: cn(
@@ -63,7 +70,7 @@ export function PlayButton({
   return (
     <button
       type="button"
-      onClick={() => toggle(track, queue)}
+      onClick={onClick}
       aria-label={label ?? (playing ? "Pause" : "Play")}
       className={cn(
         "relative grid shrink-0 place-items-center rounded-full transition-all duration-300",

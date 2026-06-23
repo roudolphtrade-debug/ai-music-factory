@@ -25,9 +25,12 @@ import { GoldBadge, StatusChip } from "@/components/premium/Chips";
 import { VoteButton } from "@/components/premium/VoteButton";
 import { Equalizer } from "@/components/premium/Equalizer";
 import { Reveal } from "@/components/premium/Reveal";
+import { OnboardingChecklist } from "@/components/premium/OnboardingChecklist";
+import { LikeButton } from "@/components/premium/LikeButton";
 import { useI18n } from "@/i18n/context";
 import { PlayButton } from "@/components/audio/PlayButton";
-import { playableById, radioQueue } from "@/audio/tracks";
+import { playableById, playableTracks, radioQueue } from "@/audio/tracks";
+import { useLibrary } from "@/library/LibraryProvider";
 import { cn } from "@/lib/utils";
 import {
   platformStats,
@@ -68,12 +71,17 @@ const statIcons = [
 
 function HomePage() {
   const { t, relTime } = useI18n();
+  const { favorites, history } = useLibrary();
   const liveBattle = battles[0];
   const [region, setRegion] = useState<ChartRegion>("Global");
   const charts = globalCharts.filter((c) => c.regions.includes(region));
 
+  const historyTracks = history.map((h) => playableById[h.id]).filter(Boolean).slice(0, 4);
+  const favTracks = favorites.map((id) => playableById[id]).filter(Boolean).slice(0, 4);
+
   return (
     <div className="space-y-12">
+      <OnboardingChecklist />
       {/* HERO */}
       <section className="relative overflow-hidden rounded-3xl border border-border bg-noir-gradient">
         <div className="absolute inset-0 bg-spot" />
@@ -124,7 +132,7 @@ function HomePage() {
                   <PlayButton track={playableById[nowPlaying.track.id]} queue={radioQueue} size="sm" />
                 </div>
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="truncate font-display text-xl font-semibold text-foreground">
                   {nowPlaying.track.title}
                 </p>
@@ -136,6 +144,7 @@ function HomePage() {
                   {t("common.listeningNow", { n: nowPlaying.listeners })}
                 </div>
               </div>
+              <LikeButton trackId={nowPlaying.track.id} size="sm" className="self-start" />
             </div>
             <div className="mt-4 flex items-center justify-between border-t border-border pt-3 text-xs text-muted-foreground">
               <span>
@@ -162,6 +171,48 @@ function HomePage() {
           />
         ))}
       </Reveal>
+
+      {/* CONTINUE LISTENING */}
+      {historyTracks.length > 0 && (
+        <Reveal as="section" className="space-y-6">
+          <SectionHeading
+            eyebrow={t("library.eyebrow")}
+            title={t("library.continueListening")}
+            action={
+              <Button asChild variant="ghost-gold" size="sm">
+                <Link to="/library">{t("library.seeLibrary")}</Link>
+              </Button>
+            }
+          />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {historyTracks.map((track) => (
+              <PersonalTrackCard key={track.id} track={track} queue={playableTracks} />
+            ))}
+          </div>
+        </Reveal>
+      )}
+
+      {/* YOUR FAVORITES */}
+      {favTracks.length > 0 && (
+        <Reveal as="section" className="space-y-6">
+          <SectionHeading
+            eyebrow={t("library.favorites")}
+            title={t("library.yourFavorites")}
+            action={
+              <Button asChild variant="ghost-gold" size="sm">
+                <Link to="/library">{t("library.seeLibrary")}</Link>
+              </Button>
+            }
+          />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {favTracks.map((track) => (
+              <PersonalTrackCard key={track.id} track={track} queue={favTracks} />
+            ))}
+          </div>
+        </Reveal>
+      )}
+
+
 
 
       {/* TOP CHARTS */}
@@ -405,6 +456,33 @@ function HomePage() {
         </div>
       </Reveal>
 
+    </div>
+  );
+}
+
+function PersonalTrackCard({
+  track,
+  queue,
+}: {
+  track: (typeof playableTracks)[number];
+  queue: (typeof playableTracks)[number][];
+}) {
+  return (
+    <div className="group relative flex items-center gap-3 overflow-hidden rounded-2xl border border-border surface-premium p-3 card-hover">
+      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg">
+        <img
+          src={track.cover}
+          alt={track.artist}
+          loading="lazy"
+          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.08]"
+        />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-medium text-foreground">{track.title}</p>
+        <p className="truncate text-xs text-muted-foreground">{track.artist}</p>
+      </div>
+      <LikeButton trackId={track.id} size="sm" />
+      <PlayButton track={track} queue={queue} size="sm" />
     </div>
   );
 }

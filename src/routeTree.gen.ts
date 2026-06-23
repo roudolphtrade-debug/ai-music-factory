@@ -15,6 +15,7 @@ import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppStudioRouteImport } from './routes/_app.studio'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppRadioRouteImport } from './routes/_app.radio'
+import { Route as AppLibraryRouteImport } from './routes/_app.library'
 import { Route as AppLabelsRouteImport } from './routes/_app.labels'
 import { Route as AppHallOfFameRouteImport } from './routes/_app.hall-of-fame'
 import { Route as AppCommunityRouteImport } from './routes/_app.community'
@@ -53,6 +54,11 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
 const AppRadioRoute = AppRadioRouteImport.update({
   id: '/radio',
   path: '/radio',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLibraryRoute = AppLibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
   getParentRoute: () => AppRoute,
 } as any)
 const AppLabelsRoute = AppLabelsRouteImport.update({
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/community': typeof AppCommunityRoute
   '/hall-of-fame': typeof AppHallOfFameRoute
   '/labels': typeof AppLabelsRoute
+  '/library': typeof AppLibraryRoute
   '/radio': typeof AppRadioRoute
   '/settings': typeof AppSettingsRoute
   '/studio': typeof AppStudioRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/community': typeof AppCommunityRoute
   '/hall-of-fame': typeof AppHallOfFameRoute
   '/labels': typeof AppLabelsRoute
+  '/library': typeof AppLibraryRoute
   '/radio': typeof AppRadioRoute
   '/settings': typeof AppSettingsRoute
   '/studio': typeof AppStudioRoute
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/_app/community': typeof AppCommunityRoute
   '/_app/hall-of-fame': typeof AppHallOfFameRoute
   '/_app/labels': typeof AppLabelsRoute
+  '/_app/library': typeof AppLibraryRoute
   '/_app/radio': typeof AppRadioRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/studio': typeof AppStudioRoute
@@ -170,6 +179,7 @@ export interface FileRouteTypes {
     | '/community'
     | '/hall-of-fame'
     | '/labels'
+    | '/library'
     | '/radio'
     | '/settings'
     | '/studio'
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/community'
     | '/hall-of-fame'
     | '/labels'
+    | '/library'
     | '/radio'
     | '/settings'
     | '/studio'
@@ -204,6 +215,7 @@ export interface FileRouteTypes {
     | '/_app/community'
     | '/_app/hall-of-fame'
     | '/_app/labels'
+    | '/_app/library'
     | '/_app/radio'
     | '/_app/settings'
     | '/_app/studio'
@@ -263,6 +275,13 @@ declare module '@tanstack/react-router' {
       path: '/radio'
       fullPath: '/radio'
       preLoaderRoute: typeof AppRadioRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/library': {
+      id: '/_app/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof AppLibraryRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/labels': {
@@ -345,6 +364,7 @@ interface AppRouteChildren {
   AppCommunityRoute: typeof AppCommunityRoute
   AppHallOfFameRoute: typeof AppHallOfFameRoute
   AppLabelsRoute: typeof AppLabelsRoute
+  AppLibraryRoute: typeof AppLibraryRoute
   AppRadioRoute: typeof AppRadioRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppStudioRoute: typeof AppStudioRoute
@@ -360,6 +380,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCommunityRoute: AppCommunityRoute,
   AppHallOfFameRoute: AppHallOfFameRoute,
   AppLabelsRoute: AppLabelsRoute,
+  AppLibraryRoute: AppLibraryRoute,
   AppRadioRoute: AppRadioRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppStudioRoute: AppStudioRoute,
