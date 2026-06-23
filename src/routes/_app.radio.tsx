@@ -5,6 +5,7 @@ import { StatusChip } from "@/components/premium/Chips";
 import { VoteButton } from "@/components/premium/VoteButton";
 import { NowPlayingPlayer } from "@/components/audio/NowPlayingPlayer";
 import { Playlist } from "@/components/audio/Playlist";
+import { VoicePrompt } from "@/components/voice/VoicePrompt";
 import { radioQueue } from "@/audio/tracks";
 import { nowPlaying, radioStations, moods, chartGenres } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
