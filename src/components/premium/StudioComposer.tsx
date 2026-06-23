@@ -96,22 +96,38 @@ export function StudioComposer() {
       }
       const lyrics = decodeLyrics(res.headers.get("X-Lyrics"));
       const blob = await res.blob();
-      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
-      const url = URL.createObjectURL(blob);
-      urlRef.current = url;
 
+      const id = `gen-${Date.now()}`;
       const title = clean.split(/[.,—-]/)[0].trim().slice(0, 42) || t("studio.gen.newTrack");
+      const duration = "0:20";
+
+      // Persist the draft (audio Blob + metadata) — provider owns the object URL.
+      const draft = await addDraft(
+        {
+          id,
+          title,
+          prompt: clean,
+          genre,
+          mood,
+          voice,
+          lyrics,
+          duration,
+          createdAt: Date.now(),
+        },
+        blob,
+      );
+
       const track: PlayableTrack = {
-        id: `gen-${Date.now()}`,
+        id,
         title,
         artist: `${genre} · ${t(`studio.voices.${voice}`)}`,
         artistId: GEN_COVER,
-        src: url,
+        src: draft.url,
         cover: artistImages[GEN_COVER],
-        duration: "0:20",
+        duration,
       };
 
-      setResult({ track, lyrics, url });
+      setResult({ track, lyrics, url: draft.url });
       setPhase("done");
       play(track);
       toast.success(t("studio.gen.saved"));
