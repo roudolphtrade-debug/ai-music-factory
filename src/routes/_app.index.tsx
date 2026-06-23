@@ -132,7 +132,7 @@ function HomePage() {
                   <PlayButton track={playableById[nowPlaying.track.id]} queue={radioQueue} size="sm" />
                 </div>
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="truncate font-display text-xl font-semibold text-foreground">
                   {nowPlaying.track.title}
                 </p>
@@ -144,6 +144,7 @@ function HomePage() {
                   {t("common.listeningNow", { n: nowPlaying.listeners })}
                 </div>
               </div>
+              <LikeButton trackId={nowPlaying.track.id} size="sm" className="self-start" />
             </div>
             <div className="mt-4 flex items-center justify-between border-t border-border pt-3 text-xs text-muted-foreground">
               <span>
