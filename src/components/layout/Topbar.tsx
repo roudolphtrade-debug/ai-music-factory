@@ -62,17 +62,17 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
           </Button>
           <button
             type="button"
-            className="relative grid h-10 w-10 place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            className="relative grid h-10 w-10 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             aria-label="Notifications"
           >
             <Bell className="h-5 w-5" />
-            <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-gold ring-2 ring-background" />
+            <span className="absolute right-2.5 top-2.5 h-1.5 w-1.5 rounded-full bg-gold ring-2 ring-background" />
           </button>
           <button
             type="button"
-            className="flex items-center gap-2 rounded-xl border border-border bg-secondary/40 py-1 pl-1 pr-2.5 transition-colors hover:border-[color-mix(in_oklab,var(--gold)_35%,transparent)]"
+            className="flex items-center gap-2 rounded-lg border border-border bg-secondary/30 py-1 pl-1 pr-2.5 transition-colors hover:border-[color-mix(in_oklab,var(--gold)_28%,transparent)]"
           >
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-gold-gradient text-sm font-semibold text-primary-foreground">
+            <span className="grid h-8 w-8 place-items-center rounded-md border border-[color-mix(in_oklab,var(--gold)_30%,transparent)] bg-[color-mix(in_oklab,var(--gold)_12%,transparent)] text-sm font-semibold text-gold">
               A
             </span>
             <span className="hidden text-sm font-medium text-foreground md:block">Studio A</span>
