@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Radio as RadioIcon, ListMusic } from "lucide-react";
+import { ListMusic } from "lucide-react";
 import { SectionHeading } from "@/components/premium/SectionHeading";
 import { StatusChip } from "@/components/premium/Chips";
 import { VoteButton } from "@/components/premium/VoteButton";
