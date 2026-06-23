@@ -22,6 +22,8 @@ import { Route as AppBattlesRouteImport } from './routes/_app.battles'
 import { Route as AppAvatarLabRouteImport } from './routes/_app.avatar-lab'
 import { Route as AppAnalyticsRouteImport } from './routes/_app.analytics'
 import { Route as AppArtistsIndexRouteImport } from './routes/_app.artists.index'
+import { Route as ApiVoiceTranscribeRouteImport } from './routes/api/voice/transcribe'
+import { Route as ApiVoiceSpeakRouteImport } from './routes/api/voice/speak'
 import { Route as AppArtistsArtistIdRouteImport } from './routes/_app.artists.$artistId'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -88,6 +90,16 @@ const AppArtistsIndexRoute = AppArtistsIndexRouteImport.update({
   path: '/artists/',
   getParentRoute: () => AppRoute,
 } as any)
+const ApiVoiceTranscribeRoute = ApiVoiceTranscribeRouteImport.update({
+  id: '/api/voice/transcribe',
+  path: '/api/voice/transcribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiVoiceSpeakRoute = ApiVoiceSpeakRouteImport.update({
+  id: '/api/voice/speak',
+  path: '/api/voice/speak',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppArtistsArtistIdRoute = AppArtistsArtistIdRouteImport.update({
   id: '/artists/$artistId',
   path: '/artists/$artistId',
@@ -107,6 +119,8 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AppSettingsRoute
   '/studio': typeof AppStudioRoute
   '/artists/$artistId': typeof AppArtistsArtistIdRoute
+  '/api/voice/speak': typeof ApiVoiceSpeakRoute
+  '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
   '/artists/': typeof AppArtistsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -122,6 +136,8 @@ export interface FileRoutesByTo {
   '/studio': typeof AppStudioRoute
   '/': typeof AppIndexRoute
   '/artists/$artistId': typeof AppArtistsArtistIdRoute
+  '/api/voice/speak': typeof ApiVoiceSpeakRoute
+  '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
   '/artists': typeof AppArtistsIndexRoute
 }
 export interface FileRoutesById {
@@ -139,6 +155,8 @@ export interface FileRoutesById {
   '/_app/studio': typeof AppStudioRoute
   '/_app/': typeof AppIndexRoute
   '/_app/artists/$artistId': typeof AppArtistsArtistIdRoute
+  '/api/voice/speak': typeof ApiVoiceSpeakRoute
+  '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
   '/_app/artists/': typeof AppArtistsIndexRoute
 }
 export interface FileRouteTypes {
@@ -156,6 +174,8 @@ export interface FileRouteTypes {
     | '/settings'
     | '/studio'
     | '/artists/$artistId'
+    | '/api/voice/speak'
+    | '/api/voice/transcribe'
     | '/artists/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -171,6 +191,8 @@ export interface FileRouteTypes {
     | '/studio'
     | '/'
     | '/artists/$artistId'
+    | '/api/voice/speak'
+    | '/api/voice/transcribe'
     | '/artists'
   id:
     | '__root__'
@@ -187,12 +209,16 @@ export interface FileRouteTypes {
     | '/_app/studio'
     | '/_app/'
     | '/_app/artists/$artistId'
+    | '/api/voice/speak'
+    | '/api/voice/transcribe'
     | '/_app/artists/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ApiVoiceSpeakRoute: typeof ApiVoiceSpeakRoute
+  ApiVoiceTranscribeRoute: typeof ApiVoiceTranscribeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -288,6 +314,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppArtistsIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/api/voice/transcribe': {
+      id: '/api/voice/transcribe'
+      path: '/api/voice/transcribe'
+      fullPath: '/api/voice/transcribe'
+      preLoaderRoute: typeof ApiVoiceTranscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/voice/speak': {
+      id: '/api/voice/speak'
+      path: '/api/voice/speak'
+      fullPath: '/api/voice/speak'
+      preLoaderRoute: typeof ApiVoiceSpeakRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app/artists/$artistId': {
       id: '/_app/artists/$artistId'
       path: '/artists/$artistId'
@@ -333,6 +373,8 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ApiVoiceSpeakRoute: ApiVoiceSpeakRoute,
+  ApiVoiceTranscribeRoute: ApiVoiceTranscribeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
