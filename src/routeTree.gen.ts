@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppStudioRouteImport } from './routes/_app.studio'
+import { Route as AppAvatarLabRouteImport } from './routes/_app.avatar-lab'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -27,27 +28,35 @@ const AppStudioRoute = AppStudioRouteImport.update({
   path: '/studio',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAvatarLabRoute = AppAvatarLabRouteImport.update({
+  id: '/avatar-lab',
+  path: '/avatar-lab',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+  '/avatar-lab': typeof AppAvatarLabRoute
   '/studio': typeof AppStudioRoute
 }
 export interface FileRoutesByTo {
+  '/avatar-lab': typeof AppAvatarLabRoute
   '/studio': typeof AppStudioRoute
   '/': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
+  '/_app/avatar-lab': typeof AppAvatarLabRoute
   '/_app/studio': typeof AppStudioRoute
   '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/studio'
+  fullPaths: '/' | '/avatar-lab' | '/studio'
   fileRoutesByTo: FileRoutesByTo
-  to: '/studio' | '/'
-  id: '__root__' | '/_app' | '/_app/studio' | '/_app/'
+  to: '/avatar-lab' | '/studio' | '/'
+  id: '__root__' | '/_app' | '/_app/avatar-lab' | '/_app/studio' | '/_app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,15 +86,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppStudioRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/avatar-lab': {
+      id: '/_app/avatar-lab'
+      path: '/avatar-lab'
+      fullPath: '/avatar-lab'
+      preLoaderRoute: typeof AppAvatarLabRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppAvatarLabRoute: typeof AppAvatarLabRoute
   AppStudioRoute: typeof AppStudioRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAvatarLabRoute: AppAvatarLabRoute,
   AppStudioRoute: AppStudioRoute,
   AppIndexRoute: AppIndexRoute,
 }
