@@ -60,6 +60,7 @@ const statusStyles: Record<string, string> = {
 };
 
 export function StatusChip({ status }: { status: string }) {
+  const { t } = useI18n();
   return (
     <span
       className={cn(
@@ -70,7 +71,7 @@ export function StatusChip({ status }: { status: string }) {
       {(status === "Live" || status === "Published") && (
         <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse-gold" />
       )}
-      {status}
+      {t(`status.${status.toLowerCase()}`)}
     </span>
   );
 }
