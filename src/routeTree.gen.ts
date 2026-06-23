@@ -9,61 +9,331 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as AppStudioRouteImport } from './routes/_app.studio'
+import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppRadioRouteImport } from './routes/_app.radio'
+import { Route as AppLabelsRouteImport } from './routes/_app.labels'
+import { Route as AppHallOfFameRouteImport } from './routes/_app.hall-of-fame'
+import { Route as AppCommunityRouteImport } from './routes/_app.community'
+import { Route as AppBattlesRouteImport } from './routes/_app.battles'
+import { Route as AppAvatarLabRouteImport } from './routes/_app.avatar-lab'
+import { Route as AppAnalyticsRouteImport } from './routes/_app.analytics'
+import { Route as AppArtistsIndexRouteImport } from './routes/_app.artists.index'
+import { Route as AppArtistsArtistIdRouteImport } from './routes/_app.artists.$artistId'
 
-const IndexRoute = IndexRouteImport.update({
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
+} as any)
+const AppStudioRoute = AppStudioRouteImport.update({
+  id: '/studio',
+  path: '/studio',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRadioRoute = AppRadioRouteImport.update({
+  id: '/radio',
+  path: '/radio',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLabelsRoute = AppLabelsRouteImport.update({
+  id: '/labels',
+  path: '/labels',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppHallOfFameRoute = AppHallOfFameRouteImport.update({
+  id: '/hall-of-fame',
+  path: '/hall-of-fame',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCommunityRoute = AppCommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBattlesRoute = AppBattlesRouteImport.update({
+  id: '/battles',
+  path: '/battles',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAvatarLabRoute = AppAvatarLabRouteImport.update({
+  id: '/avatar-lab',
+  path: '/avatar-lab',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAnalyticsRoute = AppAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppArtistsIndexRoute = AppArtistsIndexRouteImport.update({
+  id: '/artists/',
+  path: '/artists/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppArtistsArtistIdRoute = AppArtistsArtistIdRouteImport.update({
+  id: '/artists/$artistId',
+  path: '/artists/$artistId',
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AppIndexRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/analytics': typeof AppAnalyticsRoute
+  '/avatar-lab': typeof AppAvatarLabRoute
+  '/battles': typeof AppBattlesRoute
+  '/community': typeof AppCommunityRoute
+  '/hall-of-fame': typeof AppHallOfFameRoute
+  '/labels': typeof AppLabelsRoute
+  '/radio': typeof AppRadioRoute
+  '/settings': typeof AppSettingsRoute
+  '/studio': typeof AppStudioRoute
+  '/artists/$artistId': typeof AppArtistsArtistIdRoute
+  '/artists/': typeof AppArtistsIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/analytics': typeof AppAnalyticsRoute
+  '/avatar-lab': typeof AppAvatarLabRoute
+  '/battles': typeof AppBattlesRoute
+  '/community': typeof AppCommunityRoute
+  '/hall-of-fame': typeof AppHallOfFameRoute
+  '/labels': typeof AppLabelsRoute
+  '/radio': typeof AppRadioRoute
+  '/settings': typeof AppSettingsRoute
+  '/studio': typeof AppStudioRoute
+  '/': typeof AppIndexRoute
+  '/artists/$artistId': typeof AppArtistsArtistIdRoute
+  '/artists': typeof AppArtistsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/_app/analytics': typeof AppAnalyticsRoute
+  '/_app/avatar-lab': typeof AppAvatarLabRoute
+  '/_app/battles': typeof AppBattlesRoute
+  '/_app/community': typeof AppCommunityRoute
+  '/_app/hall-of-fame': typeof AppHallOfFameRoute
+  '/_app/labels': typeof AppLabelsRoute
+  '/_app/radio': typeof AppRadioRoute
+  '/_app/settings': typeof AppSettingsRoute
+  '/_app/studio': typeof AppStudioRoute
+  '/_app/': typeof AppIndexRoute
+  '/_app/artists/$artistId': typeof AppArtistsArtistIdRoute
+  '/_app/artists/': typeof AppArtistsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/sitemap.xml'
+    | '/analytics'
+    | '/avatar-lab'
+    | '/battles'
+    | '/community'
+    | '/hall-of-fame'
+    | '/labels'
+    | '/radio'
+    | '/settings'
+    | '/studio'
+    | '/artists/$artistId'
+    | '/artists/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/sitemap.xml'
+    | '/analytics'
+    | '/avatar-lab'
+    | '/battles'
+    | '/community'
+    | '/hall-of-fame'
+    | '/labels'
+    | '/radio'
+    | '/settings'
+    | '/studio'
+    | '/'
+    | '/artists/$artistId'
+    | '/artists'
+  id:
+    | '__root__'
+    | '/_app'
+    | '/sitemap.xml'
+    | '/_app/analytics'
+    | '/_app/avatar-lab'
+    | '/_app/battles'
+    | '/_app/community'
+    | '/_app/hall-of-fame'
+    | '/_app/labels'
+    | '/_app/radio'
+    | '/_app/settings'
+    | '/_app/studio'
+    | '/_app/'
+    | '/_app/artists/$artistId'
+    | '/_app/artists/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/': {
+      id: '/_app/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/studio': {
+      id: '/_app/studio'
+      path: '/studio'
+      fullPath: '/studio'
+      preLoaderRoute: typeof AppStudioRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/radio': {
+      id: '/_app/radio'
+      path: '/radio'
+      fullPath: '/radio'
+      preLoaderRoute: typeof AppRadioRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/labels': {
+      id: '/_app/labels'
+      path: '/labels'
+      fullPath: '/labels'
+      preLoaderRoute: typeof AppLabelsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/hall-of-fame': {
+      id: '/_app/hall-of-fame'
+      path: '/hall-of-fame'
+      fullPath: '/hall-of-fame'
+      preLoaderRoute: typeof AppHallOfFameRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/community': {
+      id: '/_app/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof AppCommunityRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/battles': {
+      id: '/_app/battles'
+      path: '/battles'
+      fullPath: '/battles'
+      preLoaderRoute: typeof AppBattlesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/avatar-lab': {
+      id: '/_app/avatar-lab'
+      path: '/avatar-lab'
+      fullPath: '/avatar-lab'
+      preLoaderRoute: typeof AppAvatarLabRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/analytics': {
+      id: '/_app/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AppAnalyticsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/artists/': {
+      id: '/_app/artists/'
+      path: '/artists'
+      fullPath: '/artists/'
+      preLoaderRoute: typeof AppArtistsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/artists/$artistId': {
+      id: '/_app/artists/$artistId'
+      path: '/artists/$artistId'
+      fullPath: '/artists/$artistId'
+      preLoaderRoute: typeof AppArtistsArtistIdRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }
 
+interface AppRouteChildren {
+  AppAnalyticsRoute: typeof AppAnalyticsRoute
+  AppAvatarLabRoute: typeof AppAvatarLabRoute
+  AppBattlesRoute: typeof AppBattlesRoute
+  AppCommunityRoute: typeof AppCommunityRoute
+  AppHallOfFameRoute: typeof AppHallOfFameRoute
+  AppLabelsRoute: typeof AppLabelsRoute
+  AppRadioRoute: typeof AppRadioRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppStudioRoute: typeof AppStudioRoute
+  AppIndexRoute: typeof AppIndexRoute
+  AppArtistsArtistIdRoute: typeof AppArtistsArtistIdRoute
+  AppArtistsIndexRoute: typeof AppArtistsIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppAnalyticsRoute: AppAnalyticsRoute,
+  AppAvatarLabRoute: AppAvatarLabRoute,
+  AppBattlesRoute: AppBattlesRoute,
+  AppCommunityRoute: AppCommunityRoute,
+  AppHallOfFameRoute: AppHallOfFameRoute,
+  AppLabelsRoute: AppLabelsRoute,
+  AppRadioRoute: AppRadioRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppStudioRoute: AppStudioRoute,
+  AppIndexRoute: AppIndexRoute,
+  AppArtistsArtistIdRoute: AppArtistsArtistIdRoute,
+  AppArtistsIndexRoute: AppArtistsIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
