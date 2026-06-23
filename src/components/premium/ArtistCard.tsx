@@ -1,8 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { artistImages, type VirtualArtist } from "@/data/mock";
 import { GoldBadge, ReputationChip } from "./Chips";
+import { useI18n } from "@/i18n/context";
 
 export function ArtistCard({ artist }: { artist: VirtualArtist }) {
+  const { t } = useI18n();
   return (
     <Link
       to="/artists/$artistId"
@@ -37,7 +39,7 @@ export function ArtistCard({ artist }: { artist: VirtualArtist }) {
           <span className="font-display text-base font-semibold text-foreground">
             {artist.monthlyListeners}
           </span>{" "}
-          listeners
+          {t("common.listeners")}
         </div>
         <ReputationChip score={artist.reputation} />
       </div>
