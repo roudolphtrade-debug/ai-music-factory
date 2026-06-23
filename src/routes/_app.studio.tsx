@@ -121,45 +121,62 @@ function StudioPage() {
       <section className="space-y-5">
         <SectionHeading eyebrow={t("studio.library")} title={t("studio.yourDrafts")} />
         <div className="grid gap-4 md:grid-cols-2">
-          {projects.map((p) => (
-            <article
-              key={p.id}
-              className="group rounded-2xl border border-border bg-card p-5 card-hover"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <h3 className="truncate font-display text-xl font-semibold text-foreground">
-                    {p.title}
-                  </h3>
-                  <p className="text-xs text-muted-foreground">{t("common.updated", { time: relTime(p.updated) })}</p>
+          {projects.map((p, i) => {
+            const preview = makePlayable({
+              id: `project-${p.id}`,
+              title: p.title,
+              artist: `${p.genre} · ${t(`studio.voices.${p.voice}`)}`,
+              artistId: PROJECT_COVERS[i % PROJECT_COVERS.length],
+              index: i,
+              duration: "0:30",
+            });
+            return (
+              <article
+                key={p.id}
+                className="group rounded-2xl border border-border bg-card p-5 card-hover"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <PlayButton track={preview} size="md" />
+                    <div className="min-w-0">
+                      <h3 className="truncate font-display text-xl font-semibold text-foreground">
+                        {p.title}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">{t("common.updated", { time: relTime(p.updated) })}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <StatusChip status={p.status} />
+                    <button className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <StatusChip status={p.status} />
-                  <button className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </button>
+
+                <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{p.prompt}</p>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <GoldBadge variant="outline">{p.genre}</GoldBadge>
+                  <GoldBadge variant="outline">{t(`moods.${p.mood}`)}</GoldBadge>
+                  <GoldBadge variant="outline">{t(`studio.voices.${p.voice}`)}</GoldBadge>
                 </div>
-              </div>
 
-              <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{p.prompt}</p>
-
-              <div className="mt-4 flex flex-wrap gap-2">
-                <GoldBadge variant="outline">{p.genre}</GoldBadge>
-                <GoldBadge variant="outline">{t(`moods.${p.mood}`)}</GoldBadge>
-                <GoldBadge variant="outline">{t(`studio.voices.${p.voice}`)}</GoldBadge>
-              </div>
-
-              <div className="mt-4 flex items-center gap-5 border-t border-border pt-4 text-xs text-muted-foreground">
-                <span className="inline-flex items-center gap-1.5">
-                  <GitBranch className="h-3.5 w-3.5 text-gold" /> {t("studio.versions", { n: p.versions })}
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <Layers className="h-3.5 w-3.5 text-gold" /> {t("studio.stems", { n: p.stems })}
-                </span>
-              </div>
-            </article>
-          ))}
+                <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-4 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-5">
+                    <span className="inline-flex items-center gap-1.5">
+                      <GitBranch className="h-3.5 w-3.5 text-gold" /> {t("studio.versions", { n: p.versions })}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <Layers className="h-3.5 w-3.5 text-gold" /> {t("studio.stems", { n: p.stems })}
+                    </span>
+                  </div>
+                  <ListenButton track={preview} />
+                </div>
+              </article>
+            );
+          })}
         </div>
+
       </section>
     </div>
   );
