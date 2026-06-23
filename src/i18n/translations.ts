@@ -161,6 +161,7 @@ const fr: Dict = {
       entries: "candidatures",
       remaining: "jours restants",
       submit: "Soumettre votre titre",
+      submitted: "Titre soumis · bonne chance pour le concours !",
     },
     fame: {
       eyebrow: "Prestige",
