@@ -420,3 +420,49 @@
   animation: votePop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* ---- Skeleton shimmer (subtle gold sweep) ---- */
+@keyframes skeletonSweep {
+  0% { background-position: -180% 0; }
+  100% { background-position: 180% 0; }
+}
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.skeleton-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+    100deg,
+    transparent 20%,
+    color-mix(in oklab, var(--gold) 10%, transparent) 50%,
+    transparent 80%
+  );
+  background-size: 200% 100%;
+  animation: skeletonSweep 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer::after {
+    animation: none;
+  }
+}
+
+/* ---- Empty-state gentle float ---- */
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+@utility animate-float {
+  animation: floatY 4s ease-in-out infinite;
+}
+
+/* ---- Filtered list crossfade ---- */
+@keyframes listFade {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@utility animate-list-fade {
+  animation: listFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
