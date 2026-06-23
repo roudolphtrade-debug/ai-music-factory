@@ -15,8 +15,10 @@ import { Route as AppStudioRouteImport } from './routes/_app.studio'
 import { Route as AppRadioRouteImport } from './routes/_app.radio'
 import { Route as AppLabelsRouteImport } from './routes/_app.labels'
 import { Route as AppHallOfFameRouteImport } from './routes/_app.hall-of-fame'
+import { Route as AppCommunityRouteImport } from './routes/_app.community'
 import { Route as AppBattlesRouteImport } from './routes/_app.battles'
 import { Route as AppAvatarLabRouteImport } from './routes/_app.avatar-lab'
+import { Route as AppAnalyticsRouteImport } from './routes/_app.analytics'
 import { Route as AppArtistsIndexRouteImport } from './routes/_app.artists.index'
 import { Route as AppArtistsArtistIdRouteImport } from './routes/_app.artists.$artistId'
 
@@ -49,6 +51,11 @@ const AppHallOfFameRoute = AppHallOfFameRouteImport.update({
   path: '/hall-of-fame',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCommunityRoute = AppCommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppBattlesRoute = AppBattlesRouteImport.update({
   id: '/battles',
   path: '/battles',
@@ -57,6 +64,11 @@ const AppBattlesRoute = AppBattlesRouteImport.update({
 const AppAvatarLabRoute = AppAvatarLabRouteImport.update({
   id: '/avatar-lab',
   path: '/avatar-lab',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAnalyticsRoute = AppAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
   getParentRoute: () => AppRoute,
 } as any)
 const AppArtistsIndexRoute = AppArtistsIndexRouteImport.update({
@@ -72,8 +84,10 @@ const AppArtistsArtistIdRoute = AppArtistsArtistIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+  '/analytics': typeof AppAnalyticsRoute
   '/avatar-lab': typeof AppAvatarLabRoute
   '/battles': typeof AppBattlesRoute
+  '/community': typeof AppCommunityRoute
   '/hall-of-fame': typeof AppHallOfFameRoute
   '/labels': typeof AppLabelsRoute
   '/radio': typeof AppRadioRoute
@@ -82,8 +96,10 @@ export interface FileRoutesByFullPath {
   '/artists/': typeof AppArtistsIndexRoute
 }
 export interface FileRoutesByTo {
+  '/analytics': typeof AppAnalyticsRoute
   '/avatar-lab': typeof AppAvatarLabRoute
   '/battles': typeof AppBattlesRoute
+  '/community': typeof AppCommunityRoute
   '/hall-of-fame': typeof AppHallOfFameRoute
   '/labels': typeof AppLabelsRoute
   '/radio': typeof AppRadioRoute
@@ -95,8 +111,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
+  '/_app/analytics': typeof AppAnalyticsRoute
   '/_app/avatar-lab': typeof AppAvatarLabRoute
   '/_app/battles': typeof AppBattlesRoute
+  '/_app/community': typeof AppCommunityRoute
   '/_app/hall-of-fame': typeof AppHallOfFameRoute
   '/_app/labels': typeof AppLabelsRoute
   '/_app/radio': typeof AppRadioRoute
@@ -109,8 +127,10 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/analytics'
     | '/avatar-lab'
     | '/battles'
+    | '/community'
     | '/hall-of-fame'
     | '/labels'
     | '/radio'
@@ -119,8 +139,10 @@ export interface FileRouteTypes {
     | '/artists/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/analytics'
     | '/avatar-lab'
     | '/battles'
+    | '/community'
     | '/hall-of-fame'
     | '/labels'
     | '/radio'
@@ -131,8 +153,10 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_app'
+    | '/_app/analytics'
     | '/_app/avatar-lab'
     | '/_app/battles'
+    | '/_app/community'
     | '/_app/hall-of-fame'
     | '/_app/labels'
     | '/_app/radio'
@@ -190,6 +214,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppHallOfFameRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/community': {
+      id: '/_app/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof AppCommunityRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/battles': {
       id: '/_app/battles'
       path: '/battles'
@@ -202,6 +233,13 @@ declare module '@tanstack/react-router' {
       path: '/avatar-lab'
       fullPath: '/avatar-lab'
       preLoaderRoute: typeof AppAvatarLabRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/analytics': {
+      id: '/_app/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AppAnalyticsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/artists/': {
@@ -222,8 +260,10 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppAnalyticsRoute: typeof AppAnalyticsRoute
   AppAvatarLabRoute: typeof AppAvatarLabRoute
   AppBattlesRoute: typeof AppBattlesRoute
+  AppCommunityRoute: typeof AppCommunityRoute
   AppHallOfFameRoute: typeof AppHallOfFameRoute
   AppLabelsRoute: typeof AppLabelsRoute
   AppRadioRoute: typeof AppRadioRoute
@@ -234,8 +274,10 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAnalyticsRoute: AppAnalyticsRoute,
   AppAvatarLabRoute: AppAvatarLabRoute,
   AppBattlesRoute: AppBattlesRoute,
+  AppCommunityRoute: AppCommunityRoute,
   AppHallOfFameRoute: AppHallOfFameRoute,
   AppLabelsRoute: AppLabelsRoute,
   AppRadioRoute: AppRadioRoute,
