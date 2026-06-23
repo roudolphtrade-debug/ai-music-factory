@@ -14,6 +14,7 @@ import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppStudioRouteImport } from './routes/_app.studio'
 import { Route as AppAvatarLabRouteImport } from './routes/_app.avatar-lab'
 import { Route as AppArtistsIndexRouteImport } from './routes/_app.artists.index'
+import { Route as AppArtistsArtistIdRouteImport } from './routes/_app.artists.$artistId'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -39,17 +40,24 @@ const AppArtistsIndexRoute = AppArtistsIndexRouteImport.update({
   path: '/artists/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppArtistsArtistIdRoute = AppArtistsArtistIdRouteImport.update({
+  id: '/artists/$artistId',
+  path: '/artists/$artistId',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/avatar-lab': typeof AppAvatarLabRoute
   '/studio': typeof AppStudioRoute
+  '/artists/$artistId': typeof AppArtistsArtistIdRoute
   '/artists/': typeof AppArtistsIndexRoute
 }
 export interface FileRoutesByTo {
   '/avatar-lab': typeof AppAvatarLabRoute
   '/studio': typeof AppStudioRoute
   '/': typeof AppIndexRoute
+  '/artists/$artistId': typeof AppArtistsArtistIdRoute
   '/artists': typeof AppArtistsIndexRoute
 }
 export interface FileRoutesById {
@@ -58,19 +66,26 @@ export interface FileRoutesById {
   '/_app/avatar-lab': typeof AppAvatarLabRoute
   '/_app/studio': typeof AppStudioRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/artists/$artistId': typeof AppArtistsArtistIdRoute
   '/_app/artists/': typeof AppArtistsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/avatar-lab' | '/studio' | '/artists/'
+  fullPaths:
+    | '/'
+    | '/avatar-lab'
+    | '/studio'
+    | '/artists/$artistId'
+    | '/artists/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/avatar-lab' | '/studio' | '/' | '/artists'
+  to: '/avatar-lab' | '/studio' | '/' | '/artists/$artistId' | '/artists'
   id:
     | '__root__'
     | '/_app'
     | '/_app/avatar-lab'
     | '/_app/studio'
     | '/_app/'
+    | '/_app/artists/$artistId'
     | '/_app/artists/'
   fileRoutesById: FileRoutesById
 }
@@ -115,6 +130,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppArtistsIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/artists/$artistId': {
+      id: '/_app/artists/$artistId'
+      path: '/artists/$artistId'
+      fullPath: '/artists/$artistId'
+      preLoaderRoute: typeof AppArtistsArtistIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -122,6 +144,7 @@ interface AppRouteChildren {
   AppAvatarLabRoute: typeof AppAvatarLabRoute
   AppStudioRoute: typeof AppStudioRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppArtistsArtistIdRoute: typeof AppArtistsArtistIdRoute
   AppArtistsIndexRoute: typeof AppArtistsIndexRoute
 }
 
@@ -129,6 +152,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAvatarLabRoute: AppAvatarLabRoute,
   AppStudioRoute: AppStudioRoute,
   AppIndexRoute: AppIndexRoute,
+  AppArtistsArtistIdRoute: AppArtistsArtistIdRoute,
   AppArtistsIndexRoute: AppArtistsIndexRoute,
 }
 
