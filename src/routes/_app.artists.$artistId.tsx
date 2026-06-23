@@ -140,7 +140,11 @@ function ArtistProfilePage() {
             <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
               <Sparkles className="h-3.5 w-3.5 text-gold" /> {artist.aesthetic}
             </p>
+            <div className="mt-4">
+              <ReadAloudButton text={`${artist.name}. ${artist.bio}`} size="sm" />
+            </div>
           </div>
+
 
           <div className="rounded-2xl border border-border bg-card p-6">
             <h3 className="font-display text-xl font-semibold text-foreground">{t("artistProfile.badges")}</h3>
