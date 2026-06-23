@@ -161,27 +161,6 @@ function ListenButton({ track }: { track: PlayableTrack }) {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block space-y-1.5">
-      <span className="eyebrow text-muted-foreground">{label}</span>
-      {children}
-    </label>
-  );
-}
-
-function Select({ options }: { options: string[] }) {
-  return (
-    <select className="h-10 w-full rounded-xl border border-input bg-secondary/30 px-3 text-sm text-foreground outline-none transition-colors focus:border-[color-mix(in_oklab,var(--gold)_45%,transparent)]">
-      {options.map((o) => (
-        <option key={o} className="bg-card">
-          {o}
-        </option>
-      ))}
-    </select>
-  );
-}
-
 function MiniStat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
