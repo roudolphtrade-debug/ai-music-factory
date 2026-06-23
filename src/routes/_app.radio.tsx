@@ -58,7 +58,9 @@ function RadioPage() {
           {chartGenres.map((g) => (
             <button
               key={g.name}
-              className="rounded-full border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklab,var(--gold)_40%,transparent)] hover:text-foreground"
+              onClick={() => setGenre((cur) => (cur === g.name ? null : g.name))}
+              aria-pressed={genre === g.name}
+              className={cn(chipBase, genre === g.name ? chipActive : chipIdle)}
             >
               {g.name}
             </button>
@@ -73,13 +75,16 @@ function RadioPage() {
           {moods.map((m) => (
             <button
               key={m}
-              className="rounded-full border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklab,var(--gold)_40%,transparent)] hover:text-foreground"
+              onClick={() => setMood((cur) => (cur === m ? null : m))}
+              aria-pressed={mood === m}
+              className={cn(chipBase, mood === m ? chipActive : chipIdle)}
             >
               {t(`moods.${m}`)}
             </button>
           ))}
         </div>
       </section>
+
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* QUEUE / TOP ROTATION */}
