@@ -25,6 +25,7 @@ import { Route as AppAnalyticsRouteImport } from './routes/_app.analytics'
 import { Route as AppArtistsIndexRouteImport } from './routes/_app.artists.index'
 import { Route as ApiVoiceTranscribeRouteImport } from './routes/api/voice/transcribe'
 import { Route as ApiVoiceSpeakRouteImport } from './routes/api/voice/speak'
+import { Route as ApiStudioGenerateRouteImport } from './routes/api/studio/generate'
 import { Route as AppArtistsArtistIdRouteImport } from './routes/_app.artists.$artistId'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -106,6 +107,11 @@ const ApiVoiceSpeakRoute = ApiVoiceSpeakRouteImport.update({
   path: '/api/voice/speak',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiStudioGenerateRoute = ApiStudioGenerateRouteImport.update({
+  id: '/api/studio/generate',
+  path: '/api/studio/generate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppArtistsArtistIdRoute = AppArtistsArtistIdRouteImport.update({
   id: '/artists/$artistId',
   path: '/artists/$artistId',
@@ -126,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AppSettingsRoute
   '/studio': typeof AppStudioRoute
   '/artists/$artistId': typeof AppArtistsArtistIdRoute
+  '/api/studio/generate': typeof ApiStudioGenerateRoute
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
   '/artists/': typeof AppArtistsIndexRoute
@@ -144,6 +151,7 @@ export interface FileRoutesByTo {
   '/studio': typeof AppStudioRoute
   '/': typeof AppIndexRoute
   '/artists/$artistId': typeof AppArtistsArtistIdRoute
+  '/api/studio/generate': typeof ApiStudioGenerateRoute
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
   '/artists': typeof AppArtistsIndexRoute
@@ -164,6 +172,7 @@ export interface FileRoutesById {
   '/_app/studio': typeof AppStudioRoute
   '/_app/': typeof AppIndexRoute
   '/_app/artists/$artistId': typeof AppArtistsArtistIdRoute
+  '/api/studio/generate': typeof ApiStudioGenerateRoute
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
   '/_app/artists/': typeof AppArtistsIndexRoute
@@ -184,6 +193,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/studio'
     | '/artists/$artistId'
+    | '/api/studio/generate'
     | '/api/voice/speak'
     | '/api/voice/transcribe'
     | '/artists/'
@@ -202,6 +212,7 @@ export interface FileRouteTypes {
     | '/studio'
     | '/'
     | '/artists/$artistId'
+    | '/api/studio/generate'
     | '/api/voice/speak'
     | '/api/voice/transcribe'
     | '/artists'
@@ -221,6 +232,7 @@ export interface FileRouteTypes {
     | '/_app/studio'
     | '/_app/'
     | '/_app/artists/$artistId'
+    | '/api/studio/generate'
     | '/api/voice/speak'
     | '/api/voice/transcribe'
     | '/_app/artists/'
@@ -229,6 +241,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ApiStudioGenerateRoute: typeof ApiStudioGenerateRoute
   ApiVoiceSpeakRoute: typeof ApiVoiceSpeakRoute
   ApiVoiceTranscribeRoute: typeof ApiVoiceTranscribeRoute
 }
@@ -347,6 +360,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiVoiceSpeakRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/studio/generate': {
+      id: '/api/studio/generate'
+      path: '/api/studio/generate'
+      fullPath: '/api/studio/generate'
+      preLoaderRoute: typeof ApiStudioGenerateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app/artists/$artistId': {
       id: '/_app/artists/$artistId'
       path: '/artists/$artistId'
@@ -394,6 +414,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ApiStudioGenerateRoute: ApiStudioGenerateRoute,
   ApiVoiceSpeakRoute: ApiVoiceSpeakRoute,
   ApiVoiceTranscribeRoute: ApiVoiceTranscribeRoute,
 }
