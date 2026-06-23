@@ -459,6 +459,33 @@ function HomePage() {
   );
 }
 
+function PersonalTrackCard({
+  track,
+  queue,
+}: {
+  track: (typeof playableTracks)[number];
+  queue: (typeof playableTracks)[number][];
+}) {
+  return (
+    <div className="group relative flex items-center gap-3 overflow-hidden rounded-2xl border border-border surface-premium p-3 card-hover">
+      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg">
+        <img
+          src={track.cover}
+          alt={track.artist}
+          loading="lazy"
+          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.08]"
+        />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-medium text-foreground">{track.title}</p>
+        <p className="truncate text-xs text-muted-foreground">{track.artist}</p>
+      </div>
+      <LikeButton trackId={track.id} size="sm" />
+      <PlayButton track={track} queue={queue} size="sm" />
+    </div>
+  );
+}
+
 function roundLabel(b: Battle, t: (k: string, v?: Record<string, string | number>) => string) {
   return `${t(`battles.${b.round.phase}`)} · ${t("battles.bracket")} ${b.round.bracket}`;
 }
