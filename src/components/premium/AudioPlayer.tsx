@@ -71,7 +71,7 @@ export function AudioPlayer() {
         <div className="hidden flex-1 items-center justify-end gap-4 lg:flex">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Equalizer active={playing} />
-            <span>{nowPlaying.listeners} listening</span>
+            <span>{t("player.listening", { n: nowPlaying.listeners })}</span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <Volume2 className="h-4 w-4" />
