@@ -50,7 +50,12 @@ function ArtistProfilePage() {
       </Link>
 
       {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl border border-border bg-card">
+      <section
+        ref={spotlight.ref}
+        onPointerMove={spotlight.onPointerMove}
+        className="group relative overflow-hidden rounded-3xl border border-border bg-card"
+      >
+        <span className="spotlight-layer z-10 group-hover:opacity-100" />
         <div className="grid gap-0 md:grid-cols-[0.8fr_1.2fr]">
           <div className="relative aspect-[4/5] md:aspect-auto">
             <img
