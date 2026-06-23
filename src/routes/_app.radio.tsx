@@ -29,14 +29,18 @@ function RadioPage() {
       />
 
       {/* MAIN PLAYER */}
-      <section className="relative overflow-hidden rounded-3xl border border-[color-mix(in_oklab,var(--gold)_25%,transparent)] bg-noir-gradient p-7 sm:p-10">
+      <section className="relative overflow-hidden rounded-3xl border border-[color-mix(in_oklab,var(--gold)_28%,transparent)] bg-noir-gradient p-7 shadow-[var(--shadow-card)] sm:p-10">
         <div className="absolute inset-0 bg-spot" />
+        <div className="pointer-events-none absolute inset-0 opacity-[0.06] [background-image:repeating-linear-gradient(115deg,var(--gold)_0,var(--gold)_1px,transparent_1px,transparent_22px)]" />
         <div className="relative grid gap-8 lg:grid-cols-[auto_1fr] lg:items-center">
-          <img
-            src={artistImages[nowPlaying.track.artistId]}
-            alt={nowPlaying.track.artist}
-            className="h-44 w-44 rounded-2xl object-cover ring-1 ring-[color-mix(in_oklab,var(--gold)_30%,transparent)] sm:h-52 sm:w-52"
-          />
+          <div className="relative shrink-0">
+            <span className="pointer-events-none absolute -inset-3 rounded-[1.6rem] border border-[color-mix(in_oklab,var(--gold)_20%,transparent)]" />
+            <img
+              src={artistImages[nowPlaying.track.artistId]}
+              alt={nowPlaying.track.artist}
+              className="relative h-44 w-44 rounded-2xl object-cover shadow-[var(--shadow-glow)] ring-1 ring-[color-mix(in_oklab,var(--gold)_35%,transparent)] sm:h-56 sm:w-56"
+            />
+          </div>
           <div>
             <div className="flex items-center gap-3">
               <GoldBadge variant="outline">
@@ -44,14 +48,14 @@ function RadioPage() {
               </GoldBadge>
               <StatusChip status="Live" />
             </div>
-            <h2 className="mt-4 font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+            <h2 className="mt-4 font-display text-4xl font-semibold tracking-tight text-foreground sm:text-6xl">
               {nowPlaying.track.title}
             </h2>
-            <p className="mt-1 text-lg text-muted-foreground">{nowPlaying.track.artist}</p>
-            <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+            <p className="mt-2 text-lg text-muted-foreground">{nowPlaying.track.artist}</p>
+            <div className="mt-5 flex items-center gap-2 text-sm text-muted-foreground">
               <Equalizer /> {nowPlaying.listeners} listening · live votes shaping rotation
             </div>
-            <div className="mt-6 flex flex-wrap items-center gap-3">
+            <div className="mt-7 flex flex-wrap items-center gap-3">
               <Button variant="gold" size="lg">
                 <Play className="h-4 w-4" /> Tune in
               </Button>
