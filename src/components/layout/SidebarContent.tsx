@@ -14,8 +14,8 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <div className="relative flex h-full flex-col bg-sidebar">
-      {/* faint gold spine on the right edge */}
-      <span className="pointer-events-none absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-[color-mix(in_oklab,var(--gold)_28%,transparent)] to-transparent" />
+      {/* whisper-thin gold spine on the right edge */}
+      <span className="pointer-events-none absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-[color-mix(in_oklab,var(--gold)_16%,transparent)] to-transparent" />
 
       <div className="px-5 pb-5 pt-6">
         <Link to="/" onClick={onNavigate}>
