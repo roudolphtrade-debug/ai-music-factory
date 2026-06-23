@@ -70,7 +70,7 @@ export function PlayButton({
   return (
     <button
       type="button"
-      onClick={() => toggle(track, queue)}
+      onClick={onClick}
       aria-label={label ?? (playing ? "Pause" : "Play")}
       className={cn(
         "relative grid shrink-0 place-items-center rounded-full transition-all duration-300",

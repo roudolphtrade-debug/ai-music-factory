@@ -10,6 +10,7 @@ import {
   MessagesSquare,
   BarChart3,
   Settings,
+  Library,
   type LucideIcon,
 } from "lucide-react";
 
