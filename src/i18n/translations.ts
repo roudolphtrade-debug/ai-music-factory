@@ -444,6 +444,9 @@ const fr: Dict = {
     continueListening: "Reprendre l'écoute",
     yourFavorites: "Vos favoris",
     seeLibrary: "Voir la bibliothèque",
+    share: "Partager",
+    shareCopied: "Lien copié dans le presse-papiers",
+    shareFailed: "Impossible de partager ce titre",
   },
   onboarding: {
     eyebrow: "Bienvenue",
@@ -897,6 +900,9 @@ const en: Dict = {
     continueListening: "Continue listening",
     yourFavorites: "Your favorites",
     seeLibrary: "Open library",
+    share: "Share",
+    shareCopied: "Link copied to clipboard",
+    shareFailed: "Couldn't share this track",
   },
   onboarding: {
     eyebrow: "Welcome",
@@ -1350,6 +1356,9 @@ const es: Dict = {
     continueListening: "Seguir escuchando",
     yourFavorites: "Tus favoritos",
     seeLibrary: "Abrir biblioteca",
+    share: "Compartir",
+    shareCopied: "Enlace copiado al portapapeles",
+    shareFailed: "No se pudo compartir este tema",
   },
   onboarding: {
     eyebrow: "Bienvenido",
