@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Play, Radio as RadioIcon, ListMusic, Heart } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ListMusic } from "lucide-react";
 import { SectionHeading } from "@/components/premium/SectionHeading";
-import { StatusChip, GoldBadge } from "@/components/premium/Chips";
+import { StatusChip } from "@/components/premium/Chips";
 import { VoteButton } from "@/components/premium/VoteButton";
-import { Equalizer } from "@/components/premium/Equalizer";
-import { nowPlaying, tracks, radioStations, moods, artistImages, chartGenres } from "@/data/mock";
+import { NowPlayingPlayer } from "@/components/audio/NowPlayingPlayer";
+import { Playlist } from "@/components/audio/Playlist";
+import { radioQueue } from "@/audio/tracks";
+import { nowPlaying, radioStations, moods, chartGenres } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
 
 export const Route = createFileRoute("/_app/radio")({
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/_app/radio")({
 
 function RadioPage() {
   const { t } = useI18n();
-  const queue = tracks.slice(0, 6);
+  const queue = radioQueue.slice(0, 6);
 
   return (
     <div className="space-y-10">
@@ -31,44 +32,7 @@ function RadioPage() {
       />
 
       {/* MAIN PLAYER */}
-      <section className="relative overflow-hidden rounded-3xl border border-[color-mix(in_oklab,var(--gold)_28%,transparent)] bg-noir-gradient p-7 shadow-[var(--shadow-card)] sm:p-10">
-        <div className="absolute inset-0 bg-spot" />
-        <div className="pointer-events-none absolute inset-0 opacity-[0.06] [background-image:repeating-linear-gradient(115deg,var(--gold)_0,var(--gold)_1px,transparent_1px,transparent_22px)]" />
-        <div className="relative grid gap-8 lg:grid-cols-[auto_1fr] lg:items-center">
-          <div className="relative shrink-0">
-            <span className="pointer-events-none absolute -inset-3 rounded-[1.6rem] border border-[color-mix(in_oklab,var(--gold)_20%,transparent)]" />
-            <img
-              src={artistImages[nowPlaying.track.artistId]}
-              alt={nowPlaying.track.artist}
-              className="relative h-44 w-44 rounded-2xl object-cover shadow-[var(--shadow-glow)] ring-1 ring-[color-mix(in_oklab,var(--gold)_35%,transparent)] sm:h-56 sm:w-56"
-            />
-          </div>
-          <div>
-            <div className="flex items-center gap-3">
-              <GoldBadge variant="outline">
-                <RadioIcon className="h-3.5 w-3.5" /> {nowPlaying.station}
-              </GoldBadge>
-              <StatusChip status="Live" />
-            </div>
-            <h2 className="mt-4 font-display text-4xl font-semibold tracking-tight text-foreground sm:text-6xl">
-              {nowPlaying.track.title}
-            </h2>
-            <p className="mt-2 text-lg text-muted-foreground">{nowPlaying.track.artist}</p>
-            <div className="mt-5 flex items-center gap-2 text-sm text-muted-foreground">
-              <Equalizer /> {nowPlaying.listeners} {t("radio.votesShaping")}
-            </div>
-            <div className="mt-7 flex flex-wrap items-center gap-3">
-              <Button variant="gold" size="lg">
-                <Play className="h-4 w-4" /> {t("radio.tuneIn")}
-              </Button>
-              <VoteButton initialVotes={3420} />
-              <Button variant="ghost-gold" size="lg">
-                <Heart className="h-4 w-4" /> {t("radio.save")}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
+      <NowPlayingPlayer station={nowPlaying.station} listeners={nowPlaying.listeners} queue={radioQueue} />
 
       {/* GENRES */}
       <section className="space-y-4">
@@ -104,30 +68,11 @@ function RadioPage() {
         {/* QUEUE / TOP ROTATION */}
         <div className="space-y-4 lg:col-span-2">
           <SectionHeading eyebrow={t("radio.onAir")} title={t("radio.topRotation")} />
-          <div className="overflow-hidden rounded-2xl border border-border bg-card">
-            {queue.map((track, i) => (
-              <div
-                key={track.id}
-                className={`group flex items-center gap-4 px-4 py-3 transition-colors hover:bg-secondary/40 ${
-                  i !== queue.length - 1 ? "border-b border-border/60" : ""
-                }`}
-              >
-                <span className="w-5 text-center font-display text-base font-semibold text-muted-foreground">
-                  {i + 1}
-                </span>
-                <img
-                  src={artistImages[track.artistId]}
-                  alt={track.artist}
-                  className="h-11 w-11 rounded-lg object-cover ring-1 ring-border"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-foreground">{track.title}</p>
-                  <p className="truncate text-xs text-muted-foreground">{track.artist} · {track.genre}</p>
-                </div>
-                <VoteButton initialVotes={1200 + i * 240} size="sm" />
-              </div>
-            ))}
-          </div>
+          <Playlist
+            tracks={queue}
+            subtitleFor={(track) => `${track.artist}`}
+            trailing={(track, i) => <VoteButton initialVotes={1200 + i * 240} size="sm" />}
+          />
         </div>
 
         {/* STATIONS */}

@@ -6,12 +6,13 @@ import {
   Users,
   Sparkles,
   Building2,
-  Play,
   ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GoldBadge, ReputationChip, StatusChip } from "@/components/premium/Chips";
 import { VoteButton } from "@/components/premium/VoteButton";
+import { Playlist } from "@/components/audio/Playlist";
+import { releasesFor } from "@/audio/tracks";
 import { getArtist, artistImages, tracks } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
 
@@ -32,6 +33,7 @@ function ArtistProfilePage() {
   if (!artist) return <ArtistNotFound />;
 
   const releases = tracks.filter((track) => track.artistId === artist.id);
+  const playableReleases = releasesFor(artist.id);
 
   return (
     <div className="space-y-8">
@@ -109,29 +111,26 @@ function ArtistProfilePage() {
         {/* RELEASES */}
         <div className="space-y-4 lg:col-span-2">
           <h2 className="font-display text-2xl font-semibold text-foreground">{t("artistProfile.releases")}</h2>
-          <div className="overflow-hidden rounded-2xl border border-border bg-card">
-            {releases.map((track, i) => (
-              <div
-                key={track.id}
-                className={`group flex items-center gap-4 px-4 py-3 transition-colors hover:bg-secondary/40 ${
-                  i !== releases.length - 1 ? "border-b border-border/60" : ""
-                }`}
-              >
-                <button className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-secondary/60 text-gold transition-colors group-hover:bg-gold-gradient group-hover:text-primary-foreground">
-                  <Play className="h-4 w-4 translate-x-0.5" />
-                </button>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-foreground">{track.title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {track.genre} · {t(`moods.${track.mood}`)}
-                  </p>
+          <Playlist
+            tracks={playableReleases}
+            subtitleFor={(p) => {
+              const meta = releases.find((r) => r.id === p.id);
+              return meta ? `${meta.genre} · ${t(`moods.${meta.mood}`)}` : p.artist;
+            }}
+            trailing={(p) => {
+              const meta = releases.find((r) => r.id === p.id);
+              return (
+                <div className="flex items-center gap-4">
+                  <span className="hidden text-xs text-muted-foreground sm:block">
+                    {meta?.plays} {t("artistProfile.plays")}
+                  </span>
+                  <span className="text-xs tabular-nums text-muted-foreground">{p.duration}</span>
                 </div>
-                <span className="hidden text-xs text-muted-foreground sm:block">{track.plays} {t("artistProfile.plays")}</span>
-                <span className="text-xs tabular-nums text-muted-foreground">{track.duration}</span>
-              </div>
-            ))}
-          </div>
+              );
+            }}
+          />
         </div>
+
 
         {/* SIDE: bio, badges, community */}
         <div className="space-y-6">

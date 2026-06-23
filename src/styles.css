@@ -315,3 +315,43 @@
 @utility animate-pulse-gold {
   animation: pulse-gold 2s ease-in-out infinite;
 }
+
+/* ---- Cinematic intro overlay ---- */
+@keyframes introIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes introOut {
+  0% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}
+@keyframes introLogo {
+  0% { opacity: 0; transform: scale(1.12); filter: brightness(0.4); }
+  45% { opacity: 1; filter: brightness(1); }
+  100% { opacity: 1; transform: scale(1); filter: brightness(1); }
+}
+@keyframes introSheen {
+  0% { transform: translateX(-120%); opacity: 0; }
+  35% { opacity: 1; }
+  100% { transform: translateX(120%); opacity: 0; }
+}
+@keyframes introBar {
+  0% { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+@utility animate-intro-in {
+  animation: introIn 0.6s ease forwards;
+}
+@utility animate-intro-out {
+  animation: introOut 0.7s ease forwards;
+}
+@utility animate-intro-logo {
+  animation: introLogo 2.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@utility animate-intro-sheen {
+  animation: introSheen 2s ease-in-out 0.8s 1 both;
+}
+@utility animate-intro-bar {
+  animation: introBar 2.6s ease-in-out both;
+}

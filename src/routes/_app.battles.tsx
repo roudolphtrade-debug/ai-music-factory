@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Swords, Trophy, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/premium/SectionHeading";
-import { StatusChip, GoldBadge } from "@/components/premium/Chips";
-import { VoteButton } from "@/components/premium/VoteButton";
-import { battles, battleHistory, artistImages } from "@/data/mock";
+import { GoldBadge } from "@/components/premium/Chips";
+import { BattleAudioCard } from "@/components/audio/BattleAudioCard";
+import { battles, battleHistory } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
 
 export const Route = createFileRoute("/_app/battles")({
@@ -37,48 +37,12 @@ function BattlesPage() {
       <section className="space-y-5">
         <SectionHeading eyebrow={t("battles.now")} title={t("battles.liveUpcoming")} />
         <div className="grid gap-5 lg:grid-cols-2">
-          {battles.map((b) => {
-            const total = b.a.votes + b.b.votes || 1;
-            const aPct = Math.round((b.a.votes / total) * 100);
-            const round = `${t(`battles.${b.round.phase}`)} · ${t("battles.bracket")} ${b.round.bracket}`;
-            const ends = t(b.ends.key === "left" ? "time.left" : "time.startsIn", { t: b.ends.text });
-            return (
-              <article
-                key={b.id}
-                className="overflow-hidden rounded-2xl border border-border bg-noir-gradient p-6"
-              >
-                <div className="mb-5 flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">{round}</span>
-                  <StatusChip status={b.status} />
-                </div>
-
-                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-                  <Contender side={b.a} align="left" live={b.status === "Live"} />
-                  <span className="font-display text-2xl font-semibold text-muted-foreground">
-                    {t("common.vs")}
-                  </span>
-                  <Contender side={b.b} align="right" live={b.status === "Live"} />
-                </div>
-
-                {b.status === "Live" && (
-                  <div className="mt-5">
-                    <div className="flex h-2 overflow-hidden rounded-full bg-secondary">
-                      <div className="bg-gold-gradient" style={{ width: `${aPct}%` }} />
-                      <div className="bg-foreground/30" style={{ width: `${100 - aPct}%` }} />
-                    </div>
-                    <div className="mt-1.5 flex justify-between text-xs text-muted-foreground">
-                      <span>{aPct}%</span>
-                      <span>{100 - aPct}%</span>
-                    </div>
-                  </div>
-                )}
-
-                <p className="mt-4 text-center text-xs text-muted-foreground">{ends}</p>
-              </article>
-            );
-          })}
+          {battles.map((b, i) => (
+            <BattleAudioCard key={b.id} battle={b} index={i} />
+          ))}
         </div>
       </section>
+
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* BRACKET / RANKING */}
@@ -138,42 +102,6 @@ function BattlesPage() {
           </div>
         </section>
       </div>
-    </div>
-  );
-}
-
-function Contender({
-  side,
-  align,
-  live,
-}: {
-  side: { artistId: keyof typeof artistImages; name: string; track: string; votes: number };
-  align: "left" | "right";
-  live: boolean;
-}) {
-  const { t } = useI18n();
-  return (
-    <div
-      className={`flex flex-col items-center gap-3 text-center ${
-        align === "right" ? "sm:items-end sm:text-right" : "sm:items-start sm:text-left"
-      }`}
-    >
-      <img
-        src={artistImages[side.artistId]}
-        alt={side.name}
-        className="h-20 w-20 rounded-2xl object-cover ring-1 ring-border"
-      />
-      <div>
-        <p className="font-semibold text-foreground">{side.name}</p>
-        <p className="text-xs text-muted-foreground">{side.track}</p>
-      </div>
-      {live ? (
-        <VoteButton initialVotes={side.votes} size="sm" />
-      ) : (
-        <span className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground">
-          {t("common.votingSoon")}
-        </span>
-      )}
     </div>
   );
 }
