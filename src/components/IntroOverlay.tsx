@@ -50,7 +50,7 @@ export function IntroOverlay() {
 
       <div className="relative flex flex-col items-center">
         <img
-          src={logoAsset.url}
+          src={introLogo}
           alt="Ai Music Factory"
           className="w-[78vw] max-w-[440px] animate-intro-logo select-none object-contain"
           draggable={false}
