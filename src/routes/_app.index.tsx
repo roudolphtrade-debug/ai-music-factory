@@ -110,11 +110,16 @@ function HomePage() {
               <StatusChip status="Live" />
             </div>
             <div className="mt-4 flex items-center gap-4">
-              <img
-                src={artistImages[nowPlaying.track.artistId]}
-                alt={nowPlaying.track.artist}
-                className="h-20 w-20 rounded-xl object-cover ring-1 ring-border"
-              />
+              <div className="relative">
+                <img
+                  src={artistImages[nowPlaying.track.artistId]}
+                  alt={nowPlaying.track.artist}
+                  className="h-20 w-20 rounded-xl object-cover ring-1 ring-border"
+                />
+                <div className="absolute inset-0 grid place-items-center">
+                  <PlayButton track={playableById[nowPlaying.track.id]} queue={radioQueue} size="sm" />
+                </div>
+              </div>
               <div className="min-w-0">
                 <p className="truncate font-display text-xl font-semibold text-foreground">
                   {nowPlaying.track.title}
