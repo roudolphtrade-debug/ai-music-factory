@@ -7,6 +7,7 @@ import { LikeButton } from "@/components/premium/LikeButton";
 import { Equalizer } from "@/components/premium/Equalizer";
 import { usePlayer } from "@/audio/PlayerProvider";
 import type { PlayableTrack } from "@/audio/tracks";
+import { useGeneratedDrafts } from "@/library/GeneratedDraftsProvider";
 import { artistImages, moods, type ArtistId } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
 
@@ -35,6 +36,7 @@ function decodeLyrics(b64: string | null): string {
 export function StudioComposer() {
   const { t } = useI18n();
   const { play } = usePlayer();
+  const { addDraft } = useGeneratedDrafts();
 
   const [prompt, setPrompt] = useState(
     "Cinematic ambient pop with golden-hour pads, warm analogue tape saturation, and a slow euphoric build toward a wordless choir.",
@@ -47,7 +49,6 @@ export function StudioComposer() {
   const [result, setResult] = useState<GenResult | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
 
-  const urlRef = useRef<string | null>(null);
   const stepTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const phaseLabels = t("studio.gen.phases").split("|");
 
@@ -66,13 +67,6 @@ export function StudioComposer() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
-
-  useEffect(
-    () => () => {
-      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
-    },
-    [],
-  );
 
   const generate = async () => {
     const clean = prompt.trim();
@@ -102,22 +96,38 @@ export function StudioComposer() {
       }
       const lyrics = decodeLyrics(res.headers.get("X-Lyrics"));
       const blob = await res.blob();
-      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
-      const url = URL.createObjectURL(blob);
-      urlRef.current = url;
 
+      const id = `gen-${Date.now()}`;
       const title = clean.split(/[.,—-]/)[0].trim().slice(0, 42) || t("studio.gen.newTrack");
+      const duration = "0:20";
+
+      // Persist the draft (audio Blob + metadata) — provider owns the object URL.
+      const draft = await addDraft(
+        {
+          id,
+          title,
+          prompt: clean,
+          genre,
+          mood,
+          voice,
+          lyrics,
+          duration,
+          createdAt: Date.now(),
+        },
+        blob,
+      );
+
       const track: PlayableTrack = {
-        id: `gen-${Date.now()}`,
+        id,
         title,
         artist: `${genre} · ${t(`studio.voices.${voice}`)}`,
         artistId: GEN_COVER,
-        src: url,
+        src: draft.url,
         cover: artistImages[GEN_COVER],
-        duration: "0:20",
+        duration,
       };
 
-      setResult({ track, lyrics, url });
+      setResult({ track, lyrics, url: draft.url });
       setPhase("done");
       play(track);
       toast.success(t("studio.gen.saved"));

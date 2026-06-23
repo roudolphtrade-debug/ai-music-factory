@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/premium/SectionHeading";
 import { StatusChip, GoldBadge } from "@/components/premium/Chips";
 import { StudioComposer } from "@/components/premium/StudioComposer";
+import { GeneratedDraftsSection } from "@/components/premium/GeneratedDraftsSection";
 import { PlayButton } from "@/components/audio/PlayButton";
 import { makePlayable, type PlayableTrack } from "@/audio/tracks";
 import { usePlayer } from "@/audio/PlayerProvider";
@@ -74,6 +75,8 @@ function StudioPage() {
         </div>
       </section>
 
+      {/* GENERATED DRAFTS (persisted) */}
+      <GeneratedDraftsSection />
 
       {/* PROJECTS */}
       <section className="space-y-5">
