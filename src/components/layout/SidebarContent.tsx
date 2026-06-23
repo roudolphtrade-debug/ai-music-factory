@@ -3,9 +3,11 @@ import { Crown } from "lucide-react";
 import { navSections } from "./nav-config";
 import { Logo } from "./Logo";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/i18n/context";
 
 export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { t } = useI18n();
 
   const isActive = (to: string, exact?: boolean) =>
     exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
