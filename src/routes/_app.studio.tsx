@@ -13,8 +13,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/premium/SectionHeading";
 import { StatusChip, GoldBadge } from "@/components/premium/Chips";
-import { projects, moods } from "@/data/mock";
+import { PlayButton } from "@/components/audio/PlayButton";
+import { makePlayable, type PlayableTrack } from "@/audio/tracks";
+import { usePlayer } from "@/audio/PlayerProvider";
+import { projects, moods, type ArtistId } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
+
+const PROJECT_COVERS: ArtistId[] = ["art-1", "art-2", "art-5", "art-4"];
 
 export const Route = createFileRoute("/_app/studio")({
   head: () => ({
