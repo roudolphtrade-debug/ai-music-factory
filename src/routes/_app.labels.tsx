@@ -5,6 +5,7 @@ import { SectionHeading } from "@/components/premium/SectionHeading";
 import { StatModule } from "@/components/premium/StatModule";
 import { LabelCard } from "@/components/premium/LabelCard";
 import { labels } from "@/data/mock";
+import { useI18n } from "@/i18n/context";
 
 export const Route = createFileRoute("/_app/labels")({
   head: () => ({
@@ -17,28 +18,29 @@ export const Route = createFileRoute("/_app/labels")({
 });
 
 function LabelsPage() {
+  const { t } = useI18n();
   return (
     <div className="space-y-10">
       <SectionHeading
-        eyebrow="Houses"
-        title="Virtual labels"
-        description="Each label is a house — a curated identity with its own roster, sound and prestige."
+        eyebrow={t("labels.eyebrow")}
+        title={t("labels.title")}
+        description={t("labels.desc")}
         action={
           <Button variant="gold" size="lg">
-            <Plus className="h-4 w-4" /> Create a label
+            <Plus className="h-4 w-4" /> {t("labels.createLabel")}
           </Button>
         }
       />
 
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatModule label="Active labels" value="1,284" delta="+18 this week" icon={<Building2 className="h-5 w-5" />} />
-        <StatModule label="Avg. roster" value="9.2" delta="artists per house" />
-        <StatModule label="Top house MRR" value="$61.5K" delta="Goldhouse Collective" />
-        <StatModule label="Signed artists" value="11,802" delta="across all houses" />
+        <StatModule label={t("labels.activeLabels")} value="1,284" delta={t("home.stats.plusThisWeek", { n: "18" })} icon={<Building2 className="h-5 w-5" />} />
+        <StatModule label={t("labels.avgRoster")} value="9.2" delta={t("labels.avgRosterDelta")} />
+        <StatModule label={t("labels.topMrr")} value="$61.5K" delta="Goldhouse Collective" />
+        <StatModule label={t("labels.signedArtists")} value="11,802" delta={t("labels.signedDelta")} />
       </section>
 
       <section className="space-y-5">
-        <SectionHeading eyebrow="Featured" title="Premium houses" />
+        <SectionHeading eyebrow={t("labels.featured")} title={t("labels.premiumHouses")} />
         <div className="grid gap-5 md:grid-cols-2">
           {labels.map((l) => (
             <LabelCard key={l.id} label={l} />
