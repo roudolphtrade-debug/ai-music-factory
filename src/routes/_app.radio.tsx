@@ -25,6 +25,16 @@ export const Route = createFileRoute("/_app/radio")({
 function RadioPage() {
   const { t } = useI18n();
   const queue = radioQueue.slice(0, 6);
+  const [genre, setGenre] = useState<string | null>(null);
+  const [mood, setMood] = useState<string | null>(null);
+
+  const chipBase =
+    "rounded-full border px-4 py-2 text-sm transition-all duration-200 active:scale-[0.96] motion-reduce:active:scale-100";
+  const chipActive =
+    "border-transparent bg-gold-gradient font-medium text-primary-foreground shadow-[0_8px_24px_-14px_var(--gold)]";
+  const chipIdle =
+    "border-border text-muted-foreground hover:border-[color-mix(in_oklab,var(--gold)_40%,transparent)] hover:text-foreground";
+
 
   return (
     <div className="space-y-10">
