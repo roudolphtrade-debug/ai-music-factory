@@ -3,6 +3,7 @@ import { Crown, Trophy } from "lucide-react";
 import { SectionHeading } from "@/components/premium/SectionHeading";
 import { GoldBadge } from "@/components/premium/Chips";
 import { hallOfFame, artistImages } from "@/data/mock";
+import { useI18n } from "@/i18n/context";
 
 export const Route = createFileRoute("/_app/hall-of-fame")({
   head: () => ({
@@ -14,13 +15,23 @@ export const Route = createFileRoute("/_app/hall-of-fame")({
   component: HallOfFamePage,
 });
 
+const laureates = [
+  { season: 6, artist: "Seraphine 9", award: "Artist of the Year" },
+  { season: 5, artist: "ORACLE", award: "Underground Icon" },
+  { season: 4, artist: "MIDAS PRIME", award: "Master of Craft" },
+  { season: 3, artist: "SØL Aurelius", award: "Radio Favorite" },
+];
+
 function HallOfFamePage() {
+  const { t } = useI18n();
+  const top = hallOfFame[0];
+
   return (
     <div className="space-y-10">
       <SectionHeading
-        eyebrow="Prestige"
-        title="Hall of Fame"
-        description="The defining performances of the season — enshrined in gold."
+        eyebrow={t("hallOfFame.eyebrow")}
+        title={t("hallOfFame.title")}
+        description={t("hallOfFame.desc")}
       />
 
       {/* CROWN JEWEL */}
@@ -29,21 +40,21 @@ function HallOfFamePage() {
         <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--gold)_22%,transparent),transparent_70%)]" />
         <div className="relative grid gap-8 md:grid-cols-[auto_1fr] md:items-center">
           <img
-            src={artistImages[hallOfFame[0].artistId]}
-            alt={hallOfFame[0].winner}
+            src={artistImages[top.artistId]}
+            alt={top.winner}
             className="h-40 w-40 rounded-2xl object-cover ring-1 ring-[color-mix(in_oklab,var(--gold)_35%,transparent)] sm:h-48 sm:w-48"
           />
           <div>
             <div className="flex items-center gap-2 text-gold">
               <Crown className="h-5 w-5" />
-              <span className="eyebrow">{hallOfFame[0].crown}</span>
+              <span className="eyebrow">{t(`hallOfFame.items.${top.id}.crown`)}</span>
             </div>
             <h2 className="mt-3 font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-              {hallOfFame[0].winner}
+              {top.winner}
             </h2>
-            <p className="mt-2 text-base text-muted-foreground">{hallOfFame[0].note}</p>
+            <p className="mt-2 text-base text-muted-foreground">{t(`hallOfFame.items.${top.id}.note`)}</p>
             <GoldBadge variant="solid" className="mt-5">
-              {hallOfFame[0].title}
+              {t(`hallOfFame.items.${top.id}.title`)}
             </GoldBadge>
           </div>
         </div>
@@ -66,36 +77,33 @@ function HallOfFamePage() {
               <div>
                 <div className="flex items-center gap-1.5 text-gold">
                   <Trophy className="h-3.5 w-3.5" />
-                  <span className="eyebrow">{h.crown}</span>
+                  <span className="eyebrow">{t(`hallOfFame.items.${h.id}.crown`)}</span>
                 </div>
                 <p className="mt-1 font-display text-xl font-semibold text-foreground">{h.winner}</p>
               </div>
             </div>
-            <p className="relative mt-4 text-xs text-muted-foreground">{h.title}</p>
-            <p className="relative mt-1 text-sm text-muted-foreground">{h.note}</p>
+            <p className="relative mt-4 text-xs text-muted-foreground">{t(`hallOfFame.items.${h.id}.title`)}</p>
+            <p className="relative mt-1 text-sm text-muted-foreground">{t(`hallOfFame.items.${h.id}.note`)}</p>
           </article>
         ))}
       </section>
 
       {/* LEGENDS LEDGER */}
       <section className="rounded-2xl border border-border bg-card p-6">
-        <SectionHeading eyebrow="Ledger" title="Past laureates" />
+        <SectionHeading eyebrow={t("hallOfFame.ledger")} title={t("hallOfFame.pastLaureates")} />
         <div className="mt-4 divide-y divide-border/60">
-          {[
-            { season: "Season 6", artist: "Seraphine 9", title: "Artist of the Year" },
-            { season: "Season 5", artist: "ORACLE", title: "Underground Icon" },
-            { season: "Season 4", artist: "MIDAS PRIME", title: "Master of Craft" },
-            { season: "Season 3", artist: "SØL Aurelius", title: "Radio Favorite" },
-          ].map((l) => (
+          {laureates.map((l) => (
             <div key={l.season} className="flex items-center gap-4 py-3">
-              <span className="w-24 text-xs text-muted-foreground">{l.season}</span>
+              <span className="w-24 text-xs text-muted-foreground">
+                {t("hallOfFame.season", { n: l.season })}
+              </span>
               <Link
                 to="/artists"
                 className="flex-1 font-medium text-foreground transition-colors hover:text-gold"
               >
                 {l.artist}
               </Link>
-              <GoldBadge variant="outline">{l.title}</GoldBadge>
+              <GoldBadge variant="outline">{t(`hallOfFame.awards.${l.award}`)}</GoldBadge>
             </div>
           ))}
         </div>
