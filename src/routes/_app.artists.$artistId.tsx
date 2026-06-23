@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { GoldBadge, ReputationChip, StatusChip } from "@/components/premium/Chips";
 import { VoteButton } from "@/components/premium/VoteButton";
 import { getArtist, artistImages, tracks } from "@/data/mock";
+import { useI18n } from "@/i18n/context";
 
 export const Route = createFileRoute("/_app/artists/$artistId")({
   head: () => ({
@@ -23,13 +24,14 @@ export const Route = createFileRoute("/_app/artists/$artistId")({
 });
 
 function ArtistProfilePage() {
+  const { t } = useI18n();
   const { artistId } = Route.useParams();
   const artist = getArtist(artistId);
   const [following, setFollowing] = useState(false);
 
   if (!artist) return <ArtistNotFound />;
 
-  const releases = tracks.filter((t) => t.artistId === artist.id);
+  const releases = tracks.filter((track) => track.artistId === artist.id);
 
   return (
     <div className="space-y-8">
@@ -37,7 +39,7 @@ function ArtistProfilePage() {
         to="/artists"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
-        <ArrowLeft className="h-4 w-4" /> All artists
+        <ArrowLeft className="h-4 w-4" /> {t("artistProfile.allArtists")}
       </Link>
 
       {/* HERO */}
@@ -83,12 +85,12 @@ function ArtistProfilePage() {
                 onClick={() => setFollowing((f) => !f)}
               >
                 {following ? <Check className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-                {following ? "Following" : "Follow"}
+                {following ? t("artistProfile.following") : t("artistProfile.follow")}
               </Button>
               <VoteButton initialVotes={artist.reputation > 9 ? 12400 : 8900} />
               <Button variant="ghost-gold">
                 <Users className="h-4 w-4" />
-                Join fan circle
+                {t("artistProfile.joinFanCircle")}
               </Button>
             </div>
           </div>
@@ -97,20 +99,20 @@ function ArtistProfilePage() {
 
       {/* STATS */}
       <section className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <ProfileStat label="Monthly listeners" value={artist.monthlyListeners} />
-        <ProfileStat label="Followers" value={artist.followers} />
-        <ProfileStat label="Tracks" value={`${artist.tracks}`} />
-        <ProfileStat label="Reputation" value={artist.reputation.toFixed(1)} />
+        <ProfileStat label={t("artistProfile.monthlyListeners")} value={artist.monthlyListeners} />
+        <ProfileStat label={t("artistProfile.followers")} value={artist.followers} />
+        <ProfileStat label={t("artistProfile.tracks")} value={`${artist.tracks}`} />
+        <ProfileStat label={t("artistProfile.reputation")} value={artist.reputation.toFixed(1)} />
       </section>
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* RELEASES */}
         <div className="space-y-4 lg:col-span-2">
-          <h2 className="font-display text-2xl font-semibold text-foreground">Releases</h2>
+          <h2 className="font-display text-2xl font-semibold text-foreground">{t("artistProfile.releases")}</h2>
           <div className="overflow-hidden rounded-2xl border border-border bg-card">
-            {releases.map((t, i) => (
+            {releases.map((track, i) => (
               <div
-                key={t.id}
+                key={track.id}
                 className={`group flex items-center gap-4 px-4 py-3 transition-colors hover:bg-secondary/40 ${
                   i !== releases.length - 1 ? "border-b border-border/60" : ""
                 }`}
@@ -119,13 +121,13 @@ function ArtistProfilePage() {
                   <Play className="h-4 w-4 translate-x-0.5" />
                 </button>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-foreground">{t.title}</p>
+                  <p className="truncate font-medium text-foreground">{track.title}</p>
                   <p className="text-xs text-muted-foreground">
-                    {t.genre} · {t.mood}
+                    {track.genre} · {t(`moods.${track.mood}`)}
                   </p>
                 </div>
-                <span className="hidden text-xs text-muted-foreground sm:block">{t.plays} plays</span>
-                <span className="text-xs tabular-nums text-muted-foreground">{t.duration}</span>
+                <span className="hidden text-xs text-muted-foreground sm:block">{track.plays} {t("artistProfile.plays")}</span>
+                <span className="text-xs tabular-nums text-muted-foreground">{track.duration}</span>
               </div>
             ))}
           </div>
@@ -134,7 +136,7 @@ function ArtistProfilePage() {
         {/* SIDE: bio, badges, community */}
         <div className="space-y-6">
           <div className="rounded-2xl border border-border bg-card p-6">
-            <h3 className="font-display text-xl font-semibold text-foreground">About</h3>
+            <h3 className="font-display text-xl font-semibold text-foreground">{t("artistProfile.about")}</h3>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{artist.bio}</p>
             <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
               <Sparkles className="h-3.5 w-3.5 text-gold" /> {artist.aesthetic}
@@ -142,7 +144,7 @@ function ArtistProfilePage() {
           </div>
 
           <div className="rounded-2xl border border-border bg-card p-6">
-            <h3 className="font-display text-xl font-semibold text-foreground">Badges</h3>
+            <h3 className="font-display text-xl font-semibold text-foreground">{t("artistProfile.badges")}</h3>
             <div className="mt-3 flex flex-wrap gap-2">
               {artist.badges.map((b) => (
                 <GoldBadge key={b}>{b}</GoldBadge>
@@ -152,15 +154,14 @@ function ArtistProfilePage() {
 
           <div className="rounded-2xl border border-border bg-card p-6">
             <div className="flex items-center justify-between">
-              <h3 className="font-display text-xl font-semibold text-foreground">Community</h3>
+              <h3 className="font-display text-xl font-semibold text-foreground">{t("artistProfile.community")}</h3>
               <StatusChip status="Live" />
             </div>
             <p className="mt-3 text-sm text-muted-foreground">
-              <span className="text-foreground">{artist.followers}</span> followers ·{" "}
-              <span className="text-foreground">4.2K</span> in the fan circle.
+              {t("artistProfile.followersLine", { f: artist.followers, c: "4.2K" })}
             </p>
             <Button variant="ghost-gold" className="mt-4 w-full">
-              Enter community
+              {t("artistProfile.enterCommunity")}
             </Button>
           </div>
         </div>
@@ -179,19 +180,18 @@ function ProfileStat({ label, value }: { label: string; value: string }) {
 }
 
 function ArtistNotFound() {
+  const { t } = useI18n();
   const router = useRouter();
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/40 px-6 py-20 text-center">
-      <h2 className="font-display text-2xl font-semibold text-foreground">Artist not found</h2>
-      <p className="mt-2 text-sm text-muted-foreground">
-        This virtual identity may have been retired or never existed.
-      </p>
+      <h2 className="font-display text-2xl font-semibold text-foreground">{t("artistProfile.notFoundTitle")}</h2>
+      <p className="mt-2 text-sm text-muted-foreground">{t("artistProfile.notFoundDesc")}</p>
       <div className="mt-5 flex gap-3">
         <Button variant="ghost-gold" onClick={() => router.history.back()}>
-          Go back
+          {t("artistProfile.goBack")}
         </Button>
         <Button asChild variant="gold">
-          <Link to="/artists">Browse artists</Link>
+          <Link to="/artists">{t("artistProfile.browse")}</Link>
         </Button>
       </div>
     </div>
