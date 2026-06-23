@@ -75,6 +75,8 @@ function StudioPage() {
         </div>
       </section>
 
+      {/* GENERATED DRAFTS (persisted) */}
+      <GeneratedDraftsSection />
 
       {/* PROJECTS */}
       <section className="space-y-5">
