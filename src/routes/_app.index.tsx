@@ -9,7 +9,12 @@ import {
   Trophy,
   Calendar,
   Radio,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  ListMusic,
 } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/premium/SectionHeading";
 import { StatModule } from "@/components/premium/StatModule";
@@ -18,6 +23,8 @@ import { RankingRow } from "@/components/premium/RankingRow";
 import { GoldBadge, StatusChip } from "@/components/premium/Chips";
 import { VoteButton } from "@/components/premium/VoteButton";
 import { Equalizer } from "@/components/premium/Equalizer";
+import { useI18n } from "@/i18n/context";
+import { cn } from "@/lib/utils";
 import {
   platformStats,
   topCreators,
@@ -27,6 +34,11 @@ import {
   activityFeed,
   hallOfFame,
   artistImages,
+  globalCharts,
+  chartGenres,
+  chartRegions,
+  type ChartRegion,
+  type Battle,
 } from "@/data/mock";
 
 export const Route = createFileRoute("/_app/")({
@@ -36,7 +48,7 @@ export const Route = createFileRoute("/_app/")({
       {
         name: "description",
         content:
-          "The control room for AI-native artists: live activity, top creators, trending virtual artists, battles and AI radio.",
+          "The control room for AI-native artists: live charts, top creators, trending virtual artists, battles and AI radio.",
       },
     ],
   }),
@@ -51,7 +63,10 @@ const statIcons = [
 ];
 
 function HomePage() {
+  const { t, relTime } = useI18n();
   const liveBattle = battles[0];
+  const [region, setRegion] = useState<ChartRegion>("Global");
+  const charts = globalCharts.filter((c) => c.regions.includes(region));
 
   return (
     <div className="space-y-12">
@@ -63,25 +78,24 @@ function HomePage() {
           <div>
             <GoldBadge variant="outline" className="mb-5">
               <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse-gold" />
-              Season 7 · Now live
+              {t("home.hero.badge")}
             </GoldBadge>
             <h1 className="font-display text-4xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-              The stage where{" "}
-              <span className="gold-text">machines become icons.</span>
+              {t("home.hero.titleLead")}{" "}
+              <span className="gold-text">{t("home.hero.titleAccent")}</span>
             </h1>
             <p className="mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
-              Create music, forge a virtual identity, build a label, and rise through
-              battles and reputation — the social operating system for AI-native artists.
+              {t("home.hero.subtitle")}
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Button asChild variant="gold" size="xl">
                 <Link to="/studio">
                   <Play className="h-4 w-4" />
-                  Start creating
+                  {t("home.hero.startCreating")}
                 </Link>
               </Button>
               <Button asChild variant="ghost-gold" size="xl">
-                <Link to="/artists">Explore artists</Link>
+                <Link to="/artists">{t("home.hero.exploreArtists")}</Link>
               </Button>
             </div>
           </div>
@@ -110,17 +124,17 @@ function HomePage() {
                 </p>
                 <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                   <Equalizer />
-                  {nowPlaying.listeners} listening now
+                  {t("common.listeningNow", { n: nowPlaying.listeners })}
                 </div>
               </div>
             </div>
             <div className="mt-4 flex items-center justify-between border-t border-border pt-3 text-xs text-muted-foreground">
               <span>
-                Up next ·{" "}
+                {t("common.upNext")} ·{" "}
                 <span className="text-foreground">{nowPlaying.upNext.title}</span>
               </span>
               <Link to="/radio" className="inline-flex items-center gap-1 text-gold hover:underline">
-                Open radio <ArrowUpRight className="h-3.5 w-3.5" />
+                {t("common.openRadio")} <ArrowUpRight className="h-3.5 w-3.5" />
               </Link>
             </div>
           </div>
@@ -130,19 +144,108 @@ function HomePage() {
       {/* STATS */}
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {platformStats.map((s, i) => (
-          <StatModule key={s.label} {...s} icon={statIcons[i]} />
+          <StatModule
+            key={s.key}
+            label={t(`home.stats.${s.key}`)}
+            value={s.value}
+            delta={t(`home.stats.${s.deltaKey}`, { n: s.deltaN })}
+            icon={statIcons[i]}
+          />
         ))}
+      </section>
+
+      {/* TOP CHARTS */}
+      <section className="space-y-6">
+        <SectionHeading
+          eyebrow={t("home.charts.eyebrow")}
+          title={t("home.charts.title")}
+          description={t("home.charts.desc")}
+        />
+        <div className="flex flex-wrap gap-2">
+          {chartRegions.map((r) => (
+            <button
+              key={r}
+              onClick={() => setRegion(r)}
+              className={cn(
+                "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+                region === r
+                  ? "bg-gold-gradient text-primary-foreground"
+                  : "border border-border text-muted-foreground hover:border-[color-mix(in_oklab,var(--gold)_40%,transparent)] hover:text-foreground",
+              )}
+            >
+              {t(`charts.regions.${r}`)}
+            </button>
+          ))}
+        </div>
+        <div className="overflow-hidden rounded-2xl border border-border surface-premium">
+          {charts.map((c, i) => (
+            <div
+              key={`${c.rank}-${c.title}`}
+              className={cn(
+                "group flex items-center gap-4 px-4 py-3 transition-colors hover:bg-secondary/40",
+                i !== charts.length - 1 && "border-b border-border/60",
+              )}
+            >
+              <span className="w-6 text-center font-display text-lg font-semibold tabular-nums text-foreground">
+                {c.rank}
+              </span>
+              <ChartChange change={c.change} isNew={c.isNew} newLabel={t("charts.new")} />
+              <img
+                src={artistImages[c.artistId]}
+                alt={c.artist}
+                loading="lazy"
+                className="h-11 w-11 rounded-lg object-cover ring-1 ring-border"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-medium text-foreground">{c.title}</p>
+                <p className="truncate text-xs text-muted-foreground">{c.artist}</p>
+              </div>
+              <GoldBadge variant="outline" className="hidden sm:inline-flex">
+                {c.genre}
+              </GoldBadge>
+              <span className="w-16 text-right text-xs tabular-nums text-muted-foreground">
+                {c.plays}
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* GENRES */}
+      <section className="space-y-6">
+        <SectionHeading
+          eyebrow={t("home.genres.eyebrow")}
+          title={t("home.genres.title")}
+          description={t("home.genres.desc")}
+        />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {chartGenres.map((g) => (
+            <Link
+              key={g.name}
+              to="/radio"
+              className="group flex items-center gap-3 rounded-xl border border-border surface-premium px-4 py-3.5 transition-colors hover:border-[color-mix(in_oklab,var(--gold)_40%,transparent)]"
+            >
+              <span className="icon-tile h-10 w-10">
+                <ListMusic className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate font-medium text-foreground">{g.name}</p>
+                <p className="text-xs text-muted-foreground">{t("home.genres.tracks", { n: g.tracks })}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
       </section>
 
       {/* TRENDING ARTISTS */}
       <section className="space-y-6">
         <SectionHeading
-          eyebrow="Discover"
-          title="Trending virtual artists"
-          description="The identities the community can't stop replaying this week."
+          eyebrow={t("home.trending.eyebrow")}
+          title={t("home.trending.title")}
+          description={t("home.trending.desc")}
           action={
             <Button asChild variant="ghost-gold" size="sm">
-              <Link to="/artists">View all</Link>
+              <Link to="/artists">{t("common.viewAll")}</Link>
             </Button>
           }
         />
@@ -156,7 +259,7 @@ function HomePage() {
       {/* TWO COLUMN: TOP CREATORS + ACTIVITY */}
       <section className="grid gap-6 lg:grid-cols-3">
         <div className="rounded-2xl border border-border bg-card p-6 lg:col-span-2">
-          <SectionHeading eyebrow="Leaderboard" title="Top creators" />
+          <SectionHeading eyebrow={t("home.leaderboard.eyebrow")} title={t("home.leaderboard.title")} />
           <div className="mt-4 divide-y divide-border/60">
             {topCreators.map((c) => (
               <RankingRow
@@ -164,7 +267,7 @@ function HomePage() {
                 rank={c.rank}
                 artistId={c.artistId}
                 name={c.name}
-                meta={`${c.listeners} monthly listeners`}
+                meta={t("home.leaderboard.meta", { n: c.listeners })}
                 reputation={c.reputation}
               />
             ))}
@@ -172,15 +275,17 @@ function HomePage() {
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-6">
-          <SectionHeading eyebrow="Live" title="Platform activity" />
+          <SectionHeading eyebrow={t("home.activity.eyebrow")} title={t("home.activity.title")} />
           <ul className="mt-4 space-y-4">
             {activityFeed.map((a) => (
               <li key={a.id} className="flex gap-3">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
                 <div className="min-w-0">
-                  <p className="text-sm text-foreground">{a.text}</p>
+                  <p className="text-sm text-foreground">
+                    {a.who} {t(`home.activity.${a.actionKey}`, a.actionVars)}
+                  </p>
                   <p className="text-xs text-muted-foreground">
-                    {a.detail} · {a.time}
+                    {(a.detailKey ? t(`home.activity.${a.detailKey}`) : a.detail)} · {relTime(a.time)}
                   </p>
                 </div>
               </li>
@@ -193,25 +298,27 @@ function HomePage() {
       <section className="grid gap-6 lg:grid-cols-3">
         <div className="rounded-2xl border border-border bg-card p-6 lg:col-span-2">
           <SectionHeading
-            eyebrow="Arena"
-            title="Current battles"
+            eyebrow={t("home.arena.eyebrow")}
+            title={t("home.arena.title")}
             action={
               <Button asChild variant="ghost-gold" size="sm">
-                <Link to="/battles">All battles</Link>
+                <Link to="/battles">{t("home.arena.allBattles")}</Link>
               </Button>
             }
           />
           <div className="mt-5 rounded-2xl border border-border bg-noir-gradient p-5">
             <div className="mb-4 flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">{liveBattle.round}</span>
+              <span className="text-xs text-muted-foreground">{roundLabel(liveBattle, t)}</span>
               <StatusChip status={liveBattle.status} />
             </div>
             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
               <BattleSide side={liveBattle.a} align="left" />
-              <span className="font-display text-2xl font-semibold text-muted-foreground">VS</span>
+              <span className="font-display text-2xl font-semibold text-muted-foreground">
+                {t("common.vs")}
+              </span>
               <BattleSide side={liveBattle.b} align="right" />
             </div>
-            <p className="mt-4 text-center text-xs text-muted-foreground">{liveBattle.ends}</p>
+            <p className="mt-4 text-center text-xs text-muted-foreground">{endsLabel(liveBattle, t)}</p>
           </div>
         </div>
 
@@ -221,27 +328,24 @@ function HomePage() {
           <div className="relative">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-gold" />
-              <span className="eyebrow text-gold">Monthly contest</span>
+              <span className="eyebrow text-gold">{t("home.contest.eyebrow")}</span>
             </div>
             <h3 className="mt-3 font-display text-2xl font-semibold text-foreground">
-              The Golden Hour Challenge
+              {t("home.contest.title")}
             </h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Submit your most cinematic ambient track. The winner takes the cover of AI
-              Radio and a featured label slot.
-            </p>
+            <p className="mt-2 text-sm text-muted-foreground">{t("home.contest.desc")}</p>
             <div className="mt-5 flex items-center justify-between border-t border-border pt-4 text-sm">
               <div>
                 <p className="font-display text-xl font-semibold text-foreground">312</p>
-                <p className="text-xs text-muted-foreground">entries</p>
+                <p className="text-xs text-muted-foreground">{t("home.contest.entries")}</p>
               </div>
               <div className="text-right">
-                <p className="font-display text-xl font-semibold text-foreground">6 days</p>
-                <p className="text-xs text-muted-foreground">remaining</p>
+                <p className="font-display text-xl font-semibold text-foreground">6</p>
+                <p className="text-xs text-muted-foreground">{t("home.contest.remaining")}</p>
               </div>
             </div>
             <Button variant="gold" className="mt-5 w-full">
-              Submit your track
+              {t("home.contest.submit")}
             </Button>
           </div>
         </div>
@@ -250,12 +354,12 @@ function HomePage() {
       {/* HALL OF FAME PREVIEW */}
       <section className="space-y-6">
         <SectionHeading
-          eyebrow="Prestige"
-          title="Hall of Fame"
-          description="The most decorated artists, prompts and labels on the platform."
+          eyebrow={t("home.fame.eyebrow")}
+          title={t("home.fame.title")}
+          description={t("home.fame.desc")}
           action={
             <Button asChild variant="ghost-gold" size="sm">
-              <Link to="/hall-of-fame">Enter the hall</Link>
+              <Link to="/hall-of-fame">{t("home.fame.enterHall")}</Link>
             </Button>
           }
         />
@@ -268,16 +372,53 @@ function HomePage() {
             >
               <div className="flex items-center gap-2 text-gold">
                 <Trophy className="h-4 w-4" />
-                <span className="eyebrow">{h.crown}</span>
+                <span className="eyebrow">{t(`hallOfFame.items.${h.id}.crown`)}</span>
               </div>
-              <p className="mt-3 text-xs text-muted-foreground">{h.title}</p>
+              <p className="mt-3 text-xs text-muted-foreground">{t(`hallOfFame.items.${h.id}.title`)}</p>
               <p className="font-display text-xl font-semibold text-foreground">{h.winner}</p>
-              <p className="mt-2 text-xs text-muted-foreground">{h.note}</p>
+              <p className="mt-2 text-xs text-muted-foreground">{t(`hallOfFame.items.${h.id}.note`)}</p>
             </Link>
           ))}
         </div>
       </section>
     </div>
+  );
+}
+
+function roundLabel(b: Battle, t: (k: string, v?: Record<string, string | number>) => string) {
+  return `${t(`battles.${b.round.phase}`)} · ${t("battles.bracket")} ${b.round.bracket}`;
+}
+
+function endsLabel(b: Battle, t: (k: string, v?: Record<string, string | number>) => string) {
+  return t(b.ends.key === "left" ? "time.left" : "time.startsIn", { t: b.ends.text });
+}
+
+function ChartChange({ change, isNew, newLabel }: { change: number; isNew?: boolean; newLabel: string }) {
+  if (isNew) {
+    return (
+      <span className="w-10 text-center text-[0.6rem] font-bold tracking-wider text-gold">
+        {newLabel}
+      </span>
+    );
+  }
+  if (change > 0) {
+    return (
+      <span className="flex w-10 items-center justify-center gap-0.5 text-xs font-semibold text-[var(--success)]">
+        <TrendingUp className="h-3.5 w-3.5" /> {change}
+      </span>
+    );
+  }
+  if (change < 0) {
+    return (
+      <span className="flex w-10 items-center justify-center gap-0.5 text-xs font-semibold text-destructive">
+        <TrendingDown className="h-3.5 w-3.5" /> {Math.abs(change)}
+      </span>
+    );
+  }
+  return (
+    <span className="flex w-10 items-center justify-center text-muted-foreground/60">
+      <Minus className="h-3.5 w-3.5" />
+    </span>
   );
 }
 
