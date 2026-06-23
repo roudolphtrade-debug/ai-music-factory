@@ -49,7 +49,6 @@ export function StudioComposer() {
   const [result, setResult] = useState<GenResult | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
 
-  const urlRef = useRef<string | null>(null);
   const stepTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const phaseLabels = t("studio.gen.phases").split("|");
 
@@ -68,13 +67,6 @@ export function StudioComposer() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
-
-  useEffect(
-    () => () => {
-      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
-    },
-    [],
-  );
 
   const generate = async () => {
     const clean = prompt.trim();
