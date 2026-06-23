@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppStudioRouteImport } from './routes/_app.studio'
@@ -23,6 +24,11 @@ import { Route as AppAnalyticsRouteImport } from './routes/_app.analytics'
 import { Route as AppArtistsIndexRouteImport } from './routes/_app.artists.index'
 import { Route as AppArtistsArtistIdRouteImport } from './routes/_app.artists.$artistId'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
@@ -90,6 +96,7 @@ const AppArtistsArtistIdRoute = AppArtistsArtistIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/analytics': typeof AppAnalyticsRoute
   '/avatar-lab': typeof AppAvatarLabRoute
   '/battles': typeof AppBattlesRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/artists/': typeof AppArtistsIndexRoute
 }
 export interface FileRoutesByTo {
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/analytics': typeof AppAnalyticsRoute
   '/avatar-lab': typeof AppAvatarLabRoute
   '/battles': typeof AppBattlesRoute
@@ -119,6 +127,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_app/analytics': typeof AppAnalyticsRoute
   '/_app/avatar-lab': typeof AppAvatarLabRoute
   '/_app/battles': typeof AppBattlesRoute
@@ -136,6 +145,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/sitemap.xml'
     | '/analytics'
     | '/avatar-lab'
     | '/battles'
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/artists/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/sitemap.xml'
     | '/analytics'
     | '/avatar-lab'
     | '/battles'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_app'
+    | '/sitemap.xml'
     | '/_app/analytics'
     | '/_app/avatar-lab'
     | '/_app/battles'
@@ -180,10 +192,18 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app': {
       id: '/_app'
       path: ''
@@ -312,6 +332,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
