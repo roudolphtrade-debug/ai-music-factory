@@ -31,7 +31,7 @@ function AvatarLabPage() {
 
       <section className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
         {/* PREVIEW */}
-        <div className="relative overflow-hidden rounded-3xl border border-border bg-noir-gradient">
+        <div className="relative overflow-hidden rounded-3xl border border-[color-mix(in_oklab,var(--gold)_26%,transparent)] bg-noir-gradient shadow-[var(--shadow-card)]">
           <div className="absolute inset-0 bg-spot" />
           <div className="relative flex flex-col">
             <div className="relative aspect-square overflow-hidden">
@@ -41,14 +41,19 @@ function AvatarLabPage() {
                 className="h-full w-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
+              {/* corner framing accents */}
+              <span className="pointer-events-none absolute left-3 top-3 h-6 w-6 border-l border-t border-[color-mix(in_oklab,var(--gold)_55%,transparent)]" />
+              <span className="pointer-events-none absolute right-3 top-3 h-6 w-6 border-r border-t border-[color-mix(in_oklab,var(--gold)_55%,transparent)]" />
+              <span className="pointer-events-none absolute bottom-3 left-3 h-6 w-6 border-b border-l border-[color-mix(in_oklab,var(--gold)_55%,transparent)]" />
+              <span className="pointer-events-none absolute bottom-3 right-3 h-6 w-6 border-b border-r border-[color-mix(in_oklab,var(--gold)_55%,transparent)]" />
               <GoldBadge variant="outline" className="absolute left-4 top-4 backdrop-blur-sm">
                 Preview · {style}
               </GoldBadge>
             </div>
-            <div className="space-y-1 p-6">
+            <div className="space-y-1.5 p-6">
               <p className="eyebrow text-gold">Working identity</p>
               <h3 className="font-display text-3xl font-semibold text-foreground">Aurora Solène</h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 Ethereal art-pop entity · golden-hour visuals · couture futurism
               </p>
             </div>
