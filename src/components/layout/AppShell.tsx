@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { SidebarContent } from "./SidebarContent";
 import { Topbar } from "./Topbar";
 import { AudioPlayer } from "@/components/premium/AudioPlayer";
+import { IntroOverlay } from "@/components/IntroOverlay";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -9,6 +10,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen w-full bg-background">
+      <IntroOverlay />
       {/* Desktop sidebar — fixed */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-sidebar-border lg:block">
         <SidebarContent />
