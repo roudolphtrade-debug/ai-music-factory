@@ -122,7 +122,7 @@ function RadioPage() {
                 key={s.id}
                 className="group flex w-full items-center gap-3 rounded-xl border border-border bg-card p-4 text-left transition-colors hover:border-[color-mix(in_oklab,var(--gold)_40%,transparent)]"
               >
-                <span className="grid h-10 w-10 place-items-center rounded-lg bg-secondary/60 text-gold">
+                <span className="icon-tile h-11 w-11">
                   <ListMusic className="h-4 w-4" />
                 </span>
                 <div className="min-w-0 flex-1">
