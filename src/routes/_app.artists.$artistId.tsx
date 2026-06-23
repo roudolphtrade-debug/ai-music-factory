@@ -33,6 +33,7 @@ function ArtistProfilePage() {
   const { artistId } = Route.useParams();
   const artist = getArtist(artistId);
   const [following, setFollowing] = useState(false);
+  const spotlight = useSpotlight<HTMLElement>();
 
   if (!artist) return <ArtistNotFound />;
 
