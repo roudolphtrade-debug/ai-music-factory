@@ -150,7 +150,7 @@ function HomePage() {
       </section>
 
       {/* STATS */}
-      <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <Reveal as="section" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {platformStats.map((s, i) => (
           <StatModule
             key={s.key}
@@ -160,10 +160,12 @@ function HomePage() {
             icon={statIcons[i]}
           />
         ))}
-      </section>
+      </Reveal>
+
 
       {/* TOP CHARTS */}
-      <section className="space-y-6">
+      <Reveal as="section" className="space-y-6">
+
         <SectionHeading
           eyebrow={t("home.charts.eyebrow")}
           title={t("home.charts.title")}
@@ -217,10 +219,12 @@ function HomePage() {
             </div>
           ))}
         </div>
-      </section>
+      </Reveal>
+
 
       {/* GENRES */}
-      <section className="space-y-6">
+      <Reveal as="section" className="space-y-6">
+
         <SectionHeading
           eyebrow={t("home.genres.eyebrow")}
           title={t("home.genres.title")}
@@ -243,10 +247,12 @@ function HomePage() {
             </Link>
           ))}
         </div>
-      </section>
+      </Reveal>
+
 
       {/* TRENDING ARTISTS */}
-      <section className="space-y-6">
+      <Reveal as="section" className="space-y-6">
+
         <SectionHeading
           eyebrow={t("home.trending.eyebrow")}
           title={t("home.trending.title")}
@@ -262,10 +268,12 @@ function HomePage() {
             <ArtistCard key={a.id} artist={a} />
           ))}
         </div>
-      </section>
+      </Reveal>
+
 
       {/* TWO COLUMN: TOP CREATORS + ACTIVITY */}
-      <section className="grid gap-6 lg:grid-cols-3">
+      <Reveal as="section" className="grid gap-6 lg:grid-cols-3">
+
         <div className="rounded-2xl border border-border bg-card p-6 lg:col-span-2">
           <SectionHeading eyebrow={t("home.leaderboard.eyebrow")} title={t("home.leaderboard.title")} />
           <div className="mt-4 divide-y divide-border/60">
@@ -300,10 +308,11 @@ function HomePage() {
             ))}
           </ul>
         </div>
-      </section>
+      </Reveal>
+
 
       {/* CURRENT BATTLES + CONTEST */}
-      <section className="grid gap-6 lg:grid-cols-3">
+      <Reveal as="section" className="grid gap-6 lg:grid-cols-3">
         <div className="rounded-2xl border border-border bg-card p-6 lg:col-span-2">
           <SectionHeading
             eyebrow={t("home.arena.eyebrow")}
@@ -357,10 +366,11 @@ function HomePage() {
             </Button>
           </div>
         </div>
-      </section>
+      </Reveal>
+
 
       {/* HALL OF FAME PREVIEW */}
-      <section className="space-y-6">
+      <Reveal as="section" className="space-y-6">
         <SectionHeading
           eyebrow={t("home.fame.eyebrow")}
           title={t("home.fame.title")}
@@ -388,7 +398,8 @@ function HomePage() {
             </Link>
           ))}
         </div>
-      </section>
+      </Reveal>
+
     </div>
   );
 }
