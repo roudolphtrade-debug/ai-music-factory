@@ -33,6 +33,7 @@ function ArtistProfilePage() {
   if (!artist) return <ArtistNotFound />;
 
   const releases = tracks.filter((track) => track.artistId === artist.id);
+  const playableReleases = releasesFor(artist.id);
 
   return (
     <div className="space-y-8">
