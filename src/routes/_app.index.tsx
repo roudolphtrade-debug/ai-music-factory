@@ -171,6 +171,48 @@ function HomePage() {
         ))}
       </Reveal>
 
+      {/* CONTINUE LISTENING */}
+      {historyTracks.length > 0 && (
+        <Reveal as="section" className="space-y-6">
+          <SectionHeading
+            eyebrow={t("library.eyebrow")}
+            title={t("library.continueListening")}
+            action={
+              <Button asChild variant="ghost-gold" size="sm">
+                <Link to="/library">{t("library.seeLibrary")}</Link>
+              </Button>
+            }
+          />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {historyTracks.map((track) => (
+              <PersonalTrackCard key={track.id} track={track} queue={playableTracks} />
+            ))}
+          </div>
+        </Reveal>
+      )}
+
+      {/* YOUR FAVORITES */}
+      {favTracks.length > 0 && (
+        <Reveal as="section" className="space-y-6">
+          <SectionHeading
+            eyebrow={t("library.favorites")}
+            title={t("library.yourFavorites")}
+            action={
+              <Button asChild variant="ghost-gold" size="sm">
+                <Link to="/library">{t("library.seeLibrary")}</Link>
+              </Button>
+            }
+          />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {favTracks.map((track) => (
+              <PersonalTrackCard key={track.id} track={track} queue={favTracks} />
+            ))}
+          </div>
+        </Reveal>
+      )}
+
+
+
 
       {/* TOP CHARTS */}
       <Reveal as="section" className="space-y-6">
