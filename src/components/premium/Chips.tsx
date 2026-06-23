@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { ShieldCheck } from "lucide-react";
+import { useI18n } from "@/i18n/context";
 
 export function GoldBadge({
   children,
