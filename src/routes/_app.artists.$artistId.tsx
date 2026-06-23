@@ -130,11 +130,13 @@ function ArtistProfilePage() {
             trailing={(p) => {
               const meta = releases.find((r) => r.id === p.id);
               return (
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                   <span className="hidden text-xs text-muted-foreground sm:block">
                     {meta?.plays} {t("artistProfile.plays")}
                   </span>
-                  <span className="text-xs tabular-nums text-muted-foreground">{p.duration}</span>
+                  <span className="hidden text-xs tabular-nums text-muted-foreground sm:block">{p.duration}</span>
+                  <LikeButton trackId={p.id} size="sm" />
+                  <ShareButton title={p.title} artist={p.artist} trackId={p.id} size="sm" />
                 </div>
               );
             }}
