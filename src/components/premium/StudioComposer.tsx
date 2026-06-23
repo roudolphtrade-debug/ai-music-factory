@@ -256,7 +256,7 @@ export function StudioComposer() {
           )}
 
           <div className="mt-4 flex flex-wrap gap-3">
-            <Button variant="ghost-gold" size="sm" onClick={generate} disabled={phase === "generating"}>
+            <Button variant="ghost-gold" size="sm" onClick={generate}>
               <RotateCcw className="h-4 w-4" /> {t("studio.gen.regenerate")}
             </Button>
             <Button variant="ghost" size="sm" asChild>
