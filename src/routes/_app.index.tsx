@@ -188,7 +188,7 @@ function HomePage() {
             </button>
           ))}
         </div>
-        <div className="overflow-hidden rounded-2xl border border-border surface-premium">
+        <div key={region} className="animate-list-fade overflow-hidden rounded-2xl border border-border surface-premium">
           {charts.map((c, i) => (
             <div
               key={`${c.rank}-${c.title}`}

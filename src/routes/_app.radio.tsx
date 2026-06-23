@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { ListMusic } from "lucide-react";
 import { SectionHeading } from "@/components/premium/SectionHeading";
 import { StatusChip } from "@/components/premium/Chips";
@@ -9,6 +10,7 @@ import { VoicePrompt } from "@/components/voice/VoicePrompt";
 import { radioQueue } from "@/audio/tracks";
 import { nowPlaying, radioStations, moods, chartGenres } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/radio")({
   head: () => ({
@@ -23,6 +25,16 @@ export const Route = createFileRoute("/_app/radio")({
 function RadioPage() {
   const { t } = useI18n();
   const queue = radioQueue.slice(0, 6);
+  const [genre, setGenre] = useState<string | null>(null);
+  const [mood, setMood] = useState<string | null>(null);
+
+  const chipBase =
+    "rounded-full border px-4 py-2 text-sm transition-all duration-200 active:scale-[0.96] motion-reduce:active:scale-100";
+  const chipActive =
+    "border-transparent bg-gold-gradient font-medium text-primary-foreground shadow-[0_8px_24px_-14px_var(--gold)]";
+  const chipIdle =
+    "border-border text-muted-foreground hover:border-[color-mix(in_oklab,var(--gold)_40%,transparent)] hover:text-foreground";
+
 
   return (
     <div className="space-y-10">
@@ -46,7 +58,9 @@ function RadioPage() {
           {chartGenres.map((g) => (
             <button
               key={g.name}
-              className="rounded-full border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklab,var(--gold)_40%,transparent)] hover:text-foreground"
+              onClick={() => setGenre((cur) => (cur === g.name ? null : g.name))}
+              aria-pressed={genre === g.name}
+              className={cn(chipBase, genre === g.name ? chipActive : chipIdle)}
             >
               {g.name}
             </button>
@@ -61,13 +75,16 @@ function RadioPage() {
           {moods.map((m) => (
             <button
               key={m}
-              className="rounded-full border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklab,var(--gold)_40%,transparent)] hover:text-foreground"
+              onClick={() => setMood((cur) => (cur === m ? null : m))}
+              aria-pressed={mood === m}
+              className={cn(chipBase, mood === m ? chipActive : chipIdle)}
             >
               {t(`moods.${m}`)}
             </button>
           ))}
         </div>
       </section>
+
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* QUEUE / TOP ROTATION */}
