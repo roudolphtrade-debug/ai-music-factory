@@ -108,9 +108,11 @@
   --gold-soft: oklch(0.87 0.09 85);
   --gold-deep: oklch(0.64 0.12 70);
 
-  --gradient-gold: linear-gradient(135deg, oklch(0.88 0.1 88), oklch(0.72 0.14 72));
-  --gradient-noir: linear-gradient(180deg, oklch(0.2 0.006 65), oklch(0.13 0.004 60));
+  --gradient-gold: linear-gradient(135deg, oklch(0.92 0.08 90), oklch(0.82 0.13 80) 45%, oklch(0.66 0.13 70));
+  --gradient-gold-sheen: linear-gradient(120deg, transparent 0%, color-mix(in oklab, var(--gold) 60%, transparent) 45%, oklch(0.97 0.05 92) 50%, color-mix(in oklab, var(--gold) 60%, transparent) 55%, transparent 100%);
+  --gradient-noir: linear-gradient(165deg, oklch(0.22 0.007 70), oklch(0.135 0.004 60));
   --gradient-spot: radial-gradient(120% 100% at 50% 0%, oklch(0.82 0.13 80 / 0.16), transparent 60%);
+  --gradient-surface: linear-gradient(180deg, color-mix(in oklab, var(--gold) 4%, var(--card)), var(--card));
 
   --chart-1: oklch(0.8 0.13 80);
   --chart-2: oklch(0.65 0.1 70);
