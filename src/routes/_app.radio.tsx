@@ -5,7 +5,8 @@ import { SectionHeading } from "@/components/premium/SectionHeading";
 import { StatusChip, GoldBadge } from "@/components/premium/Chips";
 import { VoteButton } from "@/components/premium/VoteButton";
 import { Equalizer } from "@/components/premium/Equalizer";
-import { nowPlaying, tracks, radioStations, moods, artistImages } from "@/data/mock";
+import { nowPlaying, tracks, radioStations, moods, artistImages, chartGenres } from "@/data/mock";
+import { useI18n } from "@/i18n/context";
 
 export const Route = createFileRoute("/_app/radio")({
   head: () => ({
@@ -18,14 +19,15 @@ export const Route = createFileRoute("/_app/radio")({
 });
 
 function RadioPage() {
+  const { t } = useI18n();
   const queue = tracks.slice(0, 6);
 
   return (
     <div className="space-y-10">
       <SectionHeading
-        eyebrow="AI Radio"
-        title="Always-on, community curated"
-        description="Tune into living stations shaped by the votes of the community in real time."
+        eyebrow={t("radio.eyebrow")}
+        title={t("radio.title")}
+        description={t("radio.desc")}
       />
 
       {/* MAIN PLAYER */}
@@ -53,31 +55,46 @@ function RadioPage() {
             </h2>
             <p className="mt-2 text-lg text-muted-foreground">{nowPlaying.track.artist}</p>
             <div className="mt-5 flex items-center gap-2 text-sm text-muted-foreground">
-              <Equalizer /> {nowPlaying.listeners} listening · live votes shaping rotation
+              <Equalizer /> {nowPlaying.listeners} {t("radio.votesShaping")}
             </div>
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <Button variant="gold" size="lg">
-                <Play className="h-4 w-4" /> Tune in
+                <Play className="h-4 w-4" /> {t("radio.tuneIn")}
               </Button>
               <VoteButton initialVotes={3420} />
               <Button variant="ghost-gold" size="lg">
-                <Heart className="h-4 w-4" /> Save
+                <Heart className="h-4 w-4" /> {t("radio.save")}
               </Button>
             </div>
           </div>
         </div>
       </section>
 
+      {/* GENRES */}
+      <section className="space-y-4">
+        <SectionHeading eyebrow={t("radio.categories")} title={t("radio.browseGenre")} />
+        <div className="flex flex-wrap gap-2">
+          {chartGenres.map((g) => (
+            <button
+              key={g.name}
+              className="rounded-full border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklab,var(--gold)_40%,transparent)] hover:text-foreground"
+            >
+              {g.name}
+            </button>
+          ))}
+        </div>
+      </section>
+
       {/* MOODS */}
       <section className="space-y-4">
-        <SectionHeading eyebrow="Categories" title="Browse by mood" />
+        <SectionHeading eyebrow={t("radio.categories")} title={t("radio.browseMood")} />
         <div className="flex flex-wrap gap-2">
           {moods.map((m) => (
             <button
               key={m}
               className="rounded-full border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-[color-mix(in_oklab,var(--gold)_40%,transparent)] hover:text-foreground"
             >
-              {m}
+              {t(`moods.${m}`)}
             </button>
           ))}
         </div>
@@ -86,11 +103,11 @@ function RadioPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* QUEUE / TOP ROTATION */}
         <div className="space-y-4 lg:col-span-2">
-          <SectionHeading eyebrow="On air" title="Top rotation" />
+          <SectionHeading eyebrow={t("radio.onAir")} title={t("radio.topRotation")} />
           <div className="overflow-hidden rounded-2xl border border-border bg-card">
-            {queue.map((t, i) => (
+            {queue.map((track, i) => (
               <div
-                key={t.id}
+                key={track.id}
                 className={`group flex items-center gap-4 px-4 py-3 transition-colors hover:bg-secondary/40 ${
                   i !== queue.length - 1 ? "border-b border-border/60" : ""
                 }`}
@@ -99,13 +116,13 @@ function RadioPage() {
                   {i + 1}
                 </span>
                 <img
-                  src={artistImages[t.artistId]}
-                  alt={t.artist}
+                  src={artistImages[track.artistId]}
+                  alt={track.artist}
                   className="h-11 w-11 rounded-lg object-cover ring-1 ring-border"
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-foreground">{t.title}</p>
-                  <p className="truncate text-xs text-muted-foreground">{t.artist} · {t.mood}</p>
+                  <p className="truncate font-medium text-foreground">{track.title}</p>
+                  <p className="truncate text-xs text-muted-foreground">{track.artist} · {track.genre}</p>
                 </div>
                 <VoteButton initialVotes={1200 + i * 240} size="sm" />
               </div>
@@ -115,7 +132,7 @@ function RadioPage() {
 
         {/* STATIONS */}
         <div className="space-y-4">
-          <SectionHeading eyebrow="Stations" title="Thematic" />
+          <SectionHeading eyebrow={t("radio.stations")} title={t("radio.thematic")} />
           <div className="space-y-3">
             {radioStations.map((s) => (
               <button
@@ -130,7 +147,7 @@ function RadioPage() {
                   <p className="truncate text-xs text-muted-foreground">{s.mood}</p>
                 </div>
                 <div className="text-right text-xs text-muted-foreground">
-                  {s.live ? <StatusChip status="Live" /> : <span>Scheduled</span>}
+                  {s.live ? <StatusChip status="Live" /> : <StatusChip status="Scheduled" />}
                   <p className="mt-1">{s.listeners}</p>
                 </div>
               </button>
