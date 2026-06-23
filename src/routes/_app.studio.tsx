@@ -53,52 +53,7 @@ function StudioPage() {
 
       {/* COMPOSER */}
       <section className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-        <div className="space-y-5 rounded-2xl border border-border bg-card p-6">
-          <div className="flex items-center gap-2">
-            <Wand2 className="h-4 w-4 text-gold" />
-            <span className="eyebrow text-gold">{t("studio.newComposition")}</span>
-          </div>
-
-          <Field label={t("studio.prompt")}>
-            <textarea
-              rows={3}
-              defaultValue="Cinematic ambient pop with golden-hour pads, warm analogue tape saturation, and a slow euphoric build toward a wordless choir."
-              className="w-full resize-none rounded-xl border border-input bg-secondary/30 p-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-[color-mix(in_oklab,var(--gold)_45%,transparent)]"
-            />
-          </Field>
-
-          <div className="grid gap-4 sm:grid-cols-3">
-            <Field label={t("studio.genre")}>
-              <Select options={genres} />
-            </Field>
-            <Field label={t("studio.mood")}>
-              <Select options={moods.slice(0, 6).map((m) => t(`moods.${m}`))} />
-            </Field>
-            <Field label={t("studio.voice")}>
-              <Select options={voiceKeys.map((v) => t(`studio.voices.${v}`))} />
-            </Field>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-muted-foreground">{t("studio.quickMoods")}</span>
-            {moods.slice(0, 5).map((m) => (
-              <button
-                key={m}
-                className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-[color-mix(in_oklab,var(--gold)_40%,transparent)] hover:text-foreground"
-              >
-                {t(`moods.${m}`)}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex flex-wrap gap-3 border-t border-border pt-5">
-            <Button variant="gold">
-              <Sparkles className="h-4 w-4" />
-              {t("studio.generate")}
-            </Button>
-            <Button variant="noir">{t("studio.saveDraft")}</Button>
-          </div>
-        </div>
+        <StudioComposer />
 
         {/* UPLOAD ZONE */}
         <div className="flex flex-col gap-4">
@@ -121,6 +76,7 @@ function StudioPage() {
           </div>
         </div>
       </section>
+
 
       {/* PROJECTS */}
       <section className="space-y-5">
