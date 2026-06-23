@@ -5,21 +5,21 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow hover:bg-primary/90",
-        destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
-          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
-        secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+          "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        gold: "bg-gold-gradient text-primary-foreground font-semibold shadow-[0_10px_30px_-12px_var(--gold)] hover:brightness-110 hover:shadow-[0_14px_40px_-12px_var(--gold)] transition-all",
+        gold: "bg-gold-gradient text-primary-foreground font-semibold shadow-[0_8px_22px_-16px_color-mix(in_oklab,var(--gold)_60%,transparent)] hover:shadow-[0_10px_28px_-16px_color-mix(in_oklab,var(--gold)_70%,transparent)] hover:brightness-[1.04]",
         "ghost-gold":
-          "border border-[color-mix(in_oklab,var(--gold)_35%,transparent)] text-foreground bg-transparent hover:bg-[color-mix(in_oklab,var(--gold)_10%,transparent)] hover:border-[color-mix(in_oklab,var(--gold)_55%,transparent)] transition-colors",
-        noir: "border border-border bg-secondary/40 text-foreground hover:bg-secondary/70 transition-colors",
+          "border border-[color-mix(in_oklab,var(--gold)_28%,transparent)] text-foreground bg-transparent hover:bg-[color-mix(in_oklab,var(--gold)_8%,transparent)] hover:border-[color-mix(in_oklab,var(--gold)_45%,transparent)]",
+        noir: "border border-border bg-secondary/40 text-foreground hover:bg-secondary/70",
       },
       size: {
         default: "h-9 px-4 py-2",
