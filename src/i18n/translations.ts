@@ -1122,6 +1122,11 @@ const es: Dict = {
       errorRate: "Demasiadas solicitudes — inténtalo en un momento.",
       errorGeneric: "La generación falló. Inténtalo de nuevo.",
       newTrack: "Tema generado",
+      myCreations: "Tus creaciones IA",
+      myCreationsDesc: "Tus temas generados, guardados en este dispositivo.",
+      emptyHint: "Aún no hay creaciones — genera tu primer tema arriba.",
+      delete: "Eliminar",
+      deleted: "Creación eliminada",
     },
   },
   avatarLab: {
