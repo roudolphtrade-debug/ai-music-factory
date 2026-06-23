@@ -166,12 +166,14 @@ function IdentityCard({
   body: string;
 }) {
   return (
-    <article className="rounded-2xl border border-border bg-card p-5 card-hover">
-      <div className="flex items-center gap-2 text-gold">
-        {icon}
-        <span className="eyebrow">{title}</span>
+    <article className="group rounded-2xl border border-border surface-premium p-5 card-hover">
+      <div className="flex items-center gap-3 text-gold">
+        <span className="icon-tile h-9 w-9">{icon}</span>
+        <span className="eyebrow text-muted-foreground/80 transition-colors group-hover:text-gold">
+          {title}
+        </span>
       </div>
-      <p className="mt-3 text-sm text-muted-foreground">{body}</p>
+      <p className="mt-3.5 text-sm leading-relaxed text-muted-foreground">{body}</p>
     </article>
   );
 }
