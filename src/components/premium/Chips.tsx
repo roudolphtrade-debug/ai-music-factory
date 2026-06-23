@@ -64,7 +64,7 @@ export function StatusChip({ status }: { status: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.7rem] font-medium",
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.66rem] font-medium tracking-[0.04em]",
         statusStyles[status] ?? "bg-secondary text-muted-foreground",
       )}
     >
