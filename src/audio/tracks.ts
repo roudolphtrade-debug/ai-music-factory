@@ -9,6 +9,16 @@ import voice7 from "@/audio/sounds/voice-7.mp3.asset.json";
 import voice8 from "@/audio/sounds/voice-8.mp3.asset.json";
 import voice9 from "@/audio/sounds/voice-9.mp3.asset.json";
 import voice10 from "@/audio/sounds/voice-10.mp3.asset.json";
+import voice11 from "@/audio/sounds/voice-11.mp3.asset.json";
+import voice12 from "@/audio/sounds/voice-12.mp3.asset.json";
+import voice13 from "@/audio/sounds/voice-13.mp3.asset.json";
+import voice14 from "@/audio/sounds/voice-14.mp3.asset.json";
+import voice15 from "@/audio/sounds/voice-15.mp3.asset.json";
+import voice16 from "@/audio/sounds/voice-16.mp3.asset.json";
+import voice17 from "@/audio/sounds/voice-17.mp3.asset.json";
+import voice18 from "@/audio/sounds/voice-18.mp3.asset.json";
+import voice19 from "@/audio/sounds/voice-19.mp3.asset.json";
+import voice20 from "@/audio/sounds/voice-20.mp3.asset.json";
 
 /**
  * Real audio sources uploaded by the artist, served from the Lovable CDN.
@@ -25,6 +35,16 @@ const SOURCES = [
   voice8.url,
   voice9.url,
   voice10.url,
+  voice11.url,
+  voice12.url,
+  voice13.url,
+  voice14.url,
+  voice15.url,
+  voice16.url,
+  voice17.url,
+  voice18.url,
+  voice19.url,
+  voice20.url,
 ];
 
 export function sourceAt(index: number): string {
