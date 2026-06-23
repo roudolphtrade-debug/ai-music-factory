@@ -28,7 +28,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         {navSections.map((section) => (
           <div key={section.heading}>
             <p className="eyebrow px-3 pb-2.5 text-[0.6rem] text-muted-foreground/60">
-              {section.heading}
+              {t(section.heading)}
             </p>
             <div className="space-y-1">
               {section.items.map((item) => {
