@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/context";
 
 export function AudioPlayer() {
+  const { t } = useI18n();
   const [playing, setPlaying] = useState(true);
   const [progress, setProgress] = useState(34);
   const [liked, setLiked] = useState(false);
