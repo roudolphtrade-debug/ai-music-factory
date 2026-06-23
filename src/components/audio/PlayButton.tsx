@@ -1,4 +1,4 @@
-import { Play, Pause, Loader2 } from "lucide-react";
+import { Play, Pause } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePlayer } from "@/audio/PlayerProvider";
 import type { PlayableTrack } from "@/audio/tracks";
