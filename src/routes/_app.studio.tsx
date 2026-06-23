@@ -1,22 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Plus,
-  Wand2,
   UploadCloud,
   Layers,
   GitBranch,
   MoreHorizontal,
   Music2,
   Mic2,
-  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/premium/SectionHeading";
 import { StatusChip, GoldBadge } from "@/components/premium/Chips";
+import { StudioComposer } from "@/components/premium/StudioComposer";
 import { PlayButton } from "@/components/audio/PlayButton";
 import { makePlayable, type PlayableTrack } from "@/audio/tracks";
 import { usePlayer } from "@/audio/PlayerProvider";
-import { projects, moods, type ArtistId } from "@/data/mock";
+import { projects, type ArtistId } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
 
 const PROJECT_COVERS: ArtistId[] = ["art-1", "art-2", "art-5", "art-4"];
@@ -31,8 +30,6 @@ export const Route = createFileRoute("/_app/studio")({
   component: StudioPage,
 });
 
-const genres = ["Hip-Hop", "Trap", "Afrobeats", "UK Drill", "Amapiano", "Reggaeton", "Hyperpop", "Neo-Soul"];
-const voiceKeys = ["Instrumental", "Warm tenor", "Soprano", "Alto", "Custom voice"];
 
 function StudioPage() {
   const { t, relTime } = useI18n();
