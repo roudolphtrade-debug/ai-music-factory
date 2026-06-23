@@ -27,29 +27,29 @@ export interface NavSection {
 
 export const navSections: NavSection[] = [
   {
-    heading: "Studio",
+    heading: "nav.sections.studio",
     items: [
-      { label: "Home", to: "/", icon: Home, exact: true },
-      { label: "Creator Studio", to: "/studio", icon: AudioWaveform },
-      { label: "Avatar Lab", to: "/avatar-lab", icon: Sparkles },
+      { label: "nav.home", to: "/", icon: Home, exact: true },
+      { label: "nav.studio", to: "/studio", icon: AudioWaveform },
+      { label: "nav.avatarLab", to: "/avatar-lab", icon: Sparkles },
     ],
   },
   {
-    heading: "Discover",
+    heading: "nav.sections.discover",
     items: [
-      { label: "Virtual Artists", to: "/artists", icon: Users },
-      { label: "AI Radio", to: "/radio", icon: Radio },
-      { label: "Battles", to: "/battles", icon: Swords },
-      { label: "Virtual Labels", to: "/labels", icon: Building2 },
-      { label: "Hall of Fame", to: "/hall-of-fame", icon: Crown },
+      { label: "nav.artists", to: "/artists", icon: Users },
+      { label: "nav.radio", to: "/radio", icon: Radio },
+      { label: "nav.battles", to: "/battles", icon: Swords },
+      { label: "nav.labels", to: "/labels", icon: Building2 },
+      { label: "nav.hallOfFame", to: "/hall-of-fame", icon: Crown },
     ],
   },
   {
-    heading: "You",
+    heading: "nav.sections.you",
     items: [
-      { label: "Community", to: "/community", icon: MessagesSquare },
-      { label: "Analytics", to: "/analytics", icon: BarChart3 },
-      { label: "Settings", to: "/settings", icon: Settings },
+      { label: "nav.community", to: "/community", icon: MessagesSquare },
+      { label: "nav.analytics", to: "/analytics", icon: BarChart3 },
+      { label: "nav.settings", to: "/settings", icon: Settings },
     ],
   },
 ];
