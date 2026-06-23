@@ -58,7 +58,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                     >
                       <item.icon className="h-[1.05rem] w-[1.05rem]" />
                     </span>
-                    {item.label}
+                    {t(item.label)}
                   </Link>
                 );
               })}
