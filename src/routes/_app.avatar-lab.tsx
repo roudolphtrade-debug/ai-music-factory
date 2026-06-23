@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/premium/SectionHeading";
 import { GoldBadge } from "@/components/premium/Chips";
 import avatarPreview from "@/assets/avatar-preview.jpg";
+import { useI18n } from "@/i18n/context";
 
 export const Route = createFileRoute("/_app/avatar-lab")({
   head: () => ({
@@ -19,14 +20,15 @@ export const Route = createFileRoute("/_app/avatar-lab")({
 const styles = ["Amber Minimal", "Liquid Chrome", "Monastic Noir", "Maximal Gold", "Neon Visor"];
 
 function AvatarLabPage() {
+  const { t } = useI18n();
   const [style, setStyle] = useState(styles[0]);
 
   return (
     <div className="space-y-10">
       <SectionHeading
-        eyebrow="Avatar Lab"
-        title="Forge a virtual identity"
-        description="Sculpt the persona, aura and aesthetic that turns an algorithm into an icon."
+        eyebrow={t("avatarLab.eyebrow")}
+        title={t("avatarLab.title")}
+        description={t("avatarLab.desc")}
       />
 
       <section className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
@@ -41,21 +43,18 @@ function AvatarLabPage() {
                 className="h-full w-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-              {/* corner framing accents */}
               <span className="pointer-events-none absolute left-3 top-3 h-6 w-6 border-l border-t border-[color-mix(in_oklab,var(--gold)_55%,transparent)]" />
               <span className="pointer-events-none absolute right-3 top-3 h-6 w-6 border-r border-t border-[color-mix(in_oklab,var(--gold)_55%,transparent)]" />
               <span className="pointer-events-none absolute bottom-3 left-3 h-6 w-6 border-b border-l border-[color-mix(in_oklab,var(--gold)_55%,transparent)]" />
               <span className="pointer-events-none absolute bottom-3 right-3 h-6 w-6 border-b border-r border-[color-mix(in_oklab,var(--gold)_55%,transparent)]" />
               <GoldBadge variant="outline" className="absolute left-4 top-4 backdrop-blur-sm">
-                Preview · {style}
+                {t("avatarLab.preview")} · {style}
               </GoldBadge>
             </div>
             <div className="space-y-1.5 p-6">
-              <p className="eyebrow text-gold">Working identity</p>
+              <p className="eyebrow text-gold">{t("avatarLab.workingIdentity")}</p>
               <h3 className="font-display text-3xl font-semibold text-foreground">Aurora Solène</h3>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                Ethereal art-pop entity · golden-hour visuals · couture futurism
-              </p>
+              <p className="text-sm leading-relaxed text-muted-foreground">{t("avatarLab.identityDesc")}</p>
             </div>
           </div>
         </div>
@@ -64,18 +63,18 @@ function AvatarLabPage() {
         <div className="space-y-5 rounded-3xl border border-border bg-card p-6">
           <div className="flex items-center gap-2">
             <Wand2 className="h-4 w-4 text-gold" />
-            <span className="eyebrow text-gold">Identity parameters</span>
+            <span className="eyebrow text-gold">{t("avatarLab.identityParams")}</span>
           </div>
 
           <div className="space-y-5">
-            <AttributeSlider label="Charisma" initial={78} />
-            <AttributeSlider label="Futuristic edge" initial={64} />
-            <AttributeSlider label="Warmth" initial={52} />
-            <AttributeSlider label="Aura intensity" initial={88} />
+            <AttributeSlider label={t("avatarLab.charisma")} initial={78} />
+            <AttributeSlider label={t("avatarLab.futuristicEdge")} initial={64} />
+            <AttributeSlider label={t("avatarLab.warmth")} initial={52} />
+            <AttributeSlider label={t("avatarLab.auraIntensity")} initial={88} />
           </div>
 
           <div className="space-y-2 border-t border-border pt-5">
-            <span className="eyebrow text-muted-foreground">Visual style</span>
+            <span className="eyebrow text-muted-foreground">{t("avatarLab.visualStyle")}</span>
             <div className="flex flex-wrap gap-2">
               {styles.map((s) => (
                 <button
@@ -96,11 +95,11 @@ function AvatarLabPage() {
           <div className="flex flex-wrap gap-3 border-t border-border pt-5">
             <Button variant="gold">
               <Sparkles className="h-4 w-4" />
-              Generate artist identity
+              {t("avatarLab.generate")}
             </Button>
             <Button variant="ghost-gold">
               <Shuffle className="h-4 w-4" />
-              Randomize
+              {t("avatarLab.randomize")}
             </Button>
           </div>
         </div>
@@ -108,26 +107,10 @@ function AvatarLabPage() {
 
       {/* IDENTITY CARDS */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <IdentityCard
-          icon={<Feather className="h-4 w-4" />}
-          title="Persona"
-          body="A poised, otherworldly art-pop muse who treats every release as a ritual of light and restraint."
-        />
-        <IdentityCard
-          icon={<BookOpen className="h-4 w-4" />}
-          title="Backstory"
-          body="Born from a corrupted golden-hour archive, she reconstructs forgotten melodies into luminous new forms."
-        />
-        <IdentityCard
-          icon={<Palette className="h-4 w-4" />}
-          title="Signature aesthetic"
-          body="Amber light, sculptural silhouettes, brushed-gold detailing on absolute black. Never loud, always luminous."
-        />
-        <IdentityCard
-          icon={<Mic2 className="h-4 w-4" />}
-          title="Stage identity"
-          body="Performs inside a single beam of warm light — a cathedral of sound built for intimate, cinematic moments."
-        />
+        <IdentityCard icon={<Feather className="h-4 w-4" />} title={t("avatarLab.persona")} body={t("avatarLab.personaBody")} />
+        <IdentityCard icon={<BookOpen className="h-4 w-4" />} title={t("avatarLab.backstory")} body={t("avatarLab.backstoryBody")} />
+        <IdentityCard icon={<Palette className="h-4 w-4" />} title={t("avatarLab.aesthetic")} body={t("avatarLab.aestheticBody")} />
+        <IdentityCard icon={<Mic2 className="h-4 w-4" />} title={t("avatarLab.stage")} body={t("avatarLab.stageBody")} />
       </section>
     </div>
   );
