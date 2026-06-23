@@ -104,3 +104,4 @@ function BattlesPage() {
       </div>
     </div>
   );
+}
