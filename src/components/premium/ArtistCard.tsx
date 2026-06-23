@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { artistImages, type VirtualArtist } from "@/data/mock";
 import { GoldBadge, ReputationChip } from "./Chips";
+import { ImageWithSkeleton } from "./Skeleton";
 import { useI18n } from "@/i18n/context";
 
 export function ArtistCard({ artist }: { artist: VirtualArtist }) {
