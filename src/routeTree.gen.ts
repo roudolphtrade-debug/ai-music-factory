@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppStudioRouteImport } from './routes/_app.studio'
+import { Route as AppRadioRouteImport } from './routes/_app.radio'
+import { Route as AppBattlesRouteImport } from './routes/_app.battles'
 import { Route as AppAvatarLabRouteImport } from './routes/_app.avatar-lab'
 import { Route as AppArtistsIndexRouteImport } from './routes/_app.artists.index'
 import { Route as AppArtistsArtistIdRouteImport } from './routes/_app.artists.$artistId'
@@ -28,6 +30,16 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const AppStudioRoute = AppStudioRouteImport.update({
   id: '/studio',
   path: '/studio',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRadioRoute = AppRadioRouteImport.update({
+  id: '/radio',
+  path: '/radio',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBattlesRoute = AppBattlesRouteImport.update({
+  id: '/battles',
+  path: '/battles',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAvatarLabRoute = AppAvatarLabRouteImport.update({
@@ -49,12 +61,16 @@ const AppArtistsArtistIdRoute = AppArtistsArtistIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/avatar-lab': typeof AppAvatarLabRoute
+  '/battles': typeof AppBattlesRoute
+  '/radio': typeof AppRadioRoute
   '/studio': typeof AppStudioRoute
   '/artists/$artistId': typeof AppArtistsArtistIdRoute
   '/artists/': typeof AppArtistsIndexRoute
 }
 export interface FileRoutesByTo {
   '/avatar-lab': typeof AppAvatarLabRoute
+  '/battles': typeof AppBattlesRoute
+  '/radio': typeof AppRadioRoute
   '/studio': typeof AppStudioRoute
   '/': typeof AppIndexRoute
   '/artists/$artistId': typeof AppArtistsArtistIdRoute
@@ -64,6 +80,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/_app/avatar-lab': typeof AppAvatarLabRoute
+  '/_app/battles': typeof AppBattlesRoute
+  '/_app/radio': typeof AppRadioRoute
   '/_app/studio': typeof AppStudioRoute
   '/_app/': typeof AppIndexRoute
   '/_app/artists/$artistId': typeof AppArtistsArtistIdRoute
@@ -74,15 +92,26 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/avatar-lab'
+    | '/battles'
+    | '/radio'
     | '/studio'
     | '/artists/$artistId'
     | '/artists/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/avatar-lab' | '/studio' | '/' | '/artists/$artistId' | '/artists'
+  to:
+    | '/avatar-lab'
+    | '/battles'
+    | '/radio'
+    | '/studio'
+    | '/'
+    | '/artists/$artistId'
+    | '/artists'
   id:
     | '__root__'
     | '/_app'
     | '/_app/avatar-lab'
+    | '/_app/battles'
+    | '/_app/radio'
     | '/_app/studio'
     | '/_app/'
     | '/_app/artists/$artistId'
@@ -116,6 +145,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppStudioRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/radio': {
+      id: '/_app/radio'
+      path: '/radio'
+      fullPath: '/radio'
+      preLoaderRoute: typeof AppRadioRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/battles': {
+      id: '/_app/battles'
+      path: '/battles'
+      fullPath: '/battles'
+      preLoaderRoute: typeof AppBattlesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/avatar-lab': {
       id: '/_app/avatar-lab'
       path: '/avatar-lab'
@@ -142,6 +185,8 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppAvatarLabRoute: typeof AppAvatarLabRoute
+  AppBattlesRoute: typeof AppBattlesRoute
+  AppRadioRoute: typeof AppRadioRoute
   AppStudioRoute: typeof AppStudioRoute
   AppIndexRoute: typeof AppIndexRoute
   AppArtistsArtistIdRoute: typeof AppArtistsArtistIdRoute
@@ -150,6 +195,8 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAvatarLabRoute: AppAvatarLabRoute,
+  AppBattlesRoute: AppBattlesRoute,
+  AppRadioRoute: AppRadioRoute,
   AppStudioRoute: AppStudioRoute,
   AppIndexRoute: AppIndexRoute,
   AppArtistsArtistIdRoute: AppArtistsArtistIdRoute,
