@@ -109,21 +109,21 @@ export function NowPlayingPlayer({
             </button>
           </div>
 
+          {/* Live waveform */}
+          <div className="mt-6 max-w-xl">
+            <Waveform active={live} />
+          </div>
+
           {/* Seek */}
-          <div className="mt-5 max-w-xl">
+          <div className="mt-4 max-w-xl">
             <Seekbar fallbackDuration={display.duration} />
           </div>
 
           {/* Secondary actions */}
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <VoteButton initialVotes={3420} />
-            <Button
-              variant="ghost-gold"
-              onClick={() => setLiked((l) => !l)}
-              className={cn(liked && "text-gold")}
-            >
-              <Heart className={cn("h-4 w-4", liked && "fill-current")} /> {t("radio.save")}
-            </Button>
+            <LikeButton trackId={display.id} />
+            <ShareButton title={display.title} artist={display.artist} trackId={display.id} />
             <VolumeControl className="ml-auto hidden sm:flex" />
           </div>
         </div>
