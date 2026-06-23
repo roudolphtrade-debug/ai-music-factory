@@ -15,6 +15,7 @@ import {
   ListMusic,
 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/premium/SectionHeading";
 import { StatModule } from "@/components/premium/StatModule";
@@ -361,7 +362,11 @@ function HomePage() {
                 <p className="text-xs text-muted-foreground">{t("home.contest.remaining")}</p>
               </div>
             </div>
-            <Button variant="gold" className="mt-5 w-full">
+            <Button
+              variant="gold"
+              className="mt-5 w-full"
+              onClick={() => toast.success(t("home.contest.submitted"))}
+            >
               {t("home.contest.submit")}
             </Button>
           </div>
