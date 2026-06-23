@@ -23,6 +23,7 @@ import { RankingRow } from "@/components/premium/RankingRow";
 import { GoldBadge, StatusChip } from "@/components/premium/Chips";
 import { VoteButton } from "@/components/premium/VoteButton";
 import { Equalizer } from "@/components/premium/Equalizer";
+import { Reveal } from "@/components/premium/Reveal";
 import { useI18n } from "@/i18n/context";
 import { PlayButton } from "@/components/audio/PlayButton";
 import { playableById, radioQueue } from "@/audio/tracks";
