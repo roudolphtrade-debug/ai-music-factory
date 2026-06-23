@@ -36,6 +36,7 @@ function decodeLyrics(b64: string | null): string {
 export function StudioComposer() {
   const { t } = useI18n();
   const { play } = usePlayer();
+  const { addDraft } = useGeneratedDrafts();
 
   const [prompt, setPrompt] = useState(
     "Cinematic ambient pop with golden-hour pads, warm analogue tape saturation, and a slow euphoric build toward a wordless choir.",
