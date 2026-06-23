@@ -11,8 +11,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { GoldBadge, ReputationChip, StatusChip } from "@/components/premium/Chips";
 import { VoteButton } from "@/components/premium/VoteButton";
+import { LikeButton } from "@/components/premium/LikeButton";
+import { ShareButton } from "@/components/premium/ShareButton";
 import { Playlist } from "@/components/audio/Playlist";
 import { ReadAloudButton } from "@/components/voice/ReadAloudButton";
+import { useSpotlight } from "@/hooks/useSpotlight";
 import { releasesFor } from "@/audio/tracks";
 import { getArtist, artistImages, tracks } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
@@ -30,6 +33,7 @@ function ArtistProfilePage() {
   const { artistId } = Route.useParams();
   const artist = getArtist(artistId);
   const [following, setFollowing] = useState(false);
+  const spotlight = useSpotlight<HTMLElement>();
 
   if (!artist) return <ArtistNotFound />;
 
@@ -46,7 +50,12 @@ function ArtistProfilePage() {
       </Link>
 
       {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl border border-border bg-card">
+      <section
+        ref={spotlight.ref}
+        onPointerMove={spotlight.onPointerMove}
+        className="group relative overflow-hidden rounded-3xl border border-border bg-card"
+      >
+        <span className="spotlight-layer z-10 group-hover:opacity-100" />
         <div className="grid gap-0 md:grid-cols-[0.8fr_1.2fr]">
           <div className="relative aspect-[4/5] md:aspect-auto">
             <img
@@ -121,11 +130,13 @@ function ArtistProfilePage() {
             trailing={(p) => {
               const meta = releases.find((r) => r.id === p.id);
               return (
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                   <span className="hidden text-xs text-muted-foreground sm:block">
                     {meta?.plays} {t("artistProfile.plays")}
                   </span>
-                  <span className="text-xs tabular-nums text-muted-foreground">{p.duration}</span>
+                  <span className="hidden text-xs tabular-nums text-muted-foreground sm:block">{p.duration}</span>
+                  <LikeButton trackId={p.id} size="sm" />
+                  <ShareButton title={p.title} artist={p.artist} trackId={p.id} size="sm" />
                 </div>
               );
             }}

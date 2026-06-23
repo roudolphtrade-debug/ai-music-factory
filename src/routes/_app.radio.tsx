@@ -4,6 +4,7 @@ import { ListMusic } from "lucide-react";
 import { SectionHeading } from "@/components/premium/SectionHeading";
 import { StatusChip } from "@/components/premium/Chips";
 import { VoteButton } from "@/components/premium/VoteButton";
+import { LikeButton } from "@/components/premium/LikeButton";
 import { NowPlayingPlayer } from "@/components/audio/NowPlayingPlayer";
 import { Playlist } from "@/components/audio/Playlist";
 import { VoicePrompt } from "@/components/voice/VoicePrompt";
@@ -93,7 +94,12 @@ function RadioPage() {
           <Playlist
             tracks={queue}
             subtitleFor={(track) => `${track.artist}`}
-            trailing={(track, i) => <VoteButton initialVotes={1200 + i * 240} size="sm" />}
+            trailing={(track, i) => (
+              <div className="flex items-center gap-2">
+                <LikeButton trackId={track.id} size="sm" />
+                <VoteButton initialVotes={1200 + i * 240} size="sm" />
+              </div>
+            )}
           />
         </div>
 

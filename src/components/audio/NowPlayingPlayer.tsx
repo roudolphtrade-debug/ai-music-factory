@@ -1,14 +1,16 @@
-import { Radio as RadioIcon, Heart, SkipBack, SkipForward, Shuffle } from "lucide-react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Radio as RadioIcon, SkipBack, SkipForward, Shuffle } from "lucide-react";
 import { StatusChip, GoldBadge } from "@/components/premium/Chips";
 import { VoteButton } from "@/components/premium/VoteButton";
+import { LikeButton } from "@/components/premium/LikeButton";
+import { ShareButton } from "@/components/premium/ShareButton";
 import { usePlayer } from "@/audio/PlayerProvider";
 import type { PlayableTrack } from "@/audio/tracks";
 import { PlayButton } from "./PlayButton";
 import { WaveBars } from "./WaveBars";
+import { Waveform } from "./Waveform";
 import { Seekbar } from "./Seekbar";
 import { VolumeControl } from "./VolumeControl";
+import { useSpotlight } from "@/hooks/useSpotlight";
 import { useI18n } from "@/i18n/context";
 import { cn } from "@/lib/utils";
 
@@ -26,15 +28,20 @@ export function NowPlayingPlayer({
 }) {
   const { t } = useI18n();
   const { current, isActive, prev, next } = usePlayer();
-  const [liked, setLiked] = useState(false);
+  const spotlight = useSpotlight<HTMLElement>();
 
   // Show the live track if one belongs to this queue, else the lead track.
   const display = current && queue.some((q) => q.id === current.id) ? current : queue[0];
   const live = isActive(display.id);
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-[color-mix(in_oklab,var(--gold)_28%,transparent)] bg-noir-gradient p-7 shadow-[var(--shadow-card)] sm:p-10">
+    <section
+      ref={spotlight.ref}
+      onPointerMove={spotlight.onPointerMove}
+      className="group relative overflow-hidden rounded-3xl border border-[color-mix(in_oklab,var(--gold)_28%,transparent)] bg-noir-gradient p-7 shadow-[var(--shadow-card)] sm:p-10"
+    >
       <div className="absolute inset-0 bg-spot" />
+      <span className="spotlight-layer group-hover:opacity-100" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.06] [background-image:repeating-linear-gradient(115deg,var(--gold)_0,var(--gold)_1px,transparent_1px,transparent_22px)]" />
 
       <div className="relative grid gap-8 lg:grid-cols-[auto_1fr] lg:items-center">
@@ -102,21 +109,21 @@ export function NowPlayingPlayer({
             </button>
           </div>
 
+          {/* Live waveform */}
+          <div className="mt-6 max-w-xl">
+            <Waveform active={live} />
+          </div>
+
           {/* Seek */}
-          <div className="mt-5 max-w-xl">
+          <div className="mt-4 max-w-xl">
             <Seekbar fallbackDuration={display.duration} />
           </div>
 
           {/* Secondary actions */}
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <VoteButton initialVotes={3420} />
-            <Button
-              variant="ghost-gold"
-              onClick={() => setLiked((l) => !l)}
-              className={cn(liked && "text-gold")}
-            >
-              <Heart className={cn("h-4 w-4", liked && "fill-current")} /> {t("radio.save")}
-            </Button>
+            <LikeButton trackId={display.id} />
+            <ShareButton title={display.title} artist={display.artist} trackId={display.id} />
             <VolumeControl className="ml-auto hidden sm:flex" />
           </div>
         </div>

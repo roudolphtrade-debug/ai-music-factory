@@ -337,6 +337,24 @@
   animation: pulse-gold 2s ease-in-out infinite;
 }
 
+/* Cursor-following spotlight overlay. Pair with the useSpotlight hook, which
+   writes --mx / --my onto the parent. Sits above the background, below content. */
+@utility spotlight-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  background: radial-gradient(
+    340px circle at var(--mx, 50%) var(--my, 50%),
+    color-mix(in oklab, var(--gold) 22%, transparent),
+    transparent 70%
+  );
+}
+@media (prefers-reduced-motion: reduce) {
+  .spotlight-layer { display: none; }
+}
+
 /* ---- Cinematic intro overlay ---- */
 @keyframes introIn {
   0% { opacity: 0; }
