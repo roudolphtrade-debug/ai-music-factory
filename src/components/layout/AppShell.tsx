@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { useRouterState } from "@tanstack/react-router";
 import { SidebarContent } from "./SidebarContent";
 import { Topbar } from "./Topbar";
 import { AudioPlayer } from "@/components/premium/AudioPlayer";
