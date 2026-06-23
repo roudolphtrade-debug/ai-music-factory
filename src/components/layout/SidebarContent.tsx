@@ -39,20 +39,20 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                     to={item.to}
                     onClick={onNavigate}
                     className={cn(
-                      "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300",
+                      "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-300",
                       active
-                        ? "bg-[color-mix(in_oklab,var(--gold)_13%,transparent)] text-foreground shadow-[inset_0_1px_0_0_color-mix(in_oklab,var(--gold)_18%,transparent)]"
-                        : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground",
+                        ? "bg-[color-mix(in_oklab,var(--gold)_8%,transparent)] font-medium text-foreground"
+                        : "font-normal text-muted-foreground hover:bg-secondary/40 hover:text-foreground",
                     )}
                   >
                     {active && (
-                      <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-gold-gradient shadow-[0_0_12px_-2px_var(--gold)]" />
+                      <span className="absolute left-0 top-1/2 h-5 w-[2px] -translate-y-1/2 rounded-r-full bg-gold" />
                     )}
                     <span
                       className={cn(
-                        "grid h-8 w-8 shrink-0 place-items-center rounded-lg border transition-all duration-300",
+                        "grid h-8 w-8 shrink-0 place-items-center rounded-md border transition-all duration-300",
                         active
-                          ? "border-[color-mix(in_oklab,var(--gold)_30%,transparent)] bg-[color-mix(in_oklab,var(--gold)_10%,transparent)] text-gold"
+                          ? "border-[color-mix(in_oklab,var(--gold)_24%,transparent)] bg-[color-mix(in_oklab,var(--gold)_7%,transparent)] text-gold"
                           : "border-transparent text-muted-foreground group-hover:border-border group-hover:text-foreground",
                       )}
                     >
