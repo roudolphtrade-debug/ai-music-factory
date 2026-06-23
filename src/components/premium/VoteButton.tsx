@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatNumber } from "@/lib/format";
 
 export function VoteButton({
   initialVotes,
@@ -38,7 +39,7 @@ export function VoteButton({
       <ChevronUp
         className={cn("h-4 w-4 transition-transform", voted && "-translate-y-0.5")}
       />
-      <span className="tabular-nums">{votes.toLocaleString()}</span>
+      <span className="tabular-nums">{formatNumber(votes)}</span>
     </button>
   );
 }

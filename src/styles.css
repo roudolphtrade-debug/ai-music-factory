@@ -63,8 +63,9 @@
   --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
 
-  --shadow-elegant: 0 24px 60px -24px color-mix(in oklab, var(--gold) 24%, transparent);
-  --shadow-card: 0 12px 40px -20px oklch(0 0 0 / 0.7);
+  --shadow-elegant: 0 30px 80px -32px color-mix(in oklab, var(--gold) 26%, transparent);
+  --shadow-card: 0 18px 50px -28px oklch(0 0 0 / 0.75);
+  --shadow-glow: 0 0 40px -8px color-mix(in oklab, var(--gold) 30%, transparent);
 }
 
 :root {
@@ -107,9 +108,11 @@
   --gold-soft: oklch(0.87 0.09 85);
   --gold-deep: oklch(0.64 0.12 70);
 
-  --gradient-gold: linear-gradient(135deg, oklch(0.88 0.1 88), oklch(0.72 0.14 72));
-  --gradient-noir: linear-gradient(180deg, oklch(0.2 0.006 65), oklch(0.13 0.004 60));
+  --gradient-gold: linear-gradient(135deg, oklch(0.92 0.08 90), oklch(0.82 0.13 80) 45%, oklch(0.66 0.13 70));
+  --gradient-gold-sheen: linear-gradient(120deg, transparent 0%, color-mix(in oklab, var(--gold) 60%, transparent) 45%, oklch(0.97 0.05 92) 50%, color-mix(in oklab, var(--gold) 60%, transparent) 55%, transparent 100%);
+  --gradient-noir: linear-gradient(165deg, oklch(0.22 0.007 70), oklch(0.135 0.004 60));
   --gradient-spot: radial-gradient(120% 100% at 50% 0%, oklch(0.82 0.13 80 / 0.16), transparent 60%);
+  --gradient-surface: linear-gradient(180deg, color-mix(in oklab, var(--gold) 4%, var(--card)), var(--card));
 
   --chart-1: oklch(0.8 0.13 80);
   --chart-2: oklch(0.65 0.1 70);
@@ -233,11 +236,11 @@
 
 @utility card-hover {
   transition:
-    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.4s ease,
-    box-shadow 0.4s ease;
+    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.45s ease,
+    box-shadow 0.45s ease;
   &:hover {
-    transform: translateY(-4px);
+    transform: translateY(-5px);
     border-color: color-mix(in oklab, var(--gold) 45%, transparent);
     box-shadow: var(--shadow-elegant);
   }
@@ -245,6 +248,49 @@
 
 @utility ring-gold {
   box-shadow: 0 0 0 1px color-mix(in oklab, var(--gold) 40%, transparent);
+}
+
+/* Premium card surface with subtle top highlight + inner depth */
+@utility surface-premium {
+  background-image: var(--gradient-surface);
+  box-shadow:
+    var(--shadow-card),
+    inset 0 1px 0 0 color-mix(in oklab, var(--gold) 10%, transparent);
+}
+
+/* Icon tile used for iconic feature blocks */
+@utility icon-tile {
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-xl);
+  border: 1px solid color-mix(in oklab, var(--gold) 30%, transparent);
+  background-image: var(--gradient-noir);
+  color: var(--gold);
+  box-shadow:
+    inset 0 1px 0 0 color-mix(in oklab, var(--gold) 18%, transparent),
+    0 10px 30px -16px oklch(0 0 0 / 0.8);
+}
+
+/* Thin gold rule for section dividers */
+@utility divider-gold {
+  height: 1px;
+  background-image: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in oklab, var(--gold) 40%, transparent),
+    transparent
+  );
+}
+
+/* Animated gold sheen for headline marks / wordmark */
+@utility gold-sheen {
+  background-image: var(--gradient-gold-sheen);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: shimmer 6s linear infinite;
 }
 
 @keyframes equalize {
