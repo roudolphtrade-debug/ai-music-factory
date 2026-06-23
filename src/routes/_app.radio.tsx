@@ -35,6 +35,10 @@ function RadioPage() {
       {/* MAIN PLAYER */}
       <NowPlayingPlayer station={nowPlaying.station} listeners={nowPlaying.listeners} queue={radioQueue} />
 
+      {/* VOICE PROMPT */}
+      <VoicePrompt />
+
+
       {/* GENRES */}
       <section className="space-y-4">
         <SectionHeading eyebrow={t("radio.categories")} title={t("radio.browseGenre")} />
