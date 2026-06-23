@@ -63,8 +63,9 @@
   --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
 
-  --shadow-elegant: 0 24px 60px -24px color-mix(in oklab, var(--gold) 24%, transparent);
-  --shadow-card: 0 12px 40px -20px oklch(0 0 0 / 0.7);
+  --shadow-elegant: 0 30px 80px -32px color-mix(in oklab, var(--gold) 26%, transparent);
+  --shadow-card: 0 18px 50px -28px oklch(0 0 0 / 0.75);
+  --shadow-glow: 0 0 40px -8px color-mix(in oklab, var(--gold) 30%, transparent);
 }
 
 :root {
