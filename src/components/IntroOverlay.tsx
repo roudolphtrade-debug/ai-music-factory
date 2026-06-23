@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import logoAsset from "@/assets/logo.png.asset.json";
+import introLogo from "@/assets/intro-logo.png";
 import { cn } from "@/lib/utils";
 
 const SESSION_KEY = "afm-intro-seen";
