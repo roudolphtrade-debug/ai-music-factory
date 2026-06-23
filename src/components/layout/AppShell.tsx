@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { useRouterState } from "@tanstack/react-router";
 import { SidebarContent } from "./SidebarContent";
 import { Topbar } from "./Topbar";
 import { AudioPlayer } from "@/components/premium/AudioPlayer";
@@ -7,6 +8,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
     <div className="min-h-screen w-full bg-background">
@@ -26,7 +28,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="lg:pl-72">
         <Topbar onMenu={() => setMobileOpen(true)} />
         <main className="mx-auto w-full max-w-7xl px-4 pb-40 pt-6 sm:px-6 lg:px-10">
-          {children}
+          <div key={pathname} className="animate-route-in">
+            {children}
+          </div>
         </main>
       </div>
 

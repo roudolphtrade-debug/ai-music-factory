@@ -190,6 +190,18 @@
     color: var(--foreground);
   }
 
+  /* Respect user motion preferences across the whole app */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
   ::-webkit-scrollbar {
     width: 9px;
     height: 9px;
@@ -364,3 +376,47 @@
 @utility animate-intro-bar {
   animation: introBar 2.6s ease-in-out both;
 }
+
+/* ---- Gold button sheen: a slow light sweep on hover ---- */
+.btn-gold-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+    120deg,
+    transparent 0%,
+    color-mix(in oklab, oklch(1 0 0) 38%, transparent) 50%,
+    transparent 100%
+  );
+  transform: translateX(-130%);
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+.btn-gold-sheen:hover::after {
+  transform: translateX(130%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn-gold-sheen::after {
+    display: none;
+  }
+}
+
+/* ---- Route content transition ---- */
+@keyframes routeIn {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@utility animate-route-in {
+  animation: routeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ---- Vote pop feedback ---- */
+@keyframes votePop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.16); }
+  100% { transform: scale(1); }
+}
+@utility animate-vote-pop {
+  animation: votePop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+

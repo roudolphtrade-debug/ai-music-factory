@@ -161,6 +161,7 @@ const fr: Dict = {
       entries: "candidatures",
       remaining: "jours restants",
       submit: "Soumettre votre titre",
+      submitted: "Titre soumis · bonne chance pour le concours !",
     },
     fame: {
       eyebrow: "Prestige",
@@ -555,6 +556,7 @@ const en: Dict = {
       entries: "entries",
       remaining: "days remaining",
       submit: "Submit your track",
+      submitted: "Track submitted · good luck in the contest!",
     },
     fame: {
       eyebrow: "Prestige",
@@ -949,6 +951,7 @@ const es: Dict = {
       entries: "participaciones",
       remaining: "días restantes",
       submit: "Enviar tu tema",
+      submitted: "Tema enviado · ¡suerte en el concurso!",
     },
     fame: {
       eyebrow: "Prestigio",
