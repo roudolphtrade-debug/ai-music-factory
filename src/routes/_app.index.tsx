@@ -71,12 +71,17 @@ const statIcons = [
 
 function HomePage() {
   const { t, relTime } = useI18n();
+  const { favorites, history } = useLibrary();
   const liveBattle = battles[0];
   const [region, setRegion] = useState<ChartRegion>("Global");
   const charts = globalCharts.filter((c) => c.regions.includes(region));
 
+  const historyTracks = history.map((h) => playableById[h.id]).filter(Boolean).slice(0, 4);
+  const favTracks = favorites.map((id) => playableById[id]).filter(Boolean).slice(0, 4);
+
   return (
     <div className="space-y-12">
+      <OnboardingChecklist />
       {/* HERO */}
       <section className="relative overflow-hidden rounded-3xl border border-border bg-noir-gradient">
         <div className="absolute inset-0 bg-spot" />
