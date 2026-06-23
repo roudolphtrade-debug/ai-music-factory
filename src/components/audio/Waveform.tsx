@@ -82,7 +82,7 @@ export function Waveform({
               played ? "bg-gold-gradient" : "bg-[color-mix(in_oklab,var(--gold)_18%,transparent)]",
             )}
             style={{
-              height: `${h * 100}%`,
+              height: `${(h * 100).toFixed(2)}%`,
               animation: atHead
                 ? `equalize ${0.6 + (i % 3) * 0.15}s ease-in-out infinite`
                 : undefined,
