@@ -187,6 +187,27 @@ function StudioPage() {
   );
 }
 
+function ListenButton({ track }: { track: PlayableTrack }) {
+  const { t } = useI18n();
+  const { isTrackPlaying } = usePlayer();
+  const { toggle } = usePlayer();
+  const playing = isTrackPlaying(track.id);
+  return (
+    <button
+      type="button"
+      onClick={() => toggle(track)}
+      className={
+        "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors " +
+        (playing
+          ? "border-[color-mix(in_oklab,var(--gold)_50%,transparent)] text-gold"
+          : "border-border text-muted-foreground hover:border-[color-mix(in_oklab,var(--gold)_40%,transparent)] hover:text-foreground")
+      }
+    >
+      {playing ? t("audio.pause") : t("audio.listenVersion")}
+    </button>
+  );
+}
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block space-y-1.5">
