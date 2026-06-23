@@ -669,6 +669,11 @@ const en: Dict = {
       errorRate: "Too many requests — try again shortly.",
       errorGeneric: "Generation failed. Please try again.",
       newTrack: "Generated track",
+      myCreations: "Your AI creations",
+      myCreationsDesc: "Your generated tracks, saved on this device.",
+      emptyHint: "No creations yet — generate your first track above.",
+      delete: "Delete",
+      deleted: "Creation deleted",
     },
   },
   avatarLab: {
