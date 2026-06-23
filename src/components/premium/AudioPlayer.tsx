@@ -1,41 +1,45 @@
-import { useEffect, useState } from "react";
-import { Play, Pause, SkipBack, SkipForward, Volume2, Heart, Shuffle, Repeat } from "lucide-react";
-import { nowPlaying, artistImages } from "@/data/mock";
-import { Equalizer } from "./Equalizer";
+import { SkipBack, SkipForward, Heart, Shuffle, Repeat } from "lucide-react";
+import { useState } from "react";
+import { usePlayer, formatTime } from "@/audio/PlayerProvider";
+import { radioQueue } from "@/audio/tracks";
+import { PlayButton } from "@/components/audio/PlayButton";
+import { WaveBars } from "@/components/audio/WaveBars";
+import { Seekbar } from "@/components/audio/Seekbar";
+import { VolumeControl } from "@/components/audio/VolumeControl";
 import { cn } from "@/lib/utils";
-import { useI18n } from "@/i18n/context";
 
+/**
+ * Persistent global player bar. Reflects the single active audio track.
+ */
 export function AudioPlayer() {
-  const { t } = useI18n();
-  const [playing, setPlaying] = useState(true);
-  const [progress, setProgress] = useState(34);
+  const { current, isPlaying, prev, next, currentTime, duration } = usePlayer();
   const [liked, setLiked] = useState(false);
 
-  useEffect(() => {
-    if (!playing) return;
-    const id = setInterval(() => {
-      setProgress((p) => (p >= 100 ? 0 : p + 0.4));
-    }, 400);
-    return () => clearInterval(id);
-  }, [playing]);
-
-  const track = nowPlaying.track;
+  // Idle state: show the lead radio track as a ready-to-play preview.
+  const track = current ?? radioQueue[0];
+  const elapsed = current ? formatTime(currentTime) : "0:00";
+  const total = current && duration > 0 ? formatTime(duration) : track.duration;
 
   return (
     <div className="border-t border-border bg-card/80 backdrop-blur-xl">
-      <div className="h-px w-full bg-secondary">
-        <div
-          className="h-full bg-gold-gradient transition-[width] duration-300"
-          style={{ width: `${progress}%` }}
-        />
+      {/* Slim seek line (clickable) */}
+      <div className="hidden px-4 pt-2 sm:block">
+        <Seekbar showTimes={false} />
       </div>
+
       <div className="flex items-center gap-4 px-4 py-3 sm:px-6">
+        {/* Track meta */}
         <div className="flex min-w-0 flex-1 items-center gap-3">
-          <img
-            src={artistImages[track.artistId]}
-            alt={track.artist}
-            className="h-12 w-12 rounded-lg object-cover ring-1 ring-border"
-          />
+          <div className="relative">
+            <img
+              src={track.cover}
+              alt={track.artist}
+              className={cn(
+                "h-12 w-12 rounded-lg object-cover ring-1 ring-border",
+                isPlaying && "ring-[color-mix(in_oklab,var(--gold)_45%,transparent)]",
+              )}
+            />
+          </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-medium text-foreground">{track.title}</p>
             <p className="truncate text-xs text-muted-foreground">{track.artist}</p>
@@ -53,48 +57,58 @@ export function AudioPlayer() {
           </button>
         </div>
 
+        {/* Transport */}
         <div className="flex items-center gap-1.5">
-          <PlayerIcon icon={<Shuffle className="h-4 w-4" />} className="hidden md:inline-flex" />
-          <PlayerIcon icon={<SkipBack className="h-4 w-4" />} />
-          <button
-            type="button"
-            onClick={() => setPlaying((p) => !p)}
-            className="grid h-11 w-11 place-items-center rounded-full bg-gold-gradient text-primary-foreground shadow-[0_8px_24px_-10px_var(--gold)] transition-transform hover:scale-105"
-            aria-label={playing ? "Pause" : "Play"}
-          >
-            {playing ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 translate-x-0.5" />}
-          </button>
-          <PlayerIcon icon={<SkipForward className="h-4 w-4" />} />
-          <PlayerIcon icon={<Repeat className="h-4 w-4" />} className="hidden md:inline-flex" />
+          <PlayerIcon className="hidden md:inline-flex" aria-label="Shuffle">
+            <Shuffle className="h-4 w-4" />
+          </PlayerIcon>
+          <PlayerIcon onClick={prev} aria-label="Previous">
+            <SkipBack className="h-4 w-4" />
+          </PlayerIcon>
+          <PlayButton track={track} queue={radioQueue} size="md" />
+          <PlayerIcon onClick={next} aria-label="Next">
+            <SkipForward className="h-4 w-4" />
+          </PlayerIcon>
+          <PlayerIcon className="hidden md:inline-flex" aria-label="Repeat">
+            <Repeat className="h-4 w-4" />
+          </PlayerIcon>
         </div>
 
+        {/* Right: time + volume + equalizer */}
         <div className="hidden flex-1 items-center justify-end gap-4 lg:flex">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Equalizer active={playing} />
-            <span>{t("player.listening", { n: nowPlaying.listeners })}</span>
-          </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Volume2 className="h-4 w-4" />
-            <div className="h-1 w-24 overflow-hidden rounded-full bg-secondary">
-              <div className="h-full w-2/3 bg-foreground/70" />
-            </div>
-          </div>
+          <span className="text-xs tabular-nums text-muted-foreground">
+            {elapsed} / {total}
+          </span>
+          <WaveBars active={isPlaying} />
+          <VolumeControl />
         </div>
       </div>
     </div>
   );
 }
 
-function PlayerIcon({ icon, className }: { icon: React.ReactNode; className?: string }) {
+function PlayerIcon({
+  children,
+  className,
+  onClick,
+  "aria-label": ariaLabel,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  onClick?: () => void;
+  "aria-label"?: string;
+}) {
   return (
     <button
       type="button"
+      onClick={onClick}
+      aria-label={ariaLabel}
       className={cn(
         "grid h-9 w-9 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground",
         className,
       )}
     >
-      {icon}
+      {children}
     </button>
   );
 }
