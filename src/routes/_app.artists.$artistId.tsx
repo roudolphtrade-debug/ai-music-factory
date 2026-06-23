@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { GoldBadge, ReputationChip, StatusChip } from "@/components/premium/Chips";
 import { VoteButton } from "@/components/premium/VoteButton";
 import { Playlist } from "@/components/audio/Playlist";
+import { ReadAloudButton } from "@/components/voice/ReadAloudButton";
 import { releasesFor } from "@/audio/tracks";
 import { getArtist, artistImages, tracks } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
