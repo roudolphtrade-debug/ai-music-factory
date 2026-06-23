@@ -72,13 +72,13 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           <span className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-spot opacity-70" />
           <div className="relative flex items-center gap-2">
             <Crown className="h-4 w-4 text-gold" />
-            <p className="font-display text-base font-semibold text-foreground">Go Platinum</p>
+            <p className="font-display text-base font-semibold text-foreground">{t("sidebar.platinumTitle")}</p>
           </div>
           <p className="relative mt-1.5 text-xs leading-relaxed text-muted-foreground">
-            Unlimited stems, priority mastering, and label tools.
+            {t("sidebar.platinumDesc")}
           </p>
           <button className="relative mt-3.5 w-full rounded-lg bg-gold-gradient px-3 py-2 text-xs font-semibold text-primary-foreground shadow-[0_8px_24px_-12px_var(--gold)] transition-transform hover:scale-[1.02]">
-            Upgrade
+            {t("sidebar.upgrade")}
           </button>
         </div>
       </div>
