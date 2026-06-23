@@ -39,11 +39,9 @@ export function PlayButton({
   className?: string;
   label?: string;
 }) {
-  const { toggle, isActive, isTrackPlaying, current, isPlaying } = usePlayer();
+  const { toggle, isActive, isTrackPlaying } = usePlayer();
   const active = isActive(track.id);
   const playing = isTrackPlaying(track.id);
-  // Loading: this track is current but audio hasn't begun reporting time yet.
-  const loading = active && !isPlaying && current?.id === track.id && false;
 
   const variants: Record<Variant, string> = {
     gold: cn(
