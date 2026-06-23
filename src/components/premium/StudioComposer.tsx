@@ -7,6 +7,7 @@ import { LikeButton } from "@/components/premium/LikeButton";
 import { Equalizer } from "@/components/premium/Equalizer";
 import { usePlayer } from "@/audio/PlayerProvider";
 import type { PlayableTrack } from "@/audio/tracks";
+import { useGeneratedDrafts } from "@/library/GeneratedDraftsProvider";
 import { artistImages, moods, type ArtistId } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
 
