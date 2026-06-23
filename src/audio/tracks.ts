@@ -1,21 +1,30 @@
 import { tracks, artistImages, type ArtistId } from "@/data/mock";
+import voice1 from "@/audio/sounds/voice-1.mp3.asset.json";
+import voice2 from "@/audio/sounds/voice-2.mp3.asset.json";
+import voice3 from "@/audio/sounds/voice-3.mp3.asset.json";
+import voice4 from "@/audio/sounds/voice-4.mp3.asset.json";
+import voice5 from "@/audio/sounds/voice-5.mp3.asset.json";
+import voice6 from "@/audio/sounds/voice-6.mp3.asset.json";
+import voice7 from "@/audio/sounds/voice-7.mp3.asset.json";
+import voice8 from "@/audio/sounds/voice-8.mp3.asset.json";
+import voice9 from "@/audio/sounds/voice-9.mp3.asset.json";
+import voice10 from "@/audio/sounds/voice-10.mp3.asset.json";
 
 /**
- * Mock but real, royalty-free audio sources (HTML5 <audio> compatible).
- * Used only to make the front-end audio experience feel credible.
+ * Real audio sources uploaded by the artist, served from the Lovable CDN.
+ * These power the radio rotation, artist releases and battle previews.
  */
 const SOURCES = [
-  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
-  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
-  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3",
-  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3",
-  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
-  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3",
-  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3",
-  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3",
+  voice1.url,
+  voice2.url,
+  voice3.url,
+  voice4.url,
+  voice5.url,
+  voice6.url,
+  voice7.url,
+  voice8.url,
+  voice9.url,
+  voice10.url,
 ];
 
 export function sourceAt(index: number): string {
