@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/premium/SectionHeading";
 import { GoldBadge } from "@/components/premium/Chips";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/i18n/context";
 
 export const Route = createFileRoute("/_app/settings")({
   head: () => ({
@@ -17,12 +18,13 @@ export const Route = createFileRoute("/_app/settings")({
 });
 
 function SettingsPage() {
+  const { t } = useI18n();
   return (
     <div className="space-y-8">
       <SectionHeading
-        eyebrow="Settings"
-        title="Studio preferences"
-        description="Manage how your studio, identity and account behave across Ai Music Factory."
+        eyebrow={t("settings.eyebrow")}
+        title={t("settings.title")}
+        description={t("settings.desc")}
       />
 
       {/* AUTH NOTICE */}
@@ -31,11 +33,8 @@ function SettingsPage() {
           <Lock className="h-5 w-5" />
         </span>
         <div>
-          <p className="font-medium text-foreground">Accounts arrive next</p>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            Sign-in, real profiles, uploads and vote history connect once the experience is
-            validated. This is a UI preview.
-          </p>
+          <p className="font-medium text-foreground">{t("settings.accountsTitle")}</p>
+          <p className="mt-0.5 text-sm text-muted-foreground">{t("settings.accountsDesc")}</p>
         </div>
       </div>
 
@@ -43,15 +42,15 @@ function SettingsPage() {
         <div className="space-y-6">
           {/* PROFILE */}
           <section className="rounded-2xl border border-border bg-card p-6">
-            <h2 className="font-display text-xl font-semibold text-foreground">Studio profile</h2>
+            <h2 className="font-display text-xl font-semibold text-foreground">{t("settings.studioProfile")}</h2>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              <FormField label="Studio name" defaultValue="Studio A" />
-              <FormField label="Handle" defaultValue="@studio-a" />
-              <FormField label="Primary genre" defaultValue="Ambient Pop" />
-              <FormField label="Location" defaultValue="Paris, FR" />
+              <FormField label={t("settings.studioName")} defaultValue="Studio A" />
+              <FormField label={t("settings.handle")} defaultValue="@studio-a" />
+              <FormField label={t("settings.primaryGenre")} defaultValue="Afrobeats" />
+              <FormField label={t("settings.location")} defaultValue="Paris, FR" />
             </div>
             <FormField
-              label="Bio"
+              label={t("settings.bio")}
               defaultValue="Crafting cinematic, golden-hour electronica for AI-native artists."
               className="mt-4"
               textarea
@@ -60,12 +59,12 @@ function SettingsPage() {
 
           {/* PREFERENCES */}
           <section className="rounded-2xl border border-border bg-card p-6">
-            <h2 className="font-display text-xl font-semibold text-foreground">Preferences</h2>
+            <h2 className="font-display text-xl font-semibold text-foreground">{t("settings.preferences")}</h2>
             <div className="mt-4 divide-y divide-border/60">
-              <ToggleRow label="Battle invitations" desc="Let other artists challenge you." defaultOn />
-              <ToggleRow label="Radio auto-submit" desc="Send new releases to AI Radio rotation." defaultOn />
-              <ToggleRow label="Public reputation" desc="Show your reputation score on your profile." defaultOn />
-              <ToggleRow label="Email digests" desc="Weekly summary of plays and votes." />
+              <ToggleRow label={t("settings.battleInvites")} desc={t("settings.battleInvitesDesc")} defaultOn />
+              <ToggleRow label={t("settings.radioAutoSubmit")} desc={t("settings.radioAutoSubmitDesc")} defaultOn />
+              <ToggleRow label={t("settings.publicReputation")} desc={t("settings.publicReputationDesc")} defaultOn />
+              <ToggleRow label={t("settings.emailDigests")} desc={t("settings.emailDigestsDesc")} />
             </div>
           </section>
         </div>
@@ -79,28 +78,26 @@ function SettingsPage() {
             <p className="mt-4 font-display text-lg font-semibold text-foreground">Studio A</p>
             <p className="text-xs text-muted-foreground">@studio-a</p>
             <GoldBadge className="mt-3">
-              <ShieldCheck className="h-3.5 w-3.5" /> Platinum tier
+              <ShieldCheck className="h-3.5 w-3.5" /> {t("settings.platinumTier")}
             </GoldBadge>
             <Button variant="ghost-gold" className="mt-5 w-full">
-              Change avatar
+              {t("settings.changeAvatar")}
             </Button>
           </div>
 
           <div className="rounded-2xl border border-border bg-card p-6">
-            <h3 className="font-display text-base font-semibold text-foreground">Plan</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Platinum · unlimited stems, priority mastering, label tools.
-            </p>
+            <h3 className="font-display text-base font-semibold text-foreground">{t("settings.plan")}</h3>
+            <p className="mt-1 text-sm text-muted-foreground">{t("settings.planDesc")}</p>
             <Button variant="gold" className="mt-4 w-full">
-              Manage plan
+              {t("settings.managePlan")}
             </Button>
           </div>
         </div>
       </div>
 
       <div className="flex justify-end gap-3">
-        <Button variant="noir">Discard</Button>
-        <Button variant="gold">Save changes</Button>
+        <Button variant="noir">{t("settings.discard")}</Button>
+        <Button variant="gold">{t("settings.saveChanges")}</Button>
       </div>
     </div>
   );
