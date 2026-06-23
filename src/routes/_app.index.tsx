@@ -25,9 +25,12 @@ import { GoldBadge, StatusChip } from "@/components/premium/Chips";
 import { VoteButton } from "@/components/premium/VoteButton";
 import { Equalizer } from "@/components/premium/Equalizer";
 import { Reveal } from "@/components/premium/Reveal";
+import { OnboardingChecklist } from "@/components/premium/OnboardingChecklist";
+import { LikeButton } from "@/components/premium/LikeButton";
 import { useI18n } from "@/i18n/context";
 import { PlayButton } from "@/components/audio/PlayButton";
-import { playableById, radioQueue } from "@/audio/tracks";
+import { playableById, playableTracks, radioQueue } from "@/audio/tracks";
+import { useLibrary } from "@/library/LibraryProvider";
 import { cn } from "@/lib/utils";
 import {
   platformStats,
