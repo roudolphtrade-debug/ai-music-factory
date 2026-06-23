@@ -72,9 +72,7 @@ export function PlayButton({
         className,
       )}
     >
-      {loading ? (
-        <Loader2 className={cn(icon[size], "animate-spin")} />
-      ) : playing ? (
+      {playing ? (
         <Pause className={icon[size]} />
       ) : (
         <Play className={cn(icon[size], "translate-x-[1px]")} />
