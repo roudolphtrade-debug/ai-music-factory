@@ -25,7 +25,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
           <input
             type="search"
             placeholder={t("topbar.searchPlaceholder")}
-            className="h-10 w-full rounded-xl border border-input bg-secondary/40 pl-10 pr-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-[color-mix(in_oklab,var(--gold)_45%,transparent)]"
+            className="h-10 w-full rounded-lg border border-input bg-secondary/30 pl-10 pr-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-[color-mix(in_oklab,var(--gold)_38%,transparent)]"
           />
         </div>
 
@@ -34,7 +34,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
           <div
             role="group"
             aria-label={t("language.label")}
-            className="flex items-center rounded-xl border border-border bg-secondary/40 p-0.5"
+            className="flex items-center rounded-lg border border-border bg-secondary/30 p-0.5"
           >
             {LANGS.map((l) => (
               <button
@@ -43,9 +43,9 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
                 onClick={() => setLang(l.code)}
                 aria-pressed={lang === l.code}
                 className={cn(
-                  "rounded-lg px-2.5 py-1 text-xs font-semibold tracking-wide transition-colors",
+                  "rounded-md px-2.5 py-1 text-xs font-semibold tracking-wide transition-colors",
                   lang === l.code
-                    ? "bg-gold-gradient text-primary-foreground shadow-[0_6px_18px_-10px_var(--gold)]"
+                    ? "bg-[color-mix(in_oklab,var(--gold)_14%,transparent)] text-gold"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
@@ -62,17 +62,17 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
           </Button>
           <button
             type="button"
-            className="relative grid h-10 w-10 place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            className="relative grid h-10 w-10 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             aria-label="Notifications"
           >
             <Bell className="h-5 w-5" />
-            <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-gold ring-2 ring-background" />
+            <span className="absolute right-2.5 top-2.5 h-1.5 w-1.5 rounded-full bg-gold ring-2 ring-background" />
           </button>
           <button
             type="button"
-            className="flex items-center gap-2 rounded-xl border border-border bg-secondary/40 py-1 pl-1 pr-2.5 transition-colors hover:border-[color-mix(in_oklab,var(--gold)_35%,transparent)]"
+            className="flex items-center gap-2 rounded-lg border border-border bg-secondary/30 py-1 pl-1 pr-2.5 transition-colors hover:border-[color-mix(in_oklab,var(--gold)_28%,transparent)]"
           >
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-gold-gradient text-sm font-semibold text-primary-foreground">
+            <span className="grid h-8 w-8 place-items-center rounded-md border border-[color-mix(in_oklab,var(--gold)_30%,transparent)] bg-[color-mix(in_oklab,var(--gold)_12%,transparent)] text-sm font-semibold text-gold">
               A
             </span>
             <span className="hidden text-sm font-medium text-foreground md:block">Studio A</span>

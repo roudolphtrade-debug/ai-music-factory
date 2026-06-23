@@ -14,12 +14,12 @@ export function GoldBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[0.7rem] font-medium",
+        "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[0.66rem] font-medium tracking-[0.04em]",
         variant === "soft" &&
-          "bg-[color-mix(in_oklab,var(--gold)_14%,transparent)] text-gold",
+          "bg-[color-mix(in_oklab,var(--gold)_9%,transparent)] text-gold",
         variant === "solid" && "bg-gold-gradient text-primary-foreground",
         variant === "outline" &&
-          "border border-[color-mix(in_oklab,var(--gold)_35%,transparent)] text-foreground/80",
+          "border border-[color-mix(in_oklab,var(--gold)_24%,transparent)] text-foreground/75",
         className,
       )}
     >
@@ -38,13 +38,13 @@ export function ReputationChip({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border border-[color-mix(in_oklab,var(--gold)_30%,transparent)] bg-[color-mix(in_oklab,var(--gold)_8%,transparent)] px-2.5 py-1 text-xs font-semibold text-gold",
+        "inline-flex items-center gap-1.5 rounded-full border border-[color-mix(in_oklab,var(--gold)_22%,transparent)] bg-[color-mix(in_oklab,var(--gold)_5%,transparent)] px-2.5 py-1 text-xs font-semibold text-gold",
         className,
       )}
     >
       <ShieldCheck className="h-3.5 w-3.5" />
       {score.toFixed(1)}
-      <span className="font-normal text-muted-foreground">REP</span>
+      <span className="font-normal tracking-[0.12em] text-muted-foreground">REP</span>
     </span>
   );
 }
@@ -64,7 +64,7 @@ export function StatusChip({ status }: { status: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.7rem] font-medium",
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.66rem] font-medium tracking-[0.04em]",
         statusStyles[status] ?? "bg-secondary text-muted-foreground",
       )}
     >

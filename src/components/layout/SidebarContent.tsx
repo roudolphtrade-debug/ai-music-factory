@@ -14,8 +14,8 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <div className="relative flex h-full flex-col bg-sidebar">
-      {/* faint gold spine on the right edge */}
-      <span className="pointer-events-none absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-[color-mix(in_oklab,var(--gold)_28%,transparent)] to-transparent" />
+      {/* whisper-thin gold spine on the right edge */}
+      <span className="pointer-events-none absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-[color-mix(in_oklab,var(--gold)_16%,transparent)] to-transparent" />
 
       <div className="px-5 pb-5 pt-6">
         <Link to="/" onClick={onNavigate}>
@@ -39,20 +39,20 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                     to={item.to}
                     onClick={onNavigate}
                     className={cn(
-                      "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300",
+                      "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-300",
                       active
-                        ? "bg-[color-mix(in_oklab,var(--gold)_13%,transparent)] text-foreground shadow-[inset_0_1px_0_0_color-mix(in_oklab,var(--gold)_18%,transparent)]"
-                        : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground",
+                        ? "bg-[color-mix(in_oklab,var(--gold)_8%,transparent)] font-medium text-foreground"
+                        : "font-normal text-muted-foreground hover:bg-secondary/40 hover:text-foreground",
                     )}
                   >
                     {active && (
-                      <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-gold-gradient shadow-[0_0_12px_-2px_var(--gold)]" />
+                      <span className="absolute left-0 top-1/2 h-5 w-[2px] -translate-y-1/2 rounded-r-full bg-gold" />
                     )}
                     <span
                       className={cn(
-                        "grid h-8 w-8 shrink-0 place-items-center rounded-lg border transition-all duration-300",
+                        "grid h-8 w-8 shrink-0 place-items-center rounded-md border transition-all duration-300",
                         active
-                          ? "border-[color-mix(in_oklab,var(--gold)_30%,transparent)] bg-[color-mix(in_oklab,var(--gold)_10%,transparent)] text-gold"
+                          ? "border-[color-mix(in_oklab,var(--gold)_24%,transparent)] bg-[color-mix(in_oklab,var(--gold)_7%,transparent)] text-gold"
                           : "border-transparent text-muted-foreground group-hover:border-border group-hover:text-foreground",
                       )}
                     >
@@ -68,8 +68,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       </nav>
 
       <div className="border-t border-sidebar-border p-3">
-        <div className="surface-premium relative overflow-hidden rounded-2xl border border-[color-mix(in_oklab,var(--gold)_24%,transparent)] p-4">
-          <span className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-spot opacity-70" />
+        <div className="surface-premium relative overflow-hidden rounded-xl border border-[color-mix(in_oklab,var(--gold)_16%,transparent)] p-4">
           <div className="relative flex items-center gap-2">
             <Crown className="h-4 w-4 text-gold" />
             <p className="font-display text-base font-semibold text-foreground">{t("sidebar.platinumTitle")}</p>
@@ -77,7 +76,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           <p className="relative mt-1.5 text-xs leading-relaxed text-muted-foreground">
             {t("sidebar.platinumDesc")}
           </p>
-          <button className="relative mt-3.5 w-full rounded-lg bg-gold-gradient px-3 py-2 text-xs font-semibold text-primary-foreground shadow-[0_8px_24px_-12px_var(--gold)] transition-transform hover:scale-[1.02]">
+          <button className="relative mt-3.5 w-full rounded-md bg-gold-gradient px-3 py-2 text-xs font-semibold text-primary-foreground transition-[filter] hover:brightness-[1.04]">
             {t("sidebar.upgrade")}
           </button>
         </div>
