@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Swords, Trophy, History } from "lucide-react";
+import { Swords } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/premium/SectionHeading";
 import { BattleAudioCard } from "@/components/audio/BattleAudioCard";
 import { BracketView } from "@/components/premium/BracketView";
-import { battles, battleHistory } from "@/data/mock";
+import { SeasonHistory } from "@/components/premium/SeasonHistory";
+import { battles } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
 
 export const Route = createFileRoute("/_app/battles")({
