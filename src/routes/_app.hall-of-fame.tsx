@@ -109,6 +109,9 @@ function HallOfFamePage() {
           ))}
         </div>
       </section>
+
+      {/* SEASON HISTORY */}
+      <SeasonHistory />
     </div>
   );
 }
