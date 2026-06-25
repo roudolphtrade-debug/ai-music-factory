@@ -5,6 +5,7 @@ import { LibraryProvider } from "@/library/LibraryProvider";
 import { GeneratedDraftsProvider } from "@/library/GeneratedDraftsProvider";
 import { LabelsProvider } from "@/library/LabelsProvider";
 import { CreditsProvider } from "@/library/CreditsProvider";
+import { NotificationsProvider } from "@/library/NotificationsProvider";
 import { BattlesProvider } from "@/library/BattlesProvider";
 
 export const Route = createFileRoute("/_app")({
@@ -13,21 +14,23 @@ export const Route = createFileRoute("/_app")({
 
 function AppLayout() {
   return (
-    <CreditsProvider>
-      <LibraryProvider>
-        <LabelsProvider>
-          <BattlesProvider>
-            <GeneratedDraftsProvider>
-              <PlayerProvider>
-                <AppShell>
-                  <Outlet />
-                </AppShell>
-              </PlayerProvider>
-            </GeneratedDraftsProvider>
-          </BattlesProvider>
-        </LabelsProvider>
-      </LibraryProvider>
-    </CreditsProvider>
+    <NotificationsProvider>
+      <CreditsProvider>
+        <LibraryProvider>
+          <LabelsProvider>
+            <BattlesProvider>
+              <GeneratedDraftsProvider>
+                <PlayerProvider>
+                  <AppShell>
+                    <Outlet />
+                  </AppShell>
+                </PlayerProvider>
+              </GeneratedDraftsProvider>
+            </BattlesProvider>
+          </LabelsProvider>
+        </LibraryProvider>
+      </CreditsProvider>
+    </NotificationsProvider>
   );
 }
 
