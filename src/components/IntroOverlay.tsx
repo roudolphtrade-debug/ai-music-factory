@@ -50,6 +50,7 @@ export function IntroOverlay() {
         muted
         playsInline
         onEnded={() => setLeaving(true)}
+        onError={() => setLeaving(true)}
         className="h-full w-full object-cover"
       />
 
