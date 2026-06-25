@@ -11,8 +11,10 @@ import {
   BarChart3,
   Settings,
   Library,
+  Gem,
   type LucideIcon,
 } from "lucide-react";
+
 
 export interface NavItem {
   label: string;
@@ -49,6 +51,7 @@ export const navSections: NavSection[] = [
     heading: "nav.sections.you",
     items: [
       { label: "nav.library", to: "/library", icon: Library },
+      { label: "nav.credits", to: "/credits", icon: Gem },
       { label: "nav.community", to: "/community", icon: MessagesSquare },
       { label: "nav.analytics", to: "/analytics", icon: BarChart3 },
       { label: "nav.settings", to: "/settings", icon: Settings },

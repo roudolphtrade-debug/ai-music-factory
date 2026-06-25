@@ -18,6 +18,7 @@ import { Route as AppRadioRouteImport } from './routes/_app.radio'
 import { Route as AppLibraryRouteImport } from './routes/_app.library'
 import { Route as AppLabelsRouteImport } from './routes/_app.labels'
 import { Route as AppHallOfFameRouteImport } from './routes/_app.hall-of-fame'
+import { Route as AppCreditsRouteImport } from './routes/_app.credits'
 import { Route as AppCommunityRouteImport } from './routes/_app.community'
 import { Route as AppBattlesRouteImport } from './routes/_app.battles'
 import { Route as AppAvatarLabRouteImport } from './routes/_app.avatar-lab'
@@ -72,6 +73,11 @@ const AppLabelsRoute = AppLabelsRouteImport.update({
 const AppHallOfFameRoute = AppHallOfFameRouteImport.update({
   id: '/hall-of-fame',
   path: '/hall-of-fame',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCreditsRoute = AppCreditsRouteImport.update({
+  id: '/credits',
+  path: '/credits',
   getParentRoute: () => AppRoute,
 } as any)
 const AppCommunityRoute = AppCommunityRouteImport.update({
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/avatar-lab': typeof AppAvatarLabRoute
   '/battles': typeof AppBattlesRoute
   '/community': typeof AppCommunityRoute
+  '/credits': typeof AppCreditsRoute
   '/hall-of-fame': typeof AppHallOfFameRoute
   '/labels': typeof AppLabelsRouteWithChildren
   '/library': typeof AppLibraryRoute
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   '/avatar-lab': typeof AppAvatarLabRoute
   '/battles': typeof AppBattlesRoute
   '/community': typeof AppCommunityRoute
+  '/credits': typeof AppCreditsRoute
   '/hall-of-fame': typeof AppHallOfFameRoute
   '/library': typeof AppLibraryRoute
   '/radio': typeof AppRadioRoute
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   '/_app/avatar-lab': typeof AppAvatarLabRoute
   '/_app/battles': typeof AppBattlesRoute
   '/_app/community': typeof AppCommunityRoute
+  '/_app/credits': typeof AppCreditsRoute
   '/_app/hall-of-fame': typeof AppHallOfFameRoute
   '/_app/labels': typeof AppLabelsRouteWithChildren
   '/_app/library': typeof AppLibraryRoute
@@ -203,6 +212,7 @@ export interface FileRouteTypes {
     | '/avatar-lab'
     | '/battles'
     | '/community'
+    | '/credits'
     | '/hall-of-fame'
     | '/labels'
     | '/library'
@@ -223,6 +233,7 @@ export interface FileRouteTypes {
     | '/avatar-lab'
     | '/battles'
     | '/community'
+    | '/credits'
     | '/hall-of-fame'
     | '/library'
     | '/radio'
@@ -244,6 +255,7 @@ export interface FileRouteTypes {
     | '/_app/avatar-lab'
     | '/_app/battles'
     | '/_app/community'
+    | '/_app/credits'
     | '/_app/hall-of-fame'
     | '/_app/labels'
     | '/_app/library'
@@ -331,6 +343,13 @@ declare module '@tanstack/react-router' {
       path: '/hall-of-fame'
       fullPath: '/hall-of-fame'
       preLoaderRoute: typeof AppHallOfFameRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/credits': {
+      id: '/_app/credits'
+      path: '/credits'
+      fullPath: '/credits'
+      preLoaderRoute: typeof AppCreditsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/community': {
@@ -432,6 +451,7 @@ interface AppRouteChildren {
   AppAvatarLabRoute: typeof AppAvatarLabRoute
   AppBattlesRoute: typeof AppBattlesRoute
   AppCommunityRoute: typeof AppCommunityRoute
+  AppCreditsRoute: typeof AppCreditsRoute
   AppHallOfFameRoute: typeof AppHallOfFameRoute
   AppLabelsRoute: typeof AppLabelsRouteWithChildren
   AppLibraryRoute: typeof AppLibraryRoute
@@ -448,6 +468,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAvatarLabRoute: AppAvatarLabRoute,
   AppBattlesRoute: AppBattlesRoute,
   AppCommunityRoute: AppCommunityRoute,
+  AppCreditsRoute: AppCreditsRoute,
   AppHallOfFameRoute: AppHallOfFameRoute,
   AppLabelsRoute: AppLabelsRouteWithChildren,
   AppLibraryRoute: AppLibraryRoute,

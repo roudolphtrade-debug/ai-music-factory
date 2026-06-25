@@ -4,6 +4,8 @@ import { PlayerProvider } from "@/audio/PlayerProvider";
 import { LibraryProvider } from "@/library/LibraryProvider";
 import { GeneratedDraftsProvider } from "@/library/GeneratedDraftsProvider";
 import { LabelsProvider } from "@/library/LabelsProvider";
+import { CreditsProvider } from "@/library/CreditsProvider";
+import { BattlesProvider } from "@/library/BattlesProvider";
 
 export const Route = createFileRoute("/_app")({
   component: AppLayout,
@@ -11,16 +13,21 @@ export const Route = createFileRoute("/_app")({
 
 function AppLayout() {
   return (
-    <LibraryProvider>
-      <LabelsProvider>
-        <GeneratedDraftsProvider>
-          <PlayerProvider>
-            <AppShell>
-              <Outlet />
-            </AppShell>
-          </PlayerProvider>
-        </GeneratedDraftsProvider>
-      </LabelsProvider>
-    </LibraryProvider>
+    <CreditsProvider>
+      <LibraryProvider>
+        <LabelsProvider>
+          <BattlesProvider>
+            <GeneratedDraftsProvider>
+              <PlayerProvider>
+                <AppShell>
+                  <Outlet />
+                </AppShell>
+              </PlayerProvider>
+            </GeneratedDraftsProvider>
+          </BattlesProvider>
+        </LabelsProvider>
+      </LibraryProvider>
+    </CreditsProvider>
   );
 }
+

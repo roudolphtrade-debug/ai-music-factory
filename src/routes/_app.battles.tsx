@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Swords, Trophy, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/premium/SectionHeading";
-import { GoldBadge } from "@/components/premium/Chips";
 import { BattleAudioCard } from "@/components/audio/BattleAudioCard";
+import { BracketView } from "@/components/premium/BracketView";
 import { battles, battleHistory } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
 
@@ -43,65 +43,44 @@ function BattlesPage() {
         </div>
       </section>
 
+      {/* INTERACTIVE BRACKET */}
+      <section className="space-y-5">
+        <SectionHeading
+          eyebrow={t("battles.standings")}
+          title={t("battles.seasonBracket")}
+          description={t("bracket.desc")}
+        />
+        <BracketView />
+      </section>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* BRACKET / RANKING */}
-        <section className="rounded-2xl border border-border bg-card p-6">
-          <SectionHeading eyebrow={t("battles.standings")} title={t("battles.seasonBracket")} />
-          <div className="mt-4 space-y-2">
-            {["Seraphine 9", "MIDAS PRIME", "ORACLE", "SØL Aurelius", "Nyla Solenne", "VISR"].map(
-              (name, i) => (
-                <div
-                  key={name}
-                  className="flex items-center gap-4 rounded-xl px-3 py-2.5 transition-colors hover:bg-secondary/40"
-                >
-                  <span
-                    className={`w-6 text-center font-display text-lg font-semibold ${
-                      i < 2 ? "text-gold" : "text-muted-foreground"
-                    }`}
-                  >
-                    {i + 1}
-                  </span>
-                  <span className="flex-1 font-medium text-foreground">{name}</span>
-                  {i < 2 && <GoldBadge variant="outline">{t("common.advancing")}</GoldBadge>}
-                  <span className="text-xs tabular-nums text-muted-foreground">
-                    {t("common.wins", { n: 6 - i })}
-                  </span>
-                </div>
-              ),
-            )}
-          </div>
-        </section>
-
-        {/* HISTORY */}
-        <section className="rounded-2xl border border-border bg-card p-6">
-          <SectionHeading
-            eyebrow={t("battles.archive")}
-            title={t("battles.history")}
-            action={<History className="h-4 w-4 text-gold" />}
-          />
-          <div className="mt-4 space-y-3">
-            {battleHistory.map((h) => (
-              <div
-                key={h.id}
-                className="flex items-center gap-3 rounded-xl border border-border/60 bg-secondary/20 px-4 py-3"
-              >
-                <Trophy className="h-4 w-4 shrink-0 text-gold" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm text-foreground">
-                    <span className="font-semibold">{h.winner}</span>{" "}
-                    <span className="text-muted-foreground">{t("common.def")} {h.loser}</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {t(`battles.${h.round.phase}`)} · {t("battles.season")} {h.round.season}
-                  </p>
-                </div>
-                <span className="text-xs tabular-nums text-muted-foreground">{h.margin}</span>
+      {/* HISTORY */}
+      <section className="rounded-2xl border border-border bg-card p-6">
+        <SectionHeading
+          eyebrow={t("battles.archive")}
+          title={t("battles.history")}
+          action={<History className="h-4 w-4 text-gold" />}
+        />
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          {battleHistory.map((h) => (
+            <div
+              key={h.id}
+              className="flex items-center gap-3 rounded-xl border border-border/60 bg-secondary/20 px-4 py-3"
+            >
+              <Trophy className="h-4 w-4 shrink-0 text-gold" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm text-foreground">
+                  <span className="font-semibold">{h.winner}</span>{" "}
+                  <span className="text-muted-foreground">{t("common.def")} {h.loser}</span>
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {t(`battles.${h.round.phase}`)} · {t("battles.season")} {h.round.season}
+                </p>
               </div>
-            ))}
-          </div>
-        </section>
-      </div>
+              <span className="text-xs tabular-nums text-muted-foreground">{h.margin}</span>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

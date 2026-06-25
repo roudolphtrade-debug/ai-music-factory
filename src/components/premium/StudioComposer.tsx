@@ -8,6 +8,8 @@ import { Equalizer } from "@/components/premium/Equalizer";
 import { usePlayer } from "@/audio/PlayerProvider";
 import type { PlayableTrack } from "@/audio/tracks";
 import { useGeneratedDrafts } from "@/library/GeneratedDraftsProvider";
+import { useCredits } from "@/library/CreditsProvider";
+import { COSTS } from "@/library/credits";
 import { artistImages, moods, type ArtistId } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
 
@@ -37,6 +39,8 @@ export function StudioComposer() {
   const { t } = useI18n();
   const { play } = usePlayer();
   const { addDraft } = useGeneratedDrafts();
+  const { canAfford, spend } = useCredits();
+
 
   const [prompt, setPrompt] = useState(
     "Cinematic ambient pop with golden-hour pads, warm analogue tape saturation, and a slow euphoric build toward a wordless choir.",
@@ -74,7 +78,12 @@ export function StudioComposer() {
       toast.error(t("studio.gen.emptyPrompt"));
       return;
     }
+    if (!canAfford("track")) {
+      toast.error(t("studio.gen.noCredits", { n: COSTS.track }));
+      return;
+    }
     setPhase("generating");
+
     try {
       const res = await fetch("/api/studio/generate", {
         method: "POST",
@@ -96,6 +105,9 @@ export function StudioComposer() {
       }
       const lyrics = decodeLyrics(res.headers.get("X-Lyrics"));
       const blob = await res.blob();
+      // Track generated successfully — debit the wallet.
+      spend("track");
+
 
       const id = `gen-${Date.now()}`;
       const title = clean.split(/[.,—-]/)[0].trim().slice(0, 42) || t("studio.gen.newTrack");
