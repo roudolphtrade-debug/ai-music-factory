@@ -31,9 +31,24 @@ export interface Match {
   votedFor: ArtistId | null;
 }
 
+/** Archived record of a completed season. */
+export interface SeasonRecord {
+  season: number;
+  championId: ArtistId;
+  championName: string;
+  championTrack: string;
+  runnerUpId: ArtistId | null;
+  runnerUpName: string | null;
+  /** Final-match vote split, e.g. "61% · 39%". */
+  margin: string;
+  at: number;
+}
+
 export interface BracketState {
   season: number;
   matches: Match[];
+  /** Champions of past seasons, most recent first. */
+  history: SeasonRecord[];
 }
 
 /** Eight battle tracks, paired by competitor for flavour. */
