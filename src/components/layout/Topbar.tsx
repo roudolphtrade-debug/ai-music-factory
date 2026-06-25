@@ -61,14 +61,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
               {t("topbar.create")}
             </Link>
           </Button>
-          <button
-            type="button"
-            className="relative grid h-10 w-10 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-            aria-label="Notifications"
-          >
-            <Bell className="h-5 w-5" />
-            <span className="absolute right-2.5 top-2.5 h-1.5 w-1.5 rounded-full bg-gold ring-2 ring-background" />
-          </button>
+          <NotificationsBell />
           <button
             type="button"
             className="flex items-center gap-2 rounded-lg border border-border bg-secondary/30 py-1 pl-1 pr-2.5 transition-colors hover:border-[color-mix(in_oklab,var(--gold)_28%,transparent)]"
