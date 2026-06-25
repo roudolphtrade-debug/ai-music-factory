@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Crown, Trophy } from "lucide-react";
 import { SectionHeading } from "@/components/premium/SectionHeading";
 import { GoldBadge } from "@/components/premium/Chips";
+import { SeasonHistory } from "@/components/premium/SeasonHistory";
 import { hallOfFame, artistImages } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
 
