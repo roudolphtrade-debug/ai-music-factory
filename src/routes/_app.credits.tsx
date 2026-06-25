@@ -166,10 +166,7 @@ function CreditsPage() {
               <Button
                 variant="outline"
                 className="mt-5 w-full"
-                onClick={() => {
-                  buyPack(pack);
-                  toast.success(t("credits.packAdded", { n: formatNumber(pack.credits + (pack.bonus ?? 0)) }));
-                }}
+                onClick={() => onBuyPack(pack)}
               >
                 {t("credits.buy", { price: `$${pack.price}` })}
               </Button>
