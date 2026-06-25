@@ -39,7 +39,6 @@ const SONG_BY_ID: Record<string, string> = {
   "t-103": song3.url,
   "t-104": song4.url,
   "t-105": song5.url,
-  "t-106": song6.url,
   "t-107": song7.url,
   "t-108": song8.url,
   "t-109": song9.url,
