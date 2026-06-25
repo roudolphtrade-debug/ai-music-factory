@@ -22,10 +22,12 @@ import { Route as AppCommunityRouteImport } from './routes/_app.community'
 import { Route as AppBattlesRouteImport } from './routes/_app.battles'
 import { Route as AppAvatarLabRouteImport } from './routes/_app.avatar-lab'
 import { Route as AppAnalyticsRouteImport } from './routes/_app.analytics'
+import { Route as AppLabelsIndexRouteImport } from './routes/_app.labels.index'
 import { Route as AppArtistsIndexRouteImport } from './routes/_app.artists.index'
 import { Route as ApiVoiceTranscribeRouteImport } from './routes/api/voice/transcribe'
 import { Route as ApiVoiceSpeakRouteImport } from './routes/api/voice/speak'
 import { Route as ApiStudioGenerateRouteImport } from './routes/api/studio/generate'
+import { Route as AppLabelsLabelIdRouteImport } from './routes/_app.labels.$labelId'
 import { Route as AppArtistsArtistIdRouteImport } from './routes/_app.artists.$artistId'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -92,6 +94,11 @@ const AppAnalyticsRoute = AppAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AppRoute,
 } as any)
+const AppLabelsIndexRoute = AppLabelsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppLabelsRoute,
+} as any)
 const AppArtistsIndexRoute = AppArtistsIndexRouteImport.update({
   id: '/artists/',
   path: '/artists/',
@@ -112,6 +119,11 @@ const ApiStudioGenerateRoute = ApiStudioGenerateRouteImport.update({
   path: '/api/studio/generate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppLabelsLabelIdRoute = AppLabelsLabelIdRouteImport.update({
+  id: '/$labelId',
+  path: '/$labelId',
+  getParentRoute: () => AppLabelsRoute,
+} as any)
 const AppArtistsArtistIdRoute = AppArtistsArtistIdRouteImport.update({
   id: '/artists/$artistId',
   path: '/artists/$artistId',
@@ -126,16 +138,18 @@ export interface FileRoutesByFullPath {
   '/battles': typeof AppBattlesRoute
   '/community': typeof AppCommunityRoute
   '/hall-of-fame': typeof AppHallOfFameRoute
-  '/labels': typeof AppLabelsRoute
+  '/labels': typeof AppLabelsRouteWithChildren
   '/library': typeof AppLibraryRoute
   '/radio': typeof AppRadioRoute
   '/settings': typeof AppSettingsRoute
   '/studio': typeof AppStudioRoute
   '/artists/$artistId': typeof AppArtistsArtistIdRoute
+  '/labels/$labelId': typeof AppLabelsLabelIdRoute
   '/api/studio/generate': typeof ApiStudioGenerateRoute
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
   '/artists/': typeof AppArtistsIndexRoute
+  '/labels/': typeof AppLabelsIndexRoute
 }
 export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -144,17 +158,18 @@ export interface FileRoutesByTo {
   '/battles': typeof AppBattlesRoute
   '/community': typeof AppCommunityRoute
   '/hall-of-fame': typeof AppHallOfFameRoute
-  '/labels': typeof AppLabelsRoute
   '/library': typeof AppLibraryRoute
   '/radio': typeof AppRadioRoute
   '/settings': typeof AppSettingsRoute
   '/studio': typeof AppStudioRoute
   '/': typeof AppIndexRoute
   '/artists/$artistId': typeof AppArtistsArtistIdRoute
+  '/labels/$labelId': typeof AppLabelsLabelIdRoute
   '/api/studio/generate': typeof ApiStudioGenerateRoute
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
   '/artists': typeof AppArtistsIndexRoute
+  '/labels': typeof AppLabelsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -165,17 +180,19 @@ export interface FileRoutesById {
   '/_app/battles': typeof AppBattlesRoute
   '/_app/community': typeof AppCommunityRoute
   '/_app/hall-of-fame': typeof AppHallOfFameRoute
-  '/_app/labels': typeof AppLabelsRoute
+  '/_app/labels': typeof AppLabelsRouteWithChildren
   '/_app/library': typeof AppLibraryRoute
   '/_app/radio': typeof AppRadioRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/studio': typeof AppStudioRoute
   '/_app/': typeof AppIndexRoute
   '/_app/artists/$artistId': typeof AppArtistsArtistIdRoute
+  '/_app/labels/$labelId': typeof AppLabelsLabelIdRoute
   '/api/studio/generate': typeof ApiStudioGenerateRoute
   '/api/voice/speak': typeof ApiVoiceSpeakRoute
   '/api/voice/transcribe': typeof ApiVoiceTranscribeRoute
   '/_app/artists/': typeof AppArtistsIndexRoute
+  '/_app/labels/': typeof AppLabelsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -193,10 +210,12 @@ export interface FileRouteTypes {
     | '/settings'
     | '/studio'
     | '/artists/$artistId'
+    | '/labels/$labelId'
     | '/api/studio/generate'
     | '/api/voice/speak'
     | '/api/voice/transcribe'
     | '/artists/'
+    | '/labels/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/sitemap.xml'
@@ -205,17 +224,18 @@ export interface FileRouteTypes {
     | '/battles'
     | '/community'
     | '/hall-of-fame'
-    | '/labels'
     | '/library'
     | '/radio'
     | '/settings'
     | '/studio'
     | '/'
     | '/artists/$artistId'
+    | '/labels/$labelId'
     | '/api/studio/generate'
     | '/api/voice/speak'
     | '/api/voice/transcribe'
     | '/artists'
+    | '/labels'
   id:
     | '__root__'
     | '/_app'
@@ -232,10 +252,12 @@ export interface FileRouteTypes {
     | '/_app/studio'
     | '/_app/'
     | '/_app/artists/$artistId'
+    | '/_app/labels/$labelId'
     | '/api/studio/generate'
     | '/api/voice/speak'
     | '/api/voice/transcribe'
     | '/_app/artists/'
+    | '/_app/labels/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -339,6 +361,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAnalyticsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/labels/': {
+      id: '/_app/labels/'
+      path: '/'
+      fullPath: '/labels/'
+      preLoaderRoute: typeof AppLabelsIndexRouteImport
+      parentRoute: typeof AppLabelsRoute
+    }
     '/_app/artists/': {
       id: '/_app/artists/'
       path: '/artists'
@@ -367,6 +396,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStudioGenerateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/labels/$labelId': {
+      id: '/_app/labels/$labelId'
+      path: '/$labelId'
+      fullPath: '/labels/$labelId'
+      preLoaderRoute: typeof AppLabelsLabelIdRouteImport
+      parentRoute: typeof AppLabelsRoute
+    }
     '/_app/artists/$artistId': {
       id: '/_app/artists/$artistId'
       path: '/artists/$artistId'
@@ -377,13 +413,27 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppLabelsRouteChildren {
+  AppLabelsLabelIdRoute: typeof AppLabelsLabelIdRoute
+  AppLabelsIndexRoute: typeof AppLabelsIndexRoute
+}
+
+const AppLabelsRouteChildren: AppLabelsRouteChildren = {
+  AppLabelsLabelIdRoute: AppLabelsLabelIdRoute,
+  AppLabelsIndexRoute: AppLabelsIndexRoute,
+}
+
+const AppLabelsRouteWithChildren = AppLabelsRoute._addFileChildren(
+  AppLabelsRouteChildren,
+)
+
 interface AppRouteChildren {
   AppAnalyticsRoute: typeof AppAnalyticsRoute
   AppAvatarLabRoute: typeof AppAvatarLabRoute
   AppBattlesRoute: typeof AppBattlesRoute
   AppCommunityRoute: typeof AppCommunityRoute
   AppHallOfFameRoute: typeof AppHallOfFameRoute
-  AppLabelsRoute: typeof AppLabelsRoute
+  AppLabelsRoute: typeof AppLabelsRouteWithChildren
   AppLibraryRoute: typeof AppLibraryRoute
   AppRadioRoute: typeof AppRadioRoute
   AppSettingsRoute: typeof AppSettingsRoute
@@ -399,7 +449,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppBattlesRoute: AppBattlesRoute,
   AppCommunityRoute: AppCommunityRoute,
   AppHallOfFameRoute: AppHallOfFameRoute,
-  AppLabelsRoute: AppLabelsRoute,
+  AppLabelsRoute: AppLabelsRouteWithChildren,
   AppLibraryRoute: AppLibraryRoute,
   AppRadioRoute: AppRadioRoute,
   AppSettingsRoute: AppSettingsRoute,
@@ -421,13 +471,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

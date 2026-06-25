@@ -1,38 +1,36 @@
-import { useEffect, useState } from "react";
-import introLogo from "@/assets/intro-logo.png";
+import { useEffect, useRef, useState } from "react";
+import introVideo from "@/assets/intro.mp4.asset.json";
 import { cn } from "@/lib/utils";
 
 const SESSION_KEY = "afm-intro-seen";
 
 /**
- * Cinematic first-load reveal built around the brand logo.
+ * Cinematic first-load reveal built around the brand intro video.
  * Shows once per session, can be skipped on click, and never blocks SSR.
  */
 export function IntroOverlay() {
   const [mounted, setMounted] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (sessionStorage.getItem(SESSION_KEY)) return;
     setMounted(true);
-    const leaveTimer = setTimeout(() => setLeaving(true), 2600);
-    const removeTimer = setTimeout(() => {
-      setMounted(false);
-      sessionStorage.setItem(SESSION_KEY, "1");
-    }, 3400);
-    return () => {
-      clearTimeout(leaveTimer);
-      clearTimeout(removeTimer);
-    };
+    // Safety fallback in case the video never fires `ended` (autoplay blocked).
+    const fallback = setTimeout(() => setLeaving(true), 6500);
+    return () => clearTimeout(fallback);
   }, []);
 
-  const dismiss = () => {
-    setLeaving(true);
-    setTimeout(() => {
+  useEffect(() => {
+    if (!mounted || !leaving) return;
+    const t = setTimeout(() => {
       setMounted(false);
       sessionStorage.setItem(SESSION_KEY, "1");
     }, 700);
-  };
+    return () => clearTimeout(t);
+  }, [leaving, mounted]);
+
+  const dismiss = () => setLeaving(true);
 
   if (!mounted) return null;
 
@@ -45,26 +43,21 @@ export function IntroOverlay() {
       )}
       role="presentation"
     >
-      {/* Atmospheric spotlight */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_30%,color-mix(in_oklab,var(--gold)_14%,transparent),transparent_60%)]" />
+      <video
+        ref={videoRef}
+        src={introVideo.url}
+        autoPlay
+        muted
+        playsInline
+        onEnded={() => setLeaving(true)}
+        onError={() => setLeaving(true)}
+        className="h-full w-full object-cover"
+      />
 
-      <div className="relative flex flex-col items-center">
-        <img
-          src={introLogo}
-          alt="Ai Music Factory"
-          className="w-[78vw] max-w-[440px] animate-intro-logo select-none object-contain"
-          draggable={false}
-        />
-        {/* Sweeping shimmer */}
-        <span className="pointer-events-none absolute inset-0 animate-intro-sheen bg-[linear-gradient(105deg,transparent_40%,color-mix(in_oklab,var(--gold)_22%,transparent)_50%,transparent_60%)]" />
-      </div>
+      {/* Vignette for a cinematic frame */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_120%_at_50%_50%,transparent_55%,rgba(0,0,0,0.55))]" />
 
-      {/* Loading hairline */}
-      <div className="absolute bottom-[14%] left-1/2 h-px w-40 -translate-x-1/2 overflow-hidden rounded-full bg-white/10">
-        <span className="block h-full w-full origin-left animate-intro-bar bg-gold-gradient" />
-      </div>
-
-      <span className="absolute bottom-[9%] left-1/2 -translate-x-1/2 text-[0.6rem] uppercase tracking-[0.3em] text-white/40">
+      <span className="absolute bottom-[8%] left-1/2 -translate-x-1/2 text-[0.6rem] uppercase tracking-[0.3em] text-white/45">
         Tap to enter
       </span>
     </div>

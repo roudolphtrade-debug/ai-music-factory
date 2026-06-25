@@ -4,6 +4,9 @@ import artist3 from "@/assets/artist-3.jpg";
 import artist4 from "@/assets/artist-4.jpg";
 import artist5 from "@/assets/artist-5.jpg";
 import artist6 from "@/assets/artist-6.jpg";
+import labelMaisonNoir from "@/assets/label-maison-noir.jpg";
+import labelHaloAtelier from "@/assets/label-halo-atelier.jpg";
+import labelGoldhouse from "@/assets/label-goldhouse.jpg";
 
 export const artistImages = {
   "art-1": artist1,
@@ -155,6 +158,16 @@ export const tracks: Track[] = [
   { id: "t-6", title: "Mirror Highway", artistId: "art-6", artist: "VISR", genre: "Synthwave", mood: "Nostalgic", duration: "4:30", plays: "660K" },
   { id: "t-7", title: "Slow Eclipse", artistId: "art-1", artist: "SØL Aurelius", genre: "Electronica", mood: "Reflective", duration: "3:36", plays: "840K" },
   { id: "t-8", title: "Chrome Aria", artistId: "art-2", artist: "Seraphine 9", genre: "Art Pop", mood: "Dramatic", duration: "3:09", plays: "1.5M" },
+  // ---- Studio masters (real uploaded audio, ordered 1 → 9) ----
+  { id: "t-101", title: "Aurora Doré", artistId: "art-1", artist: "SØL Aurelius", genre: "Ambient Pop", mood: "Euphoric", duration: "3:38", plays: "612K" },
+  { id: "t-102", title: "Nuit de Saphir", artistId: "art-2", artist: "Seraphine 9", genre: "Hyperpop", mood: "Ethereal", duration: "2:42", plays: "498K" },
+  { id: "t-103", title: "Échos du Vide", artistId: "art-3", artist: "ORACLE", genre: "Techno", mood: "Hypnotic", duration: "4:08", plays: "377K" },
+  { id: "t-104", title: "Couronne d'Or", artistId: "art-4", artist: "MIDAS PRIME", genre: "Trap", mood: "Triumphant", duration: "2:59", plays: "1.1M" },
+  { id: "t-105", title: "Mirage Néon", artistId: "art-6", artist: "VISR", genre: "Synthwave", mood: "Nostalgic", duration: "4:34", plays: "284K" },
+  { id: "t-106", title: "Velours Noir", artistId: "art-3", artist: "ORACLE", genre: "Industrial", mood: "Dramatic", duration: "4:34", plays: "203K" },
+  { id: "t-107", title: "Soleil de Minuit", artistId: "art-5", artist: "Nyla Solenne", genre: "Neo-Soul", mood: "Intimate", duration: "4:45", plays: "356K" },
+  { id: "t-108", title: "Royaume Pourpre", artistId: "art-4", artist: "MIDAS PRIME", genre: "Hip-Hop", mood: "Triumphant", duration: "4:24", plays: "742K" },
+  { id: "t-109", title: "Or Liquide", artistId: "art-2", artist: "Seraphine 9", genre: "Art Pop", mood: "Ethereal", duration: "3:52", plays: "529K" },
 ];
 
 export const nowPlaying = {
@@ -283,6 +296,7 @@ export interface Label {
   mrr: string;
   monogram: string;
   tier: "Flagship House" | "Atelier" | "Collective";
+  cover?: string;
 }
 
 export const labels: Label[] = [
@@ -296,6 +310,7 @@ export const labels: Label[] = [
     mrr: "$48.2K",
     monogram: "MN",
     tier: "Flagship House",
+    cover: labelMaisonNoir,
   },
   {
     id: "l-2",
@@ -307,6 +322,7 @@ export const labels: Label[] = [
     mrr: "$39.7K",
     monogram: "HA",
     tier: "Atelier",
+    cover: labelHaloAtelier,
   },
   {
     id: "l-3",
@@ -318,6 +334,7 @@ export const labels: Label[] = [
     mrr: "$61.5K",
     monogram: "GC",
     tier: "Collective",
+    cover: labelGoldhouse,
   },
   {
     id: "l-4",

@@ -8,7 +8,7 @@ import { LikeButton } from "@/components/premium/LikeButton";
 import { NowPlayingPlayer } from "@/components/audio/NowPlayingPlayer";
 import { Playlist } from "@/components/audio/Playlist";
 import { VoicePrompt } from "@/components/voice/VoicePrompt";
-import { radioQueue } from "@/audio/tracks";
+import { radioQueue, studioMasters } from "@/audio/tracks";
 import { nowPlaying, radioStations, moods, chartGenres } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
 import { cn } from "@/lib/utils";
@@ -50,6 +50,22 @@ function RadioPage() {
 
       {/* VOICE PROMPT */}
       <VoicePrompt />
+
+      {/* STUDIO MASTERS — the real uploaded drops, in order */}
+      <section className="space-y-4">
+        <SectionHeading eyebrow={t("radio.freshDrops")} title={t("radio.studioMasters")} />
+        <Playlist
+          tracks={studioMasters}
+          subtitleFor={(track) => `${track.artist}`}
+          trailing={(track) => (
+            <div className="flex items-center gap-2">
+              <LikeButton trackId={track.id} size="sm" />
+            </div>
+          )}
+        />
+      </section>
+
+
 
 
       {/* GENRES */}
