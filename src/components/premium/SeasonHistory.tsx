@@ -24,14 +24,14 @@ export function SeasonHistory() {
         action={<History className="h-4 w-4 text-gold" />}
       />
 
-      {bracket.history.length === 0 ? (
+      {history.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border/70 bg-card/40 px-6 py-10 text-center">
           <Trophy className="mx-auto h-6 w-6 text-muted-foreground" />
           <p className="mt-3 text-sm text-muted-foreground">{t("seasons.empty")}</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {bracket.history.map((s) => (
+          {history.map((s) => (
             <div
               key={`${s.season}-${s.at}`}
               className="relative overflow-hidden rounded-2xl border border-[color-mix(in_oklab,var(--gold)_24%,transparent)] bg-card p-5"
