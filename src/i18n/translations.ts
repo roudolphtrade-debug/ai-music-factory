@@ -24,6 +24,7 @@ const fr: Dict = {
     analytics: "Statistiques",
     settings: "Paramètres",
     library: "Bibliothèque",
+    credits: "Crédits",
   },
   topbar: { searchPlaceholder: "Rechercher artistes, titres, labels…", create: "Créer" },
   sidebar: {
@@ -533,6 +534,7 @@ const en: Dict = {
     analytics: "Analytics",
     settings: "Settings",
     library: "Library",
+    credits: "Credits",
   },
   topbar: { searchPlaceholder: "Search artists, tracks, labels…", create: "Create" },
   sidebar: {
@@ -1042,6 +1044,7 @@ const es: Dict = {
     analytics: "Estadísticas",
     settings: "Ajustes",
     library: "Biblioteca",
+    credits: "Créditos",
   },
   topbar: { searchPlaceholder: "Buscar artistas, temas, sellos…", create: "Crear" },
   sidebar: {
