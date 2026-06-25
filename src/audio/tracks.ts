@@ -24,7 +24,7 @@ import song2 from "@/audio/songs/song-2.mp3.asset.json";
 import song3 from "@/audio/songs/song-3.mp3.asset.json";
 import song4 from "@/audio/songs/song-4.mp3.asset.json";
 import song5 from "@/audio/songs/song-5.mp3.asset.json";
-import song6 from "@/audio/songs/song-6.mp3.asset.json";
+
 import song7 from "@/audio/songs/song-7.mp3.asset.json";
 import song8 from "@/audio/songs/song-8.mp3.asset.json";
 import song9 from "@/audio/songs/song-9.mp3.asset.json";
