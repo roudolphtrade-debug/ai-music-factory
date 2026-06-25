@@ -205,6 +205,8 @@ function CreditsPage() {
           ))}
         </div>
       </section>
+
+      <PaymentDialog intent={intent} onClose={() => setIntent(null)} />
     </div>
   );
 }
