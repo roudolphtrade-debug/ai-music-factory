@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Gem, Check, Sparkles, History, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/premium/SectionHeading";
 import { StatModule } from "@/components/premium/StatModule";
 import { GoldBadge } from "@/components/premium/Chips";
+import { PaymentDialog, type PaymentIntent } from "@/components/premium/PaymentDialog";
 import { useCredits, PACKS } from "@/library/CreditsProvider";
-import { PLANS, COSTS, planById, type PlanId } from "@/library/credits";
+import { useNotifications } from "@/library/NotificationsProvider";
+import { PLANS, COSTS, planById, type PlanId, type CreditPack } from "@/library/credits";
 import { formatNumber } from "@/lib/format";
 import { useI18n } from "@/i18n/context";
 import { toast } from "sonner";
@@ -28,13 +31,43 @@ export const Route = createFileRoute("/_app/credits")({
 function CreditsPage() {
   const { t } = useI18n();
   const { balance, plan, ledger, subscribe, buyPack } = useCredits();
+  const { notify } = useNotifications();
   const active = planById(plan);
+  const [intent, setIntent] = useState<PaymentIntent | null>(null);
 
   const onSubscribe = (id: PlanId) => {
     if (id === plan) return;
-    subscribe(id);
-    toast.success(t("credits.subscribed", { plan: t(`credits.plans.${id}.name`) }));
+    const p = planById(id);
+    // Free plan needs no checkout.
+    if (p.price === 0) {
+      subscribe(id);
+      toast.success(t("credits.subscribed", { plan: t(`credits.plans.${id}.name`) }));
+      return;
+    }
+    setIntent({
+      label: t("payment.planLabel", { plan: t(`credits.plans.${id}.name`) }),
+      price: p.price,
+      onConfirm: () => {
+        subscribe(id);
+        toast.success(t("credits.subscribed", { plan: t(`credits.plans.${id}.name`) }));
+        notify("payment", "notif.paymentPlan", { plan: t(`credits.plans.${id}.name`) });
+      },
+    });
   };
+
+  const onBuyPack = (pack: CreditPack) => {
+    const total = pack.credits + (pack.bonus ?? 0);
+    setIntent({
+      label: t("payment.packLabel", { n: formatNumber(total) }),
+      price: pack.price,
+      onConfirm: () => {
+        buyPack(pack);
+        toast.success(t("credits.packAdded", { n: formatNumber(total) }));
+        notify("payment", "notif.paymentPack", { n: formatNumber(total) });
+      },
+    });
+  };
+
 
   return (
     <div className="space-y-10">
