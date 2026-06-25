@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { Search, Bell, Plus, Menu } from "lucide-react";
+import { Search, Plus, Menu } from "lucide-react";
+import { NotificationsBell } from "@/components/premium/NotificationsBell";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/context";
 import { LANGS } from "@/i18n/translations";
