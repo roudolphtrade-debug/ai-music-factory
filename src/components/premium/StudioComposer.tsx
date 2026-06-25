@@ -105,6 +105,9 @@ export function StudioComposer() {
       }
       const lyrics = decodeLyrics(res.headers.get("X-Lyrics"));
       const blob = await res.blob();
+      // Track generated successfully — debit the wallet.
+      spend("track");
+
 
       const id = `gen-${Date.now()}`;
       const title = clean.split(/[.,—-]/)[0].trim().slice(0, 42) || t("studio.gen.newTrack");
