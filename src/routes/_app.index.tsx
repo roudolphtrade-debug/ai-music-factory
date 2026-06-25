@@ -75,6 +75,16 @@ function HomePage() {
   const liveBattle = battles[0];
   const [region, setRegion] = useState<ChartRegion>("Global");
   const charts = globalCharts.filter((c) => c.regions.includes(region));
+  const chartQueue = charts.map((c) =>
+    makePlayable({
+      id: `chart-${c.rank}-${c.title}`,
+      title: c.title,
+      artist: c.artist,
+      artistId: c.artistId,
+      index: c.rank - 1,
+      duration: "0:30",
+    }),
+  );
 
   const historyTracks = history.map((h) => playableById[h.id]).filter(Boolean).slice(0, 4);
   const favTracks = favorites.map((id) => playableById[id]).filter(Boolean).slice(0, 4);
