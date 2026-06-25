@@ -286,7 +286,7 @@ function HomePage() {
               <GoldBadge variant="outline" className="hidden sm:inline-flex">
                 {c.genre}
               </GoldBadge>
-              <LikeButton trackId={chartQueue[i].id} className="hidden sm:inline-flex" />
+              <LikeButton trackId={chartQueue[i].id} size="sm" className="hidden sm:inline-flex" />
               <span className="w-16 text-right text-xs tabular-nums text-muted-foreground">
                 {c.plays}
               </span>
