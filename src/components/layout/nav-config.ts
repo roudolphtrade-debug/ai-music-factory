@@ -11,8 +11,10 @@ import {
   BarChart3,
   Settings,
   Library,
+  Gem,
   type LucideIcon,
 } from "lucide-react";
+
 
 export interface NavItem {
   label: string;
