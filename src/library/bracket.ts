@@ -75,7 +75,7 @@ function competitor(artistId: ArtistId, seed: number): Competitor {
  * Build a fresh bracket. We only have six mock artists, so the quarter-final
  * fills its eight slots by reusing the roster in a fixed seeding order.
  */
-export function buildBracket(season = 7): BracketState {
+export function buildBracket(season = 7, history: SeasonRecord[] = []): BracketState {
   const seeding: ArtistId[] = [
     "art-2",
     "art-4",
@@ -114,7 +114,7 @@ export function buildBracket(season = 7): BracketState {
     votedFor: null,
   };
 
-  return { season, matches: [...quarters, ...semis, ...final ? [final] : []] };
+  return { season, matches: [...quarters, ...semis, ...final ? [final] : []], history };
 }
 
 function winnerOf(m: Match): Competitor | null {
