@@ -178,3 +178,27 @@ export function votePercent(m: Match): { a: number; b: number } {
 export function matchesByRound(state: BracketState, round: RoundKey): Match[] {
   return state.matches.filter((m) => m.round === round).sort((a, b) => a.slot - b.slot);
 }
+
+/**
+ * Build an archive record for the current season if a champion has been
+ * crowned (the final has a winner). Returns null otherwise.
+ */
+export function archiveSeason(state: BracketState): SeasonRecord | null {
+  const final = state.matches.find((m) => m.id === "m-f-0");
+  if (!final) return null;
+  const champ = winnerOf(final);
+  if (!champ) return null;
+  const runnerUp = final.a?.artistId === champ.artistId ? final.b : final.a;
+  const pct = votePercent(final);
+  const champPct = final.a?.artistId === champ.artistId ? pct.a : pct.b;
+  return {
+    season: state.season,
+    championId: champ.artistId,
+    championName: champ.name,
+    championTrack: BATTLE_TRACKS[champ.artistId] ?? "",
+    runnerUpId: runnerUp?.artistId ?? null,
+    runnerUpName: runnerUp?.name ?? null,
+    margin: `${champPct}% · ${100 - champPct}%`,
+    at: Date.now(),
+  };
+}
