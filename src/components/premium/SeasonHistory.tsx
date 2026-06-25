@@ -13,6 +13,7 @@ import { useI18n } from "@/i18n/context";
 export function SeasonHistory() {
   const { t } = useI18n();
   const { bracket } = useBattles();
+  const history = bracket.history ?? [];
 
   return (
     <section className="space-y-5">
