@@ -78,7 +78,12 @@ export function StudioComposer() {
       toast.error(t("studio.gen.emptyPrompt"));
       return;
     }
+    if (!canAfford("track")) {
+      toast.error(t("studio.gen.noCredits", { n: COSTS.track }));
+      return;
+    }
     setPhase("generating");
+
     try {
       const res = await fetch("/api/studio/generate", {
         method: "POST",
