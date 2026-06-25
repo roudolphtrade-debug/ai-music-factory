@@ -31,9 +31,24 @@ export interface Match {
   votedFor: ArtistId | null;
 }
 
+/** Archived record of a completed season. */
+export interface SeasonRecord {
+  season: number;
+  championId: ArtistId;
+  championName: string;
+  championTrack: string;
+  runnerUpId: ArtistId | null;
+  runnerUpName: string | null;
+  /** Final-match vote split, e.g. "61% · 39%". */
+  margin: string;
+  at: number;
+}
+
 export interface BracketState {
   season: number;
   matches: Match[];
+  /** Champions of past seasons, most recent first. */
+  history: SeasonRecord[];
 }
 
 /** Eight battle tracks, paired by competitor for flavour. */
@@ -60,7 +75,7 @@ function competitor(artistId: ArtistId, seed: number): Competitor {
  * Build a fresh bracket. We only have six mock artists, so the quarter-final
  * fills its eight slots by reusing the roster in a fixed seeding order.
  */
-export function buildBracket(season = 7): BracketState {
+export function buildBracket(season = 7, history: SeasonRecord[] = []): BracketState {
   const seeding: ArtistId[] = [
     "art-2",
     "art-4",
@@ -99,7 +114,7 @@ export function buildBracket(season = 7): BracketState {
     votedFor: null,
   };
 
-  return { season, matches: [...quarters, ...semis, ...final ? [final] : []] };
+  return { season, matches: [...quarters, ...semis, ...final ? [final] : []], history };
 }
 
 function winnerOf(m: Match): Competitor | null {
@@ -162,4 +177,28 @@ export function votePercent(m: Match): { a: number; b: number } {
 
 export function matchesByRound(state: BracketState, round: RoundKey): Match[] {
   return state.matches.filter((m) => m.round === round).sort((a, b) => a.slot - b.slot);
+}
+
+/**
+ * Build an archive record for the current season if a champion has been
+ * crowned (the final has a winner). Returns null otherwise.
+ */
+export function archiveSeason(state: BracketState): SeasonRecord | null {
+  const final = state.matches.find((m) => m.id === "m-f-0");
+  if (!final) return null;
+  const champ = winnerOf(final);
+  if (!champ) return null;
+  const runnerUp = final.a?.artistId === champ.artistId ? final.b : final.a;
+  const pct = votePercent(final);
+  const champPct = final.a?.artistId === champ.artistId ? pct.a : pct.b;
+  return {
+    season: state.season,
+    championId: champ.artistId,
+    championName: champ.name,
+    championTrack: BATTLE_TRACKS[champ.artistId] ?? "",
+    runnerUpId: runnerUp?.artistId ?? null,
+    runnerUpName: runnerUp?.name ?? null,
+    margin: `${champPct}% · ${100 - champPct}%`,
+    at: Date.now(),
+  };
 }

@@ -7,8 +7,15 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { ArtistId } from "@/data/mock";
-import { buildBracket, castVote, type BracketState } from "./bracket";
+import { artists, type ArtistId } from "@/data/mock";
+import {
+  archiveSeason,
+  buildBracket,
+  castVote,
+  champion,
+  type BracketState,
+} from "./bracket";
+import { useNotifications } from "./NotificationsProvider";
 
 const BRACKET_KEY = "afm-bracket";
 
@@ -27,14 +34,21 @@ function readBracket(): BracketState {
     if (!raw) return buildBracket();
     const parsed = JSON.parse(raw) as BracketState;
     if (!parsed.matches || !Array.isArray(parsed.matches)) return buildBracket();
+    // Backfill history for brackets saved before season archiving existed.
+    if (!Array.isArray(parsed.history)) parsed.history = [];
     return parsed;
   } catch {
     return buildBracket();
   }
 }
 
+function artistName(id: ArtistId): string {
+  return artists.find((a) => a.id === id)?.name ?? id;
+}
+
 export function BattlesProvider({ children }: { children: ReactNode }) {
   const [bracket, setBracket] = useState<BracketState>(buildBracket);
+  const { notify } = useNotifications();
 
   useEffect(() => {
     setBracket(readBracket());
@@ -51,12 +65,31 @@ export function BattlesProvider({ children }: { children: ReactNode }) {
 
   const vote = useCallback(
     (matchId: string, artistId: ArtistId) => {
-      persist(castVote(bracket, matchId, artistId));
+      const before = champion(bracket);
+      const next = castVote(bracket, matchId, artistId);
+      persist(next);
+      notify("vote", "notif.voteCast", { artist: artistName(artistId) });
+      const after = champion(next);
+      if (!before && after) {
+        notify("champion", "notif.championCrowned", {
+          artist: after.name,
+          season: next.season,
+        });
+      }
     },
-    [bracket, persist],
+    [bracket, persist, notify],
   );
 
-  const reset = useCallback(() => persist(buildBracket(bracket.season)), [bracket.season, persist]);
+  const reset = useCallback(() => {
+    const record = archiveSeason(bracket);
+    if (record) {
+      const history = [record, ...(bracket.history ?? [])].slice(0, 12);
+      persist(buildBracket(bracket.season + 1, history));
+      notify("season", "notif.newSeason", { season: bracket.season + 1 });
+    } else {
+      persist(buildBracket(bracket.season, bracket.history ?? []));
+    }
+  }, [bracket, persist, notify]);
 
   const value = useMemo<BattlesValue>(() => ({ bracket, vote, reset }), [bracket, vote, reset]);
 
