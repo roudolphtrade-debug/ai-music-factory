@@ -19,6 +19,31 @@ import voice17 from "@/audio/sounds/voice-17.mp3.asset.json";
 import voice18 from "@/audio/sounds/voice-18.mp3.asset.json";
 import voice19 from "@/audio/sounds/voice-19.mp3.asset.json";
 import voice20 from "@/audio/sounds/voice-20.mp3.asset.json";
+import song1 from "@/audio/songs/song-1.mp3.asset.json";
+import song2 from "@/audio/songs/song-2.mp3.asset.json";
+import song3 from "@/audio/songs/song-3.mp3.asset.json";
+import song4 from "@/audio/songs/song-4.mp3.asset.json";
+import song5 from "@/audio/songs/song-5.mp3.asset.json";
+import song6 from "@/audio/songs/song-6.mp3.asset.json";
+import song7 from "@/audio/songs/song-7.mp3.asset.json";
+import song8 from "@/audio/songs/song-8.mp3.asset.json";
+import song9 from "@/audio/songs/song-9.mp3.asset.json";
+
+/**
+ * The 9 real studio masters uploaded by the artist, mapped by track id so the
+ * UI plays the genuine audio for each release (ordered 1 → 9).
+ */
+const SONG_BY_ID: Record<string, string> = {
+  "t-101": song1.url,
+  "t-102": song2.url,
+  "t-103": song3.url,
+  "t-104": song4.url,
+  "t-105": song5.url,
+  "t-106": song6.url,
+  "t-107": song7.url,
+  "t-108": song8.url,
+  "t-109": song9.url,
+};
 
 /**
  * Real audio sources uploaded by the artist, served from the Lovable CDN.
@@ -67,7 +92,7 @@ export const playableTracks: PlayableTrack[] = tracks.map((t, i) => ({
   title: t.title,
   artist: t.artist,
   artistId: t.artistId,
-  src: sourceAt(i),
+  src: SONG_BY_ID[t.id] ?? sourceAt(i),
   cover: artistImages[t.artistId],
   duration: t.duration,
 }));
@@ -78,6 +103,14 @@ export const playableById: Record<string, PlayableTrack> = Object.fromEntries(
 
 /** Full radio rotation queue. */
 export const radioQueue = playableTracks;
+
+/**
+ * The 9 real studio masters, in upload order (1 → 9), surfaced as their own
+ * showcase section across the app.
+ */
+export const studioMasters: PlayableTrack[] = Object.keys(SONG_BY_ID)
+  .map((id) => playableById[id])
+  .filter(Boolean);
 
 /** All releases for a given artist. */
 export function releasesFor(artistId: string): PlayableTrack[] {

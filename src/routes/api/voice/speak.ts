@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { guardAiRequest } from "@/lib/api-guard";
 
 /**
  * Text-to-speech endpoint.
@@ -11,6 +12,9 @@ export const Route = createFileRoute("/api/voice/speak")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const blocked = guardAiRequest(request);
+        if (blocked) return blocked;
+
         const apiKey = process.env.LOVABLE_API_KEY;
         if (!apiKey) {
           return Response.json({ error: "Voice AI is not configured." }, { status: 500 });
@@ -48,8 +52,9 @@ export const Route = createFileRoute("/api/voice/speak")({
         if (!res.ok || !res.body) {
           const detail = await res.text().catch(() => "");
           const status = res.status === 429 || res.status === 402 ? res.status : 502;
+          if (detail) console.error(`[voice/speak] upstream ${status}: ${detail}`);
           return Response.json(
-            { error: status === 402 ? "AI credits exhausted." : status === 429 ? "Rate limited, retry shortly." : "Speech failed.", detail },
+            { error: status === 402 ? "AI credits exhausted." : status === 429 ? "Rate limited, retry shortly." : "Speech failed." },
             { status },
           );
         }

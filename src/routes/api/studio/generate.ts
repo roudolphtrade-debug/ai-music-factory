@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { guardAiRequest } from "@/lib/api-guard";
 
 /**
  * Studio track generator.
@@ -21,6 +22,9 @@ export const Route = createFileRoute("/api/studio/generate")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const blocked = guardAiRequest(request);
+        if (blocked) return blocked;
+
         const apiKey = process.env.LOVABLE_API_KEY;
         if (!apiKey) {
           return Response.json({ error: "Generator is not configured." }, { status: 500 });
@@ -42,13 +46,14 @@ export const Route = createFileRoute("/api/studio/generate")({
         const voice = VOICE_MAP[body?.voice ?? ""] ?? "sage";
 
         const fail = (status: number, fallback: string, detail?: string) => {
+          if (detail) console.error(`[studio/generate] upstream ${status}: ${detail}`);
           const error =
             status === 402
               ? "AI credits exhausted."
               : status === 429
                 ? "Rate limited, retry shortly."
                 : fallback;
-          return Response.json({ error, detail }, { status });
+          return Response.json({ error }, { status });
         };
 
         // 1) Write short, performable lyrics.
