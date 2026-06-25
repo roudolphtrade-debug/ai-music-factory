@@ -29,7 +29,7 @@ import { OnboardingChecklist } from "@/components/premium/OnboardingChecklist";
 import { LikeButton } from "@/components/premium/LikeButton";
 import { useI18n } from "@/i18n/context";
 import { PlayButton } from "@/components/audio/PlayButton";
-import { playableById, playableTracks, radioQueue } from "@/audio/tracks";
+import { playableById, playableTracks, radioQueue, makePlayable } from "@/audio/tracks";
 import { useLibrary } from "@/library/LibraryProvider";
 import { cn } from "@/lib/utils";
 import {
@@ -75,6 +75,16 @@ function HomePage() {
   const liveBattle = battles[0];
   const [region, setRegion] = useState<ChartRegion>("Global");
   const charts = globalCharts.filter((c) => c.regions.includes(region));
+  const chartQueue = charts.map((c) =>
+    makePlayable({
+      id: `chart-${c.rank}-${c.title}`,
+      title: c.title,
+      artist: c.artist,
+      artistId: c.artistId,
+      index: c.rank - 1,
+      duration: "0:30",
+    }),
+  );
 
   const historyTracks = history.map((h) => playableById[h.id]).filter(Boolean).slice(0, 4);
   const favTracks = favorites.map((id) => playableById[id]).filter(Boolean).slice(0, 4);
@@ -252,19 +262,31 @@ function HomePage() {
                 {c.rank}
               </span>
               <ChartChange change={c.change} isNew={c.isNew} newLabel={t("charts.new")} />
-              <img
-                src={artistImages[c.artistId]}
-                alt={c.artist}
-                loading="lazy"
-                className="h-11 w-11 rounded-lg object-cover ring-1 ring-border"
-              />
+              <div className="relative h-11 w-11 shrink-0">
+                <img
+                  src={artistImages[c.artistId]}
+                  alt={c.artist}
+                  loading="lazy"
+                  className="h-11 w-11 rounded-lg object-cover ring-1 ring-border"
+                />
+                <div className="absolute inset-0 grid place-items-center rounded-lg bg-black/45 opacity-0 transition-opacity group-hover:opacity-100">
+                  <PlayButton track={chartQueue[i]} queue={chartQueue} size="sm" />
+                </div>
+              </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium text-foreground">{c.title}</p>
-                <p className="truncate text-xs text-muted-foreground">{c.artist}</p>
+                <Link
+                  to="/artists/$artistId"
+                  params={{ artistId: c.artistId }}
+                  className="truncate text-xs text-muted-foreground transition-colors hover:text-gold"
+                >
+                  {c.artist}
+                </Link>
               </div>
               <GoldBadge variant="outline" className="hidden sm:inline-flex">
                 {c.genre}
               </GoldBadge>
+              <LikeButton trackId={chartQueue[i].id} size="sm" className="hidden sm:inline-flex" />
               <span className="w-16 text-right text-xs tabular-nums text-muted-foreground">
                 {c.plays}
               </span>

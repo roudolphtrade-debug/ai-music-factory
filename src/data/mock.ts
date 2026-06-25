@@ -156,7 +156,6 @@ export const tracks: Track[] = [
   { id: "t-4", title: "Gilded", artistId: "art-4", artist: "MIDAS PRIME", genre: "Trap", mood: "Triumphant", duration: "3:21", plays: "4.0M" },
   { id: "t-5", title: "Gold Thread", artistId: "art-5", artist: "Nyla Solenne", genre: "Neo-Soul", mood: "Intimate", duration: "4:03", plays: "1.7M" },
   { id: "t-6", title: "Mirror Highway", artistId: "art-6", artist: "VISR", genre: "Synthwave", mood: "Nostalgic", duration: "4:30", plays: "660K" },
-  { id: "t-7", title: "Slow Eclipse", artistId: "art-1", artist: "SØL Aurelius", genre: "Electronica", mood: "Reflective", duration: "3:36", plays: "840K" },
   { id: "t-8", title: "Chrome Aria", artistId: "art-2", artist: "Seraphine 9", genre: "Art Pop", mood: "Dramatic", duration: "3:09", plays: "1.5M" },
   // ---- Studio masters (real uploaded audio, ordered 1 → 9) ----
   { id: "t-101", title: "Aurora Doré", artistId: "art-1", artist: "SØL Aurelius", genre: "Ambient Pop", mood: "Euphoric", duration: "3:38", plays: "612K" },
@@ -164,7 +163,7 @@ export const tracks: Track[] = [
   { id: "t-103", title: "Échos du Vide", artistId: "art-3", artist: "ORACLE", genre: "Techno", mood: "Hypnotic", duration: "4:08", plays: "377K" },
   { id: "t-104", title: "Couronne d'Or", artistId: "art-4", artist: "MIDAS PRIME", genre: "Trap", mood: "Triumphant", duration: "2:59", plays: "1.1M" },
   { id: "t-105", title: "Mirage Néon", artistId: "art-6", artist: "VISR", genre: "Synthwave", mood: "Nostalgic", duration: "4:34", plays: "284K" },
-  { id: "t-106", title: "Velours Noir", artistId: "art-3", artist: "ORACLE", genre: "Industrial", mood: "Dramatic", duration: "4:34", plays: "203K" },
+  
   { id: "t-107", title: "Soleil de Minuit", artistId: "art-5", artist: "Nyla Solenne", genre: "Neo-Soul", mood: "Intimate", duration: "4:45", plays: "356K" },
   { id: "t-108", title: "Royaume Pourpre", artistId: "art-4", artist: "MIDAS PRIME", genre: "Hip-Hop", mood: "Triumphant", duration: "4:24", plays: "742K" },
   { id: "t-109", title: "Or Liquide", artistId: "art-2", artist: "Seraphine 9", genre: "Art Pop", mood: "Ethereal", duration: "3:52", plays: "529K" },

@@ -395,6 +395,55 @@
   animation: introBar 2.6s ease-in-out both;
 }
 
+/* ---- "Step into the light" cinematic outro text ---- */
+@keyframes introTextIn {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.94);
+    filter: blur(14px) brightness(2.2);
+    letter-spacing: 0.5em;
+  }
+  55% {
+    opacity: 1;
+    filter: blur(0) brightness(1.15);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0) brightness(1);
+    letter-spacing: 0.22em;
+  }
+}
+@keyframes introGlowBurst {
+  0% { opacity: 0; transform: scale(0.2); }
+  45% { opacity: 0.9; }
+  100% { opacity: 0.55; transform: scale(1); }
+}
+@keyframes introTextShine {
+  0% { background-position: -150% 0; }
+  100% { background-position: 250% 0; }
+}
+@utility animate-intro-text {
+  animation: introTextIn 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@utility animate-intro-glow {
+  animation: introGlowBurst 1.6s ease-out both;
+}
+.intro-text-shine {
+  background-image: linear-gradient(
+    100deg,
+    color-mix(in oklab, var(--gold) 70%, white) 0%,
+    #fff 45%,
+    color-mix(in oklab, var(--gold) 75%, white) 55%,
+    color-mix(in oklab, var(--gold) 60%, white) 100%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: introTextShine 2.6s linear 0.6s infinite;
+}
+
 /* ---- Gold button sheen: a slow light sweep on hover ---- */
 .btn-gold-sheen::after {
   content: "";
