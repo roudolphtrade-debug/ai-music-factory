@@ -2850,6 +2850,7 @@ export function translate(
   vars?: Record<string, string | number>,
 ): string {
   let value = resolve(translations[lang], key);
+  if (value === undefined) value = resolve(translations.en, key);
   if (value === undefined) value = resolve(translations.fr, key);
   if (typeof value !== "string") return key;
   if (vars) {
