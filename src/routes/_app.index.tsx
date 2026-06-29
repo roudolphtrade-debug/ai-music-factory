@@ -269,7 +269,7 @@ function HomePage() {
                   loading="lazy"
                   className="h-11 w-11 rounded-lg object-cover ring-1 ring-border"
                 />
-                <div className="absolute inset-0 grid place-items-center rounded-lg bg-black/45 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+                <div className="absolute inset-0 hidden place-items-center rounded-lg bg-black/45 opacity-0 transition-opacity group-hover:opacity-100 sm:grid">
                   <PlayButton track={chartQueue[i]} queue={chartQueue} size="sm" />
                 </div>
               </div>
@@ -286,10 +286,12 @@ function HomePage() {
               <GoldBadge variant="outline" className="hidden sm:inline-flex">
                 {c.genre}
               </GoldBadge>
+              <PlayButton track={chartQueue[i]} queue={chartQueue} size="sm" className="sm:hidden" />
               <LikeButton trackId={chartQueue[i].id} size="sm" className="hidden sm:inline-flex" />
               <span className="w-16 text-right text-xs tabular-nums text-muted-foreground">
                 {c.plays}
               </span>
+
             </div>
           ))}
         </div>
