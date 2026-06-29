@@ -2862,6 +2862,9 @@ export function translate(
 }
 
 export function translateArray(lang: Lang, key: string): string[] {
-  const value = resolve(translations[lang], key) ?? resolve(translations.fr, key);
+  const value =
+    resolve(translations[lang], key) ??
+    resolve(translations.en, key) ??
+    resolve(translations.fr, key);
   return Array.isArray(value) ? (value as string[]) : [];
 }
