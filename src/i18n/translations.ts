@@ -1,10 +1,15 @@
-export type Lang = "fr" | "en" | "es";
+export type Lang = "fr" | "en" | "es" | "zh" | "pt" | "ar";
 
-export const LANGS: { code: Lang; label: string }[] = [
-  { code: "fr", label: "FR" },
-  { code: "en", label: "EN" },
-  { code: "es", label: "ES" },
+export const LANGS: { code: Lang; label: string; flag: string; dir?: "rtl" }[] = [
+  { code: "fr", label: "FR", flag: "🇫🇷" },
+  { code: "en", label: "EN", flag: "🇬🇧" },
+  { code: "es", label: "ES", flag: "🇪🇸" },
+  { code: "zh", label: "中文", flag: "🇨🇳" },
+  { code: "pt", label: "PT", flag: "🇧🇷" },
+  { code: "ar", label: "العربية", flag: "🇸🇦" },
 ];
+
+export const RTL_LANGS: Lang[] = ["ar"];
 
 type Dict = Record<string, unknown>;
 
