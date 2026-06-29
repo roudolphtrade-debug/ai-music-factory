@@ -10,6 +10,7 @@ import {
 import {
   translate,
   translateArray,
+  RTL_LANGS,
   type Lang,
 } from "./translations";
 
