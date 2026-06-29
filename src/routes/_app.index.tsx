@@ -269,7 +269,7 @@ function HomePage() {
                   loading="lazy"
                   className="h-11 w-11 rounded-lg object-cover ring-1 ring-border"
                 />
-                <div className="absolute inset-0 grid place-items-center rounded-lg bg-black/45 opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="absolute inset-0 grid place-items-center rounded-lg bg-black/45 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                   <PlayButton track={chartQueue[i]} queue={chartQueue} size="sm" />
                 </div>
               </div>

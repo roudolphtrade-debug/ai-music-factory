@@ -10,6 +10,7 @@ import {
 import {
   translate,
   translateArray,
+  RTL_LANGS,
   type Lang,
 } from "./translations";
 
@@ -34,7 +35,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   // Read persisted preference after mount (SSR always renders the default).
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY) as Lang | null;
-    if (stored && stored !== lang && ["fr", "en", "es"].includes(stored)) {
+    if (stored && stored !== lang && ["fr", "en", "es", "zh", "pt", "ar"].includes(stored)) {
       setLangState(stored);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -43,6 +44,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof document !== "undefined") {
       document.documentElement.lang = lang;
+      document.documentElement.dir = RTL_LANGS.includes(lang) ? "rtl" : "ltr";
     }
   }, [lang]);
 
