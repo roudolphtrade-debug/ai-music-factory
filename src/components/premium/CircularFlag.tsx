@@ -1,8 +1,10 @@
+import type { ReactNode } from "react";
 import type { Lang } from "@/i18n/translations";
+
 
 const SIZE = 20;
 
-const flags: Record<Lang, JSX.Element> = {
+const flags: Record<Lang, ReactNode> = {
   fr: (
     <svg viewBox="0 0 24 24" width={SIZE} height={SIZE} aria-hidden="true">
       <defs>
