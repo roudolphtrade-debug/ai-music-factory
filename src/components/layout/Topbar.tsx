@@ -43,14 +43,18 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
                 type="button"
                 onClick={() => setLang(l.code)}
                 aria-pressed={lang === l.code}
+                title={l.label}
                 className={cn(
-                  "rounded-md px-2.5 py-1 text-xs font-semibold tracking-wide transition-colors",
+                  "flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-semibold tracking-wide transition-colors",
                   lang === l.code
                     ? "bg-[color-mix(in_oklab,var(--gold)_14%,transparent)] text-gold"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                {l.label}
+                <span className="text-sm leading-none" aria-hidden>
+                  {l.flag}
+                </span>
+                <span className="hidden sm:inline">{l.label}</span>
               </button>
             ))}
           </div>
