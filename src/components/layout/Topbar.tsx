@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Search, Plus, Menu } from "lucide-react";
 import { NotificationsBell } from "@/components/premium/NotificationsBell";
+import { CircularFlag } from "@/components/premium/CircularFlag";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/context";
 import { LANGS } from "@/i18n/translations";
@@ -31,11 +32,11 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
         </div>
 
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
-          {/* Language switcher */}
+          {/* Language switcher — circular SVG flags with gold glow */}
           <div
             role="group"
             aria-label={t("language.label")}
-            className="flex items-center rounded-lg border border-border bg-secondary/30 p-0.5"
+            className="flex items-center gap-0.5 rounded-full border border-border bg-secondary/40 p-1 backdrop-blur-sm"
           >
             {LANGS.map((l) => (
               <button
@@ -45,16 +46,17 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
                 aria-pressed={lang === l.code}
                 title={l.label}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-semibold tracking-wide transition-colors",
+                  "flex items-center gap-1.5 rounded-full transition-all duration-200",
+                  "h-7 w-7 justify-center sm:h-8 sm:w-auto sm:px-2",
                   lang === l.code
-                    ? "bg-[color-mix(in_oklab,var(--gold)_14%,transparent)] text-gold"
-                    : "text-muted-foreground hover:text-foreground",
+                    ? "text-gold ring-1 ring-gold ring-offset-1 ring-offset-background shadow-[0_0_14px_-4px_color-mix(in_oklab,var(--gold)_55%,transparent)]"
+                    : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
                 )}
               >
-                <span className="text-sm leading-none" aria-hidden>
-                  {l.flag}
+                <CircularFlag lang={l.code} />
+                <span className="hidden text-[10px] font-semibold tracking-wide sm:inline">
+                  {l.label}
                 </span>
-                <span className="hidden sm:inline">{l.label}</span>
               </button>
             ))}
           </div>
