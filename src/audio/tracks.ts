@@ -85,6 +85,28 @@ export function sourceAt(index: number): string {
   return SOURCES[((index % SOURCES.length) + SOURCES.length) % SOURCES.length];
 }
 
+/**
+ * The 10 chart songs (uploaded in numbered order) powering the "Top des charts".
+ * chartSourceAt(rank) returns the song matching the chart position (1 → index 0).
+ */
+const CHART_SOURCES = [
+  chart1.url,
+  chart2.url,
+  chart3.url,
+  chart4.url,
+  chart5.url,
+  chart6.url,
+  chart7.url,
+  chart8.url,
+  chart9.url,
+  chart10.url,
+];
+
+export function chartSourceAt(rank: number): string {
+  return CHART_SOURCES[((rank - 1) % CHART_SOURCES.length + CHART_SOURCES.length) % CHART_SOURCES.length];
+}
+
+
 export interface PlayableTrack {
   id: string;
   title: string;
