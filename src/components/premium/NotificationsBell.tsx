@@ -43,7 +43,7 @@ export function NotificationsBell() {
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="relative grid h-10 w-10 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          className="relative grid h-10 w-10 shrink-0 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
           aria-label={t("notif.title")}
         >
           <Bell className="h-5 w-5" />
