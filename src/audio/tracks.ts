@@ -159,6 +159,8 @@ export function makePlayable(opts: {
   artistId: ArtistId;
   index: number;
   duration?: string;
+  /** Force a specific audio source (e.g. chart songs in numbered order). */
+  src?: string;
 }): PlayableTrack {
   const match = playableTracks.find((p) => p.title === opts.title);
   return {
@@ -166,7 +168,7 @@ export function makePlayable(opts: {
     title: opts.title,
     artist: opts.artist,
     artistId: opts.artistId,
-    src: match ? match.src : sourceAt(opts.index),
+    src: opts.src ?? (match ? match.src : sourceAt(opts.index)),
     cover: artistImages[opts.artistId],
     duration: opts.duration ?? match?.duration ?? "0:30",
   };
