@@ -1,12 +1,10 @@
 import type { ReactNode } from "react";
 import type { Lang } from "@/i18n/translations";
-
-
-const SIZE = 20;
+import { cn } from "@/lib/utils";
 
 const flags: Record<Lang, ReactNode> = {
   fr: (
-    <svg viewBox="0 0 24 24" width={SIZE} height={SIZE} aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="100%" height="100%" aria-hidden="true">
       <defs>
         <clipPath id="circle-fr">
           <circle cx="12" cy="12" r="12" />
@@ -20,7 +18,7 @@ const flags: Record<Lang, ReactNode> = {
     </svg>
   ),
   en: (
-    <svg viewBox="0 0 24 24" width={SIZE} height={SIZE} aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="100%" height="100%" aria-hidden="true">
       <defs>
         <clipPath id="circle-en">
           <circle cx="12" cy="12" r="12" />
@@ -36,7 +34,7 @@ const flags: Record<Lang, ReactNode> = {
     </svg>
   ),
   es: (
-    <svg viewBox="0 0 24 24" width={SIZE} height={SIZE} aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="100%" height="100%" aria-hidden="true">
       <defs>
         <clipPath id="circle-es">
           <circle cx="12" cy="12" r="12" />
@@ -54,7 +52,7 @@ const flags: Record<Lang, ReactNode> = {
     </svg>
   ),
   zh: (
-    <svg viewBox="0 0 24 24" width={SIZE} height={SIZE} aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="100%" height="100%" aria-hidden="true">
       <defs>
         <clipPath id="circle-zh">
           <circle cx="12" cy="12" r="12" />
@@ -73,7 +71,7 @@ const flags: Record<Lang, ReactNode> = {
     </svg>
   ),
   pt: (
-    <svg viewBox="0 0 24 24" width={SIZE} height={SIZE} aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="100%" height="100%" aria-hidden="true">
       <defs>
         <clipPath id="circle-pt">
           <circle cx="12" cy="12" r="12" />
@@ -88,7 +86,7 @@ const flags: Record<Lang, ReactNode> = {
     </svg>
   ),
   ar: (
-    <svg viewBox="0 0 24 24" width={SIZE} height={SIZE} aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="100%" height="100%" aria-hidden="true">
       <defs>
         <clipPath id="circle-ar">
           <circle cx="12" cy="12" r="12" />
@@ -103,9 +101,20 @@ const flags: Record<Lang, ReactNode> = {
   ),
 };
 
-export function CircularFlag({ lang }: { lang: Lang }) {
+export function CircularFlag({
+  lang,
+  className,
+}: {
+  lang: Lang;
+  className?: string;
+}) {
   return (
-    <span className="inline-flex items-center justify-center rounded-full shadow-sm">
+    <span
+      className={cn(
+        "inline-flex h-5 w-5 items-center justify-center rounded-full shadow-sm",
+        className
+      )}
+    >
       {flags[lang]}
     </span>
   );
