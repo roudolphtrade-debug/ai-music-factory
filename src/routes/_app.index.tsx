@@ -29,7 +29,7 @@ import { OnboardingChecklist } from "@/components/premium/OnboardingChecklist";
 import { LikeButton } from "@/components/premium/LikeButton";
 import { useI18n } from "@/i18n/context";
 import { PlayButton } from "@/components/audio/PlayButton";
-import { playableById, playableTracks, radioQueue, makePlayable } from "@/audio/tracks";
+import { playableById, playableTracks, radioQueue, makePlayable, chartSourceAt } from "@/audio/tracks";
 import { useLibrary } from "@/library/LibraryProvider";
 import { cn } from "@/lib/utils";
 import {
@@ -82,6 +82,7 @@ function HomePage() {
       artist: c.artist,
       artistId: c.artistId,
       index: c.rank - 1,
+      src: chartSourceAt(c.rank),
       duration: "0:30",
     }),
   );

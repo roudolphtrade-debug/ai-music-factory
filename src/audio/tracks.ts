@@ -28,6 +28,16 @@ import song5 from "@/audio/songs/song-5.mp3.asset.json";
 import song7 from "@/audio/songs/song-7.mp3.asset.json";
 import song8 from "@/audio/songs/song-8.mp3.asset.json";
 import song9 from "@/audio/songs/song-9.mp3.asset.json";
+import chart1 from "@/audio/charts/chart-1.mp3.asset.json";
+import chart2 from "@/audio/charts/chart-2.mp3.asset.json";
+import chart3 from "@/audio/charts/chart-3.mp3.asset.json";
+import chart4 from "@/audio/charts/chart-4.mp3.asset.json";
+import chart5 from "@/audio/charts/chart-5.mp3.asset.json";
+import chart6 from "@/audio/charts/chart-6.mp3.asset.json";
+import chart7 from "@/audio/charts/chart-7.mp3.asset.json";
+import chart8 from "@/audio/charts/chart-8.mp3.asset.json";
+import chart9 from "@/audio/charts/chart-9.mp3.asset.json";
+import chart10 from "@/audio/charts/chart-10.mp3.asset.json";
 
 /**
  * The 9 real studio masters uploaded by the artist, mapped by track id so the
@@ -74,6 +84,28 @@ const SOURCES = [
 export function sourceAt(index: number): string {
   return SOURCES[((index % SOURCES.length) + SOURCES.length) % SOURCES.length];
 }
+
+/**
+ * The 10 chart songs (uploaded in numbered order) powering the "Top des charts".
+ * chartSourceAt(rank) returns the song matching the chart position (1 → index 0).
+ */
+const CHART_SOURCES = [
+  chart1.url,
+  chart2.url,
+  chart3.url,
+  chart4.url,
+  chart5.url,
+  chart6.url,
+  chart7.url,
+  chart8.url,
+  chart9.url,
+  chart10.url,
+];
+
+export function chartSourceAt(rank: number): string {
+  return CHART_SOURCES[((rank - 1) % CHART_SOURCES.length + CHART_SOURCES.length) % CHART_SOURCES.length];
+}
+
 
 export interface PlayableTrack {
   id: string;
@@ -127,6 +159,8 @@ export function makePlayable(opts: {
   artistId: ArtistId;
   index: number;
   duration?: string;
+  /** Force a specific audio source (e.g. chart songs in numbered order). */
+  src?: string;
 }): PlayableTrack {
   const match = playableTracks.find((p) => p.title === opts.title);
   return {
@@ -134,7 +168,7 @@ export function makePlayable(opts: {
     title: opts.title,
     artist: opts.artist,
     artistId: opts.artistId,
-    src: match ? match.src : sourceAt(opts.index),
+    src: opts.src ?? (match ? match.src : sourceAt(opts.index)),
     cover: artistImages[opts.artistId],
     duration: opts.duration ?? match?.duration ?? "0:30",
   };

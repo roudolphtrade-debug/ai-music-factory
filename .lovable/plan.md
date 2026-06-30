@@ -1,26 +1,37 @@
-## Problème
-
-Sur smartphone, dans le « Top des charts », le bouton lecture doré est rendu toujours visible (`opacity-100`) **par-dessus** la pochette (44×44 px). Le rond doré de 36 px couvre presque toute l'image, donc on ne voit plus le visage de l'artiste.
+# Mettre les 10 chansons dans le Top des charts (ordre numéroté)
 
 ## Objectif
+Le « Top des charts » de la page d'accueil affiche 10 lignes (rangs 1 → 10). Actuellement chaque ligne joue un son générique (rotation `voice-*`). On va attacher les 10 chansons que tu viens d'uploader, **dans l'ordre des numéros** : fichier `1` → rang 1, fichier `2` → rang 2, … fichier `10` → rang 10.
 
-Garder le bouton lecture clairement visible et accessible sur mobile **tout en laissant la pochette / le visage visible**.
+## Fichiers concernés
+- `1 Bbby.mpeg` → chart-1
+- `2 bobby.mpeg` → chart-2
+- `3 Bobby.mpeg` → chart-3
+- `4 booby.aac` → chart-4
+- `5 bobby.mpeg` → chart-5
+- `6 C'est ton jour.mp3` → chart-6
+- `7 bobby.mpeg` → chart-7
+- `8 bobby.mpeg` → chart-8
+- `9 bobby.aac` → chart-9
+- `10 Bobby.mpeg` → chart-10
 
-## Solution retenue
+## Étapes techniques
 
-Sur mobile, sortir le bouton lecture de la pochette : la pochette reste pleine et nette, et un bouton lecture compact dédié s'affiche dans la ligne (à droite, près du compteur d'écoutes). Sur desktop, on conserve le comportement actuel (overlay au survol de la pochette).
+1. **Transcodage + upload CDN**
+   - Réencoder chaque fichier (mpeg/aac/mp3) en MP3 propre (`ffmpeg`, `-c:a libmp3lame`, faststart).
+   - Uploader via `lovable-assets` en `chart-1.mp3` … `chart-10.mp3`, stockés dans `src/audio/charts/` avec leurs pointeurs `.asset.json`.
 
-```text
-Mobile (avant)            Mobile (après)
-[##▶##] Titre   12.4M     [visage] Titre   (▶) 12.4M
- ↑ visage caché            ↑ visage visible + bouton à côté
-```
+2. **Déclaration des sources** (`src/audio/tracks.ts`)
+   - Importer les 10 nouveaux pointeurs.
+   - Ajouter un tableau `CHART_SOURCES = [chart1.url, …, chart10.url]` et un helper `chartSourceAt(rank)` qui renvoie la chanson correspondant au rang (1 → index 0).
+   - Étendre `makePlayable` avec un paramètre optionnel `src` pour permettre de forcer la source audio.
 
-### Détails techniques (`src/routes/_app.index.tsx`, section TOP CHARTS)
+3. **Branchement dans le Top des charts** (`src/routes/_app.index.tsx`)
+   - Dans la construction de `chartQueue`, passer `src: chartSourceAt(c.rank)` pour que chaque ligne du classement joue la bonne chanson, dans l'ordre numéroté.
 
-- Pochette : retirer l'overlay toujours-visible sur mobile. L'overlay + `PlayButton` au-dessus de l'image restent **uniquement** au survol sur desktop (`hidden sm:grid` + `sm:opacity-0 sm:group-hover:opacity-100`), pour que le visage soit toujours net sur mobile.
-- Ajouter un `PlayButton` compact dédié dans la ligne, visible seulement sur mobile (`inline-flex sm:hidden`), placé juste avant le compteur d'écoutes, à côté du cœur.
-- Réorganiser légèrement la fin de ligne sur mobile pour que cœur + lecture + écoutes tiennent proprement (le cœur `LikeButton` est aujourd'hui `hidden sm:inline-flex` ; on l'aligne avec le nouveau bouton si besoin de cohérence).
-- Vérifier le rendu via capture Playwright en viewport mobile (375 px) et desktop pour confirmer que les visages sont visibles et le bouton accessible.
+4. **Vérification**
+   - Build, puis contrôle via Playwright que chaque bouton lecture des 10 lignes du Top des charts pointe bien vers `chart-1.mp3` … `chart-10.mp3` dans l'ordre.
 
-Aucune logique métier modifiée : changements purement de présentation/visibilité responsive.
+## Notes
+- Les titres/artistes affichés dans le classement restent inchangés ; seule l'audio jouée est remplacée par les 10 chansons numérotées.
+- Aucune modification de logique backend ni de données autres que le mapping audio.
