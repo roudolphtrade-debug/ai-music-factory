@@ -28,6 +28,16 @@ import song5 from "@/audio/songs/song-5.mp3.asset.json";
 import song7 from "@/audio/songs/song-7.mp3.asset.json";
 import song8 from "@/audio/songs/song-8.mp3.asset.json";
 import song9 from "@/audio/songs/song-9.mp3.asset.json";
+import chart1 from "@/audio/charts/chart-1.mp3.asset.json";
+import chart2 from "@/audio/charts/chart-2.mp3.asset.json";
+import chart3 from "@/audio/charts/chart-3.mp3.asset.json";
+import chart4 from "@/audio/charts/chart-4.mp3.asset.json";
+import chart5 from "@/audio/charts/chart-5.mp3.asset.json";
+import chart6 from "@/audio/charts/chart-6.mp3.asset.json";
+import chart7 from "@/audio/charts/chart-7.mp3.asset.json";
+import chart8 from "@/audio/charts/chart-8.mp3.asset.json";
+import chart9 from "@/audio/charts/chart-9.mp3.asset.json";
+import chart10 from "@/audio/charts/chart-10.mp3.asset.json";
 
 /**
  * The 9 real studio masters uploaded by the artist, mapped by track id so the
