@@ -82,6 +82,7 @@ function HomePage() {
       artist: c.artist,
       artistId: c.artistId,
       index: c.rank - 1,
+      src: chartSourceAt(c.rank),
       duration: "0:30",
     }),
   );
