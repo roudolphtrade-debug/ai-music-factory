@@ -88,7 +88,7 @@ export function IntroOverlay() {
         }}
         onEnded={() => setLeaving(true)}
         onError={() => setLeaving(true)}
-        className="h-full w-full object-cover"
+        className="h-full w-full object-contain"
       />
 
       {/* Vignette for a cinematic frame */}
