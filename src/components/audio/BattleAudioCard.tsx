@@ -166,7 +166,13 @@ function Contender({
       </div>
 
       <div className="min-w-0">
-        <p className="truncate font-semibold text-foreground">{track.artist}</p>
+        <Link
+          to="/artists/$artistId"
+          params={{ artistId: track.artistId }}
+          className="block truncate font-semibold text-foreground transition-colors hover:text-gold"
+        >
+          {track.artist}
+        </Link>
         <p className="truncate text-xs text-muted-foreground">{track.title}</p>
         <p className="mt-0.5 text-[0.7rem] tabular-nums text-muted-foreground/70">{track.duration}</p>
       </div>
