@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Crown, Check, ChevronUp } from "lucide-react";
 import { StatusChip } from "@/components/premium/Chips";
 import { makePlayable } from "@/audio/tracks";
