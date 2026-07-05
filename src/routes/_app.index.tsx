@@ -29,6 +29,7 @@ import { OnboardingChecklist } from "@/components/premium/OnboardingChecklist";
 import { LikeButton } from "@/components/premium/LikeButton";
 import { useI18n } from "@/i18n/context";
 import { PlayButton } from "@/components/audio/PlayButton";
+import { usePlayer } from "@/audio/PlayerProvider";
 import { playableById, playableTracks, radioQueue, makePlayable, chartSourceAt } from "@/audio/tracks";
 import { useLibrary } from "@/library/LibraryProvider";
 import { cn } from "@/lib/utils";
