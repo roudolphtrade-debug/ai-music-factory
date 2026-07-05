@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { GoldBadge, ReputationChip, StatusChip } from "@/components/premium/Chips";
 import { VoteButton } from "@/components/premium/VoteButton";
 import { LikeButton } from "@/components/premium/LikeButton";
+import { AddToPlaylistButton } from "@/components/premium/AddToPlaylistButton";
 import { ShareButton } from "@/components/premium/ShareButton";
 import { Playlist } from "@/components/audio/Playlist";
 import { ReadAloudButton } from "@/components/voice/ReadAloudButton";
@@ -136,6 +137,7 @@ function ArtistProfilePage() {
                   </span>
                   <span className="hidden text-xs tabular-nums text-muted-foreground sm:block">{p.duration}</span>
                   <LikeButton trackId={p.id} size="sm" />
+                  <AddToPlaylistButton trackId={p.id} size="sm" />
                   <ShareButton title={p.title} artist={p.artist} trackId={p.id} size="sm" />
                 </div>
               );

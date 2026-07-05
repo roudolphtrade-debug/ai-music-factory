@@ -12,7 +12,7 @@ export function Logo({
       <Mark />
       {showWordmark && (
         <div className="flex flex-col leading-none">
-          <span className="font-display text-lg font-semibold tracking-tight text-foreground">
+          <span className="whitespace-nowrap font-display text-lg font-semibold tracking-tight text-foreground">
             <span className="gold-sheen">Ai</span> Music{" "}
             <span className="font-normal italic text-muted-foreground">Factory</span>
           </span>
