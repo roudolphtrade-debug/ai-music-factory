@@ -137,6 +137,7 @@ function ArtistProfilePage() {
                   </span>
                   <span className="hidden text-xs tabular-nums text-muted-foreground sm:block">{p.duration}</span>
                   <LikeButton trackId={p.id} size="sm" />
+                  <AddToPlaylistButton trackId={p.id} size="sm" />
                   <ShareButton title={p.title} artist={p.artist} trackId={p.id} size="sm" />
                 </div>
               );
