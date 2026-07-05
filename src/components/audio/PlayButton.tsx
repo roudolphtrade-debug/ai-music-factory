@@ -74,7 +74,7 @@ export function PlayButton({
       aria-label={label ?? (playing ? "Pause" : "Play")}
       className={cn(
         "relative grid shrink-0 place-items-center rounded-full transition-all duration-300",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         sizes[size],
         variants[variant],
         className,
