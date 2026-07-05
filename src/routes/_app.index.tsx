@@ -268,8 +268,9 @@ function HomePage() {
                   {c.rank}
                 </span>
                 <ChartChange change={c.change} isNew={c.isNew} newLabel={t("charts.new")} />
-                {/* Cover doubles as the play control: revealed on hover (desktop)
-                    and when the track is active/selected (mobile) to keep the list light. */}
+                {/* Cover doubles as the play control. On mobile (no hover) the
+                    control stays visible so users know the row is tappable; on
+                    desktop it's revealed on hover, and always shown when active. */}
                 <div className="relative h-11 w-11 shrink-0">
                   <img
                     src={artistImages[c.artistId]}
@@ -279,8 +280,8 @@ function HomePage() {
                   />
                   <div
                     className={cn(
-                      "absolute inset-0 grid place-items-center rounded-lg bg-black/45 opacity-0 transition-opacity group-hover:opacity-100",
-                      active && "opacity-100",
+                      "absolute inset-0 grid place-items-center rounded-lg bg-black/45 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100",
+                      active && "opacity-100 sm:opacity-100",
                     )}
                   >
                     <PlayButton track={track} queue={chartQueue} size="sm" />
