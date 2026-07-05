@@ -73,6 +73,7 @@ const statIcons = [
 function HomePage() {
   const { t, relTime } = useI18n();
   const { favorites, history } = useLibrary();
+  const { isActive } = usePlayer();
   const liveBattle = battles[0];
   const [region, setRegion] = useState<ChartRegion>("Global");
   const charts = globalCharts.filter((c) => c.regions.includes(region));
