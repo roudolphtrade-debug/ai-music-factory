@@ -1,13 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  Plus,
-  UploadCloud,
-  Layers,
-  GitBranch,
-  MoreHorizontal,
-  Music2,
-  Mic2,
-} from "lucide-react";
+import { Plus, UploadCloud, Layers, GitBranch, MoreHorizontal, Music2, Mic2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/premium/SectionHeading";
 import { StatusChip, GoldBadge } from "@/components/premium/Chips";
@@ -25,12 +17,14 @@ export const Route = createFileRoute("/_app/studio")({
   head: () => ({
     meta: [
       { title: "Creator Studio — Ai Music Factory" },
-      { name: "description", content: "Compose, prompt, version and publish AI tracks in a premium creative studio." },
+      {
+        name: "description",
+        content: "Compose, prompt, version and publish AI tracks in a premium creative studio.",
+      },
     ],
   }),
   component: StudioPage,
 });
-
 
 function StudioPage() {
   const { t, relTime } = useI18n();
@@ -69,8 +63,16 @@ function StudioPage() {
             <p className="mt-3 text-[0.7rem] text-muted-foreground/70">{t("studio.engineNote")}</p>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <MiniStat icon={<Music2 className="h-4 w-4" />} label={t("studio.miniTracks")} value="42" />
-            <MiniStat icon={<Mic2 className="h-4 w-4" />} label={t("studio.miniVoices")} value="6" />
+            <MiniStat
+              icon={<Music2 className="h-4 w-4" />}
+              label={t("studio.miniTracks")}
+              value="42"
+            />
+            <MiniStat
+              icon={<Mic2 className="h-4 w-4" />}
+              label={t("studio.miniVoices")}
+              value="6"
+            />
           </div>
         </div>
       </section>
@@ -103,12 +105,18 @@ function StudioPage() {
                       <h3 className="truncate font-display text-xl font-semibold text-foreground">
                         {p.title}
                       </h3>
-                      <p className="text-xs text-muted-foreground">{t("common.updated", { time: relTime(p.updated) })}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {t("common.updated", { time: relTime(p.updated) })}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <StatusChip status={p.status} />
-                    <button className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                    <button
+                      type="button"
+                      aria-label={t("common.moreOptions")}
+                      className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                    >
                       <MoreHorizontal className="h-4 w-4" />
                     </button>
                   </div>
@@ -125,10 +133,12 @@ function StudioPage() {
                 <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-4 text-xs text-muted-foreground">
                   <div className="flex items-center gap-5">
                     <span className="inline-flex items-center gap-1.5">
-                      <GitBranch className="h-3.5 w-3.5 text-gold" /> {t("studio.versions", { n: p.versions })}
+                      <GitBranch className="h-3.5 w-3.5 text-gold" />{" "}
+                      {t("studio.versions", { n: p.versions })}
                     </span>
                     <span className="inline-flex items-center gap-1.5">
-                      <Layers className="h-3.5 w-3.5 text-gold" /> {t("studio.stems", { n: p.stems })}
+                      <Layers className="h-3.5 w-3.5 text-gold" />{" "}
+                      {t("studio.stems", { n: p.stems })}
                     </span>
                   </div>
                   <ListenButton track={preview} />
@@ -137,7 +147,6 @@ function StudioPage() {
             );
           })}
         </div>
-
       </section>
     </div>
   );

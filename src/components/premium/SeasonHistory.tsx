@@ -38,18 +38,23 @@ export function SeasonHistory() {
             >
               <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--gold)_18%,transparent),transparent_70%)]" />
               <div className="relative flex items-center justify-between">
-                <GoldBadge variant="outline">{t("battles.season")} {s.season}</GoldBadge>
+                <GoldBadge variant="outline">
+                  {t("battles.season")} {s.season}
+                </GoldBadge>
                 <Crown className="h-4 w-4 text-gold" />
               </div>
               <div className="relative mt-4 flex items-center gap-3">
                 <img
+                  loading="lazy"
                   src={artistImages[s.championId]}
                   alt={s.championName}
                   className="h-12 w-12 rounded-xl object-cover ring-1 ring-[color-mix(in_oklab,var(--gold)_30%,transparent)]"
                 />
                 <div className="min-w-0">
                   <p className="eyebrow text-gold">{t("seasons.champion")}</p>
-                  <p className="truncate font-display text-lg font-semibold text-foreground">{s.championName}</p>
+                  <p className="truncate font-display text-lg font-semibold text-foreground">
+                    {s.championName}
+                  </p>
                   <p className="truncate text-xs text-muted-foreground">{s.championTrack}</p>
                 </div>
               </div>
@@ -77,7 +82,9 @@ export function SeasonHistory() {
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm text-foreground">
                   <span className="font-semibold">{h.winner}</span>{" "}
-                  <span className="text-muted-foreground">{t("common.def")} {h.loser}</span>
+                  <span className="text-muted-foreground">
+                    {t("common.def")} {h.loser}
+                  </span>
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {t(`battles.${h.round.phase}`)} · {t("battles.season")} {h.round.season}

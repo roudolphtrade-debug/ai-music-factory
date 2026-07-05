@@ -19,7 +19,7 @@ type Size = "sm" | "md";
 
 const sizes: Record<Size, string> = {
   sm: "h-8 w-8",
-  md: "h-9 w-9",
+  md: "h-11 w-11 sm:h-9 sm:w-9",
 };
 
 const icon: Record<Size, string> = {

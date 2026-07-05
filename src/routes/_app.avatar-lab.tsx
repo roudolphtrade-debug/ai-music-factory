@@ -4,14 +4,18 @@ import { Sparkles, Shuffle, Wand2, Feather, BookOpen, Palette, Mic2 } from "luci
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/premium/SectionHeading";
 import { GoldBadge } from "@/components/premium/Chips";
-import avatarPreview from "@/assets/avatar-preview.jpg";
+import avatarPreview from "@/assets/avatar-preview.webp";
 import { useI18n } from "@/i18n/context";
 
 export const Route = createFileRoute("/_app/avatar-lab")({
   head: () => ({
     meta: [
       { title: "Avatar Lab — Ai Music Factory" },
-      { name: "description", content: "Design a virtual identity: persona, aura, aesthetic and stage presence for your AI artist." },
+      {
+        name: "description",
+        content:
+          "Design a virtual identity: persona, aura, aesthetic and stage presence for your AI artist.",
+      },
     ],
   }),
   component: AvatarLabPage,
@@ -38,6 +42,7 @@ function AvatarLabPage() {
           <div className="relative flex flex-col">
             <div className="relative aspect-square overflow-hidden">
               <img
+                loading="eager"
                 src={avatarPreview}
                 alt="Avatar preview"
                 className="h-full w-full object-cover"
@@ -54,7 +59,9 @@ function AvatarLabPage() {
             <div className="space-y-1.5 p-6">
               <p className="eyebrow text-gold">{t("avatarLab.workingIdentity")}</p>
               <h3 className="font-display text-3xl font-semibold text-foreground">Aurora Solène</h3>
-              <p className="text-sm leading-relaxed text-muted-foreground">{t("avatarLab.identityDesc")}</p>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {t("avatarLab.identityDesc")}
+              </p>
             </div>
           </div>
         </div>
@@ -107,10 +114,26 @@ function AvatarLabPage() {
 
       {/* IDENTITY CARDS */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <IdentityCard icon={<Feather className="h-4 w-4" />} title={t("avatarLab.persona")} body={t("avatarLab.personaBody")} />
-        <IdentityCard icon={<BookOpen className="h-4 w-4" />} title={t("avatarLab.backstory")} body={t("avatarLab.backstoryBody")} />
-        <IdentityCard icon={<Palette className="h-4 w-4" />} title={t("avatarLab.aesthetic")} body={t("avatarLab.aestheticBody")} />
-        <IdentityCard icon={<Mic2 className="h-4 w-4" />} title={t("avatarLab.stage")} body={t("avatarLab.stageBody")} />
+        <IdentityCard
+          icon={<Feather className="h-4 w-4" />}
+          title={t("avatarLab.persona")}
+          body={t("avatarLab.personaBody")}
+        />
+        <IdentityCard
+          icon={<BookOpen className="h-4 w-4" />}
+          title={t("avatarLab.backstory")}
+          body={t("avatarLab.backstoryBody")}
+        />
+        <IdentityCard
+          icon={<Palette className="h-4 w-4" />}
+          title={t("avatarLab.aesthetic")}
+          body={t("avatarLab.aestheticBody")}
+        />
+        <IdentityCard
+          icon={<Mic2 className="h-4 w-4" />}
+          title={t("avatarLab.stage")}
+          body={t("avatarLab.stageBody")}
+        />
       </section>
     </div>
   );

@@ -9,7 +9,10 @@ export const Route = createFileRoute("/_app/analytics")({
   head: () => ({
     meta: [
       { title: "Analytics — Ai Music Factory" },
-      { name: "description", content: "Track plays, listeners, reputation and revenue across your catalogue." },
+      {
+        name: "description",
+        content: "Track plays, listeners, reputation and revenue across your catalogue.",
+      },
     ],
   }),
   component: AnalyticsPage,
@@ -32,10 +35,30 @@ function AnalyticsPage() {
       />
 
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatModule label={t("analytics.totalPlays")} value="9.4M" delta={t("analytics.vsLastMonth", { v: "+12.4%" })} icon={<Play className="h-5 w-5" />} />
-        <StatModule label={t("analytics.monthlyListeners")} value="1.9M" delta={t("analytics.thisMonth", { v: "+88K" })} icon={<Headphones className="h-5 w-5" />} />
-        <StatModule label={t("analytics.saves")} value="312K" delta={t("analytics.vsLastMonth", { v: "+6.1%" })} icon={<Heart className="h-5 w-5" />} />
-        <StatModule label={t("analytics.estRevenue")} value="$28.6K" delta={t("analytics.thisMonth", { v: "+$3.2K" })} icon={<DollarSign className="h-5 w-5" />} />
+        <StatModule
+          label={t("analytics.totalPlays")}
+          value="9.4M"
+          delta={t("analytics.vsLastMonth", { v: "+12.4%" })}
+          icon={<Play className="h-5 w-5" />}
+        />
+        <StatModule
+          label={t("analytics.monthlyListeners")}
+          value="1.9M"
+          delta={t("analytics.thisMonth", { v: "+88K" })}
+          icon={<Headphones className="h-5 w-5" />}
+        />
+        <StatModule
+          label={t("analytics.saves")}
+          value="312K"
+          delta={t("analytics.vsLastMonth", { v: "+6.1%" })}
+          icon={<Heart className="h-5 w-5" />}
+        />
+        <StatModule
+          label={t("analytics.estRevenue")}
+          value="$28.6K"
+          delta={t("analytics.thisMonth", { v: "+$3.2K" })}
+          icon={<DollarSign className="h-5 w-5" />}
+        />
       </section>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -79,7 +102,7 @@ function AnalyticsPage() {
               <div key={r.region} className="space-y-1.5">
                 <div className="flex justify-between text-sm">
                   <span className="text-foreground">{t(`analytics.regions.${r.region}`)}</span>
-                  <span className="text-muted-foreground tabular-nums">{r.pct}%</span>
+                  <span className="font-mono text-muted-foreground tabular-nums">{r.pct}%</span>
                 </div>
                 <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
                   <div className="h-full bg-gold-gradient" style={{ width: `${r.pct}%` }} />
@@ -100,6 +123,7 @@ function AnalyticsPage() {
                 {i + 1}
               </span>
               <img
+                loading="lazy"
                 src={artistImages[track.artistId]}
                 alt={track.artist}
                 className="h-10 w-10 rounded-lg object-cover ring-1 ring-border"
@@ -108,7 +132,7 @@ function AnalyticsPage() {
                 <p className="truncate font-medium text-foreground">{track.title}</p>
                 <p className="truncate text-xs text-muted-foreground">{track.genre}</p>
               </div>
-              <span className="text-sm tabular-nums text-foreground">{track.plays}</span>
+              <span className="font-mono text-sm tabular-nums text-foreground">{track.plays}</span>
             </div>
           ))}
         </div>

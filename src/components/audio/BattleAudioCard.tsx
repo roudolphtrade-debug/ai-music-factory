@@ -51,7 +51,9 @@ export function BattleAudioCard({ battle, index = 0 }: { battle: Battle; index?:
   };
 
   const round = `${t(`battles.${battle.round.phase}`)} · ${t("battles.bracket")} ${battle.round.bracket}`;
-  const ends = t(battle.ends.key === "left" ? "time.left" : "time.startsIn", { t: battle.ends.text });
+  const ends = t(battle.ends.key === "left" ? "time.left" : "time.startsIn", {
+    t: battle.ends.text,
+  });
 
   return (
     <article className="overflow-hidden rounded-2xl border border-border bg-noir-gradient p-5 sm:p-6">
@@ -91,12 +93,22 @@ export function BattleAudioCard({ battle, index = 0 }: { battle: Battle; index?:
       {live && (
         <div className="mt-5">
           <div className="flex h-2 overflow-hidden rounded-full bg-secondary">
-            <div className="bg-gold-gradient transition-[width] duration-500" style={{ width: `${aPct}%` }} />
-            <div className="bg-foreground/25 transition-[width] duration-500" style={{ width: `${100 - aPct}%` }} />
+            <div
+              className="bg-gold-gradient transition-[width] duration-500"
+              style={{ width: `${aPct}%` }}
+            />
+            <div
+              className="bg-foreground/25 transition-[width] duration-500"
+              style={{ width: `${100 - aPct}%` }}
+            />
           </div>
           <div className="mt-1.5 flex justify-between text-xs tabular-nums text-muted-foreground">
-            <span>{aPct}% · {formatNumber(votes.a)}</span>
-            <span>{formatNumber(votes.b)} · {100 - aPct}%</span>
+            <span>
+              {aPct}% · {formatNumber(votes.a)}
+            </span>
+            <span>
+              {formatNumber(votes.b)} · {100 - aPct}%
+            </span>
           </div>
         </div>
       )}
@@ -148,6 +160,7 @@ function Contender({
     >
       <div className="relative">
         <img
+          loading="eager"
           src={track.cover}
           alt={track.artist}
           className={cn(
@@ -174,7 +187,9 @@ function Contender({
           {track.artist}
         </Link>
         <p className="truncate text-xs text-muted-foreground">{track.title}</p>
-        <p className="mt-0.5 text-[0.7rem] tabular-nums text-muted-foreground/70">{track.duration}</p>
+        <p className="mt-0.5 text-[0.7rem] tabular-nums text-muted-foreground/70">
+          {track.duration}
+        </p>
       </div>
 
       {playing && <WaveBars active className="h-3" />}

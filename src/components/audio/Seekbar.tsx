@@ -29,7 +29,7 @@ export function Seekbar({
   return (
     <div className={cn("flex w-full items-center gap-3", className)}>
       {showTimes && (
-        <span className="w-10 text-right text-[0.7rem] tabular-nums text-muted-foreground">
+        <span className="w-10 text-right text-[0.7rem] font-mono tabular-nums text-muted-foreground">
           {formatTime(currentTime)}
         </span>
       )}
@@ -60,8 +60,8 @@ export function Seekbar({
         />
       </div>
       {showTimes && (
-        <span className="w-10 text-[0.7rem] tabular-nums text-muted-foreground">
-          {duration > 0 ? formatTime(duration) : fallbackDuration ?? "0:00"}
+        <span className="w-10 text-[0.7rem] font-mono tabular-nums text-muted-foreground">
+          {duration > 0 ? formatTime(duration) : (fallbackDuration ?? "0:00")}
         </span>
       )}
     </div>

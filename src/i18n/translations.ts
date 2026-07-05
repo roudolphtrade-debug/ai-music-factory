@@ -30,8 +30,13 @@ const fr: Dict = {
     settings: "Paramètres",
     library: "Bibliothèque",
     credits: "Crédits",
+    menu: "Menu",
   },
-  topbar: { searchPlaceholder: "Rechercher artistes, titres, labels…", create: "Créer" },
+  topbar: {
+    searchPlaceholder: "Rechercher artistes, titres, labels…",
+    searchEmpty: "Aucun résultat.",
+    create: "Créer",
+  },
   sidebar: {
     platinumTitle: "Passez Platine",
     platinumDesc: "Stems illimités, mastering prioritaire et outils de label.",
@@ -70,6 +75,7 @@ const fr: Dict = {
   },
   common: {
     viewAll: "Tout voir",
+    moreOptions: "Plus d'options",
     all: "Tous",
     vs: "VS",
     plays: "écoutes",
@@ -110,6 +116,14 @@ const fr: Dict = {
     Triumphant: "Triomphant",
     Ethereal: "Éthéré",
     Reflective: "Introspectif",
+  },
+  dailyJury: {
+    eyebrow: "Le jury du jour",
+    title: "Départagez 3 titres aujourd'hui",
+    doneTitle: "Jury du jour terminé",
+    streak: "{n} jours de suite",
+    voteFor: "Voter pour {title}",
+    comeBack: "Revenez demain pour 3 nouveaux titres et garder votre série.",
   },
   home: {
     hero: {
@@ -188,6 +202,8 @@ const fr: Dict = {
     mood: "Ambiance",
     voice: "Voix",
     quickMoods: "Ambiances rapides :",
+    rightsNotice:
+      "Les paroles sont écrites par l'IA, la voix et l'instrumentale sont générées sur cet appareil. Vous conservez les droits sur ce que vous créez ici.",
     generate: "Générer le titre",
     saveDraft: "Enregistrer le brouillon",
     uploadTitle: "Importer un audio",
@@ -209,7 +225,8 @@ const fr: Dict = {
     },
     gen: {
       ready: "Moteur IA connecté — générez un véritable aperçu chanté",
-      phases: "Analyse du prompt|Écriture du refrain|Interprétation vocale|Mastering",
+      phases:
+        "Analyse du prompt|Écriture du refrain|Interprétation vocale|Composition de l'instrumentale|Mastering",
       generating: "Création de votre titre…",
       resultTitle: "Aperçu généré",
       lyricsLabel: "Paroles écrites par l'IA",
@@ -349,6 +366,18 @@ const fr: Dict = {
     ledger: "Registre légendaire",
   },
   credits: {
+    earningsEyebrow: "Vos revenus",
+    earningsTitle: "Comment vous serez payé",
+    earningsDesc:
+      "Nous ne facturons jamais votre visibilité. Quand votre musique attire un professionnel via la plateforme, nous prenons une commission sur ce deal — jamais sur vos écoutes ni sur votre présence ici.",
+    earningsStatus: "Bêta — premiers deals à venir",
+    earningsStep1Title: "1. Créez et publiez",
+    earningsStep1Desc: "Sans barrière à l'entrée, sans validation éditoriale.",
+    earningsStep2Title: "2. La communauté vous classe",
+    earningsStep2Desc: "Votes, écoutes et battles déterminent votre visibilité — jamais un comité.",
+    earningsStep3Title: "3. Vous êtes repéré, vous êtes payé",
+    earningsStep3Desc:
+      "Commission uniquement sur les deals professionnels générés grâce à la plateforme.",
     eyebrow: "Atelier & crédits",
     title: "Crédits & abonnement",
     desc: "Alimentez votre studio. Chaque génération IA consomme des crédits — choisissez un plan ou rechargez à la demande.",
@@ -503,10 +532,26 @@ const fr: Dict = {
       "Radio Favorite": "Favori de la radio",
     },
     items: {
-      "hof-1": { title: "Meilleur artiste virtuel", crown: "Artiste de l'année", note: "3,2M d'auditeurs mensuels · Champion de battle" },
-      "hof-2": { title: "Meilleur créateur de prompts", crown: "Maître de l'art", note: "Prompt Platine · style le plus cloné" },
-      "hof-3": { title: "Label du mois", crown: "Maison d'honneur", note: "Maison la mieux notée · 48,2K$ MRR" },
-      "hof-4": { title: "Couronne de la découverte", crown: "Révélation", note: "Nouvelle identité à la plus forte progression de la saison" },
+      "hof-1": {
+        title: "Meilleur artiste virtuel",
+        crown: "Artiste de l'année",
+        note: "3,2M d'auditeurs mensuels · Champion de battle",
+      },
+      "hof-2": {
+        title: "Meilleur créateur de prompts",
+        crown: "Maître de l'art",
+        note: "Prompt Platine · style le plus cloné",
+      },
+      "hof-3": {
+        title: "Label du mois",
+        crown: "Maison d'honneur",
+        note: "Maison la mieux notée · 48,2K$ MRR",
+      },
+      "hof-4": {
+        title: "Couronne de la découverte",
+        crown: "Révélation",
+        note: "Nouvelle identité à la plus forte progression de la saison",
+      },
     },
   },
   community: {
@@ -517,14 +562,18 @@ const fr: Dict = {
     verified: "Vérifié",
     channels: "Canaux",
     fanCircles: "Cercles de fans",
-    circlesLine: "Vous êtes dans {n} cercles. Les membres débloquent les sorties anticipées et le pouvoir de vote.",
+    circlesLine:
+      "Vous êtes dans {n} cercles. Les membres débloquent les sorties anticipées et le pouvoir de vote.",
     discoverCircles: "Découvrir les cercles",
     noDms: "Aucun message",
     noDmsDesc: "Les invitations de collab et les offres de label arriveront ici.",
     posts: {
-      "c-1": "Chrome Aria est en ligne. Construit dans un unique faisceau de lumière — dites-moi ce que vous entendez dans le deuxième drop.",
-      "c-2": "Quart de finale ce soir. Apportez les votes — on transforme tout ce bracket en or. 🏆",
-      "c-3": "Session de prompt ouverte ce week-end. Je partage la chaîne de pads exacte derrière Amber Cathedral.",
+      "c-1":
+        "Chrome Aria est en ligne. Construit dans un unique faisceau de lumière — dites-moi ce que vous entendez dans le deuxième drop.",
+      "c-2":
+        "Quart de finale ce soir. Apportez les votes — on transforme tout ce bracket en or. 🏆",
+      "c-3":
+        "Session de prompt ouverte ce week-end. Je partage la chaîne de pads exacte derrière Amber Cathedral.",
     },
   },
   analytics: {
@@ -557,7 +606,8 @@ const fr: Dict = {
     title: "Préférences du studio",
     desc: "Gérez le comportement de votre studio, de votre identité et de votre compte sur Ai Music Factory.",
     accountsTitle: "Les comptes arrivent bientôt",
-    accountsDesc: "Connexion, vrais profils, imports et historique de votes se connecteront une fois l'expérience validée. Ceci est un aperçu d'interface.",
+    accountsDesc:
+      "Connexion, vrais profils, imports et historique de votes se connecteront une fois l'expérience validée. Ceci est un aperçu d'interface.",
     studioProfile: "Profil du studio",
     studioName: "Nom du studio",
     handle: "Pseudo",
@@ -573,6 +623,12 @@ const fr: Dict = {
     publicReputationDesc: "Afficher votre score de réputation sur votre profil.",
     emailDigests: "Résumés par e-mail",
     emailDigestsDesc: "Résumé hebdomadaire des écoutes et des votes.",
+    replayIntro: "Revoir l'intro",
+    replayIntroDesc:
+      "Revoir la vidéo d'ouverture de la marque au prochain chargement de la page d'accueil.",
+    replayIntroAction: "Revoir",
+    lightMode: "Mode clair",
+    lightModeDesc: "Basculer vers une interface claire, même identité, luminosité inversée.",
     platinumTier: "Niveau Platine",
     changeAvatar: "Changer d'avatar",
     plan: "Forfait",
@@ -584,7 +640,14 @@ const fr: Dict = {
   charts: {
     new: "NOUVEAU",
     playTrack: "Lire {title} de {artist}",
-    regions: { Global: "Monde", US: "USA", UK: "UK", France: "France", Nigeria: "Nigéria", Brazil: "Brésil" },
+    regions: {
+      Global: "Monde",
+      US: "USA",
+      UK: "UK",
+      France: "France",
+      Nigeria: "Nigéria",
+      Brazil: "Brésil",
+    },
   },
   library: {
     eyebrow: "Votre espace",
@@ -662,8 +725,13 @@ const en: Dict = {
     settings: "Settings",
     library: "Library",
     credits: "Credits",
+    menu: "Menu",
   },
-  topbar: { searchPlaceholder: "Search artists, tracks, labels…", create: "Create" },
+  topbar: {
+    searchPlaceholder: "Search artists, tracks, labels…",
+    searchEmpty: "No results found.",
+    create: "Create",
+  },
   sidebar: {
     platinumTitle: "Go Platinum",
     platinumDesc: "Unlimited stems, priority mastering, and label tools.",
@@ -702,6 +770,7 @@ const en: Dict = {
   },
   common: {
     viewAll: "View all",
+    moreOptions: "More options",
     all: "All",
     vs: "VS",
     plays: "plays",
@@ -742,6 +811,14 @@ const en: Dict = {
     Triumphant: "Triumphant",
     Ethereal: "Ethereal",
     Reflective: "Reflective",
+  },
+  dailyJury: {
+    eyebrow: "Today's jury",
+    title: "Rate 3 tracks today",
+    doneTitle: "Today's jury complete",
+    streak: "{n}-day streak",
+    voteFor: "Vote for {title}",
+    comeBack: "Come back tomorrow for 3 new tracks and keep your streak.",
   },
   home: {
     hero: {
@@ -820,6 +897,8 @@ const en: Dict = {
     mood: "Mood",
     voice: "Voice",
     quickMoods: "Quick moods:",
+    rightsNotice:
+      "Lyrics are AI-written, and the vocal and instrumental are generated right on this device. You retain the rights to what you create here.",
     generate: "Generate track",
     saveDraft: "Save draft",
     uploadTitle: "Upload audio",
@@ -841,7 +920,8 @@ const en: Dict = {
     },
     gen: {
       ready: "AI engine connected — generate a real sung preview",
-      phases: "Reading the prompt|Writing the hook|Performing vocals|Mastering",
+      phases:
+        "Reading the prompt|Writing the hook|Performing vocals|Composing the instrumental|Mastering",
       generating: "Creating your track…",
       resultTitle: "Generated preview",
       lyricsLabel: "AI-written lyrics",
@@ -981,6 +1061,17 @@ const en: Dict = {
     ledger: "Legendary ledger",
   },
   credits: {
+    earningsEyebrow: "Your earnings",
+    earningsTitle: "How you'll get paid",
+    earningsDesc:
+      "We never charge for your visibility. When your music catches a professional's attention through the platform, we take a commission on that deal — never on your plays or your presence here.",
+    earningsStatus: "Beta — first deals coming",
+    earningsStep1Title: "1. Create and publish",
+    earningsStep1Desc: "No entry barrier, no editorial approval.",
+    earningsStep2Title: "2. The community ranks you",
+    earningsStep2Desc: "Votes, plays and battles decide your visibility — never a committee.",
+    earningsStep3Title: "3. You get discovered, you get paid",
+    earningsStep3Desc: "Commission only on professional deals generated through the platform.",
     eyebrow: "Studio & credits",
     title: "Credits & subscription",
     desc: "Power your studio. Every AI generation spends credits — pick a plan or top up on demand.",
@@ -1135,10 +1226,26 @@ const en: Dict = {
       "Radio Favorite": "Radio Favorite",
     },
     items: {
-      "hof-1": { title: "Best Virtual Artist", crown: "Artist of the Year", note: "3.2M monthly listeners · Battle Champion" },
-      "hof-2": { title: "Best Prompt Creator", crown: "Master of Craft", note: "Platinum Prompt · most-cloned style" },
-      "hof-3": { title: "Label of the Month", crown: "House of Honour", note: "Highest reputation house · $48.2K MRR" },
-      "hof-4": { title: "Discovery Crown", crown: "Breakout", note: "Fastest-rising new identity this season" },
+      "hof-1": {
+        title: "Best Virtual Artist",
+        crown: "Artist of the Year",
+        note: "3.2M monthly listeners · Battle Champion",
+      },
+      "hof-2": {
+        title: "Best Prompt Creator",
+        crown: "Master of Craft",
+        note: "Platinum Prompt · most-cloned style",
+      },
+      "hof-3": {
+        title: "Label of the Month",
+        crown: "House of Honour",
+        note: "Highest reputation house · $48.2K MRR",
+      },
+      "hof-4": {
+        title: "Discovery Crown",
+        crown: "Breakout",
+        note: "Fastest-rising new identity this season",
+      },
     },
   },
   community: {
@@ -1154,9 +1261,11 @@ const en: Dict = {
     noDms: "No DMs yet",
     noDmsDesc: "Collab invites and label offers will land here.",
     posts: {
-      "c-1": "Chrome Aria is live. Built it inside a single beam of light — let me know what you hear in the second drop.",
+      "c-1":
+        "Chrome Aria is live. Built it inside a single beam of light — let me know what you hear in the second drop.",
       "c-2": "Quarter-final tonight. Bring the votes — we turn this whole bracket to gold. 🏆",
-      "c-3": "Open prompt session this weekend. Sharing the exact pad chain behind Amber Cathedral.",
+      "c-3":
+        "Open prompt session this weekend. Sharing the exact pad chain behind Amber Cathedral.",
     },
   },
   analytics: {
@@ -1189,7 +1298,8 @@ const en: Dict = {
     title: "Studio preferences",
     desc: "Manage how your studio, identity and account behave across Ai Music Factory.",
     accountsTitle: "Accounts arrive next",
-    accountsDesc: "Sign-in, real profiles, uploads and vote history connect once the experience is validated. This is a UI preview.",
+    accountsDesc:
+      "Sign-in, real profiles, uploads and vote history connect once the experience is validated. This is a UI preview.",
     studioProfile: "Studio profile",
     studioName: "Studio name",
     handle: "Handle",
@@ -1205,6 +1315,11 @@ const en: Dict = {
     publicReputationDesc: "Show your reputation score on your profile.",
     emailDigests: "Email digests",
     emailDigestsDesc: "Weekly summary of plays and votes.",
+    replayIntro: "Replay the intro",
+    replayIntroDesc: "Watch the brand opening video again next time the home page loads.",
+    replayIntroAction: "Replay",
+    lightMode: "Light mode",
+    lightModeDesc: "Switch to a light interface — same identity, inverted brightness.",
     platinumTier: "Platinum tier",
     changeAvatar: "Change avatar",
     plan: "Plan",
@@ -1216,7 +1331,14 @@ const en: Dict = {
   charts: {
     new: "NEW",
     playTrack: "Play {title} by {artist}",
-    regions: { Global: "Global", US: "US", UK: "UK", France: "France", Nigeria: "Nigeria", Brazil: "Brazil" },
+    regions: {
+      Global: "Global",
+      US: "US",
+      UK: "UK",
+      France: "France",
+      Nigeria: "Nigeria",
+      Brazil: "Brazil",
+    },
   },
   library: {
     eyebrow: "Your space",
@@ -1294,8 +1416,13 @@ const es: Dict = {
     settings: "Ajustes",
     library: "Biblioteca",
     credits: "Créditos",
+    menu: "Menú",
   },
-  topbar: { searchPlaceholder: "Buscar artistas, temas, sellos…", create: "Crear" },
+  topbar: {
+    searchPlaceholder: "Buscar artistas, temas, sellos…",
+    searchEmpty: "Sin resultados.",
+    create: "Crear",
+  },
   sidebar: {
     platinumTitle: "Hazte Platino",
     platinumDesc: "Stems ilimitados, masterización prioritaria y herramientas de sello.",
@@ -1334,6 +1461,7 @@ const es: Dict = {
   },
   common: {
     viewAll: "Ver todo",
+    moreOptions: "Más opciones",
     all: "Todos",
     vs: "VS",
     plays: "reproducciones",
@@ -1374,6 +1502,14 @@ const es: Dict = {
     Triumphant: "Triunfal",
     Ethereal: "Etéreo",
     Reflective: "Reflexivo",
+  },
+  dailyJury: {
+    eyebrow: "El jurado de hoy",
+    title: "Valora 3 temas hoy",
+    doneTitle: "Jurado de hoy completado",
+    streak: "{n} días seguidos",
+    voteFor: "Votar por {title}",
+    comeBack: "Vuelve mañana por 3 temas nuevos y mantén tu racha.",
   },
   home: {
     hero: {
@@ -1452,6 +1588,8 @@ const es: Dict = {
     mood: "Ambiente",
     voice: "Voz",
     quickMoods: "Ambientes rápidos:",
+    rightsNotice:
+      "La letra está escrita por IA, y la voz e instrumental se generan en este mismo dispositivo. Conservas los derechos sobre lo que creas aquí.",
     generate: "Generar tema",
     saveDraft: "Guardar borrador",
     uploadTitle: "Subir audio",
@@ -1473,7 +1611,8 @@ const es: Dict = {
     },
     gen: {
       ready: "Motor IA conectado — genera un adelanto cantado real",
-      phases: "Analizando el prompt|Escribiendo el estribillo|Interpretación vocal|Masterización",
+      phases:
+        "Analizando el prompt|Escribiendo el estribillo|Interpretación vocal|Composición del instrumental|Masterización",
       generating: "Creando tu tema…",
       resultTitle: "Adelanto generado",
       lyricsLabel: "Letra escrita por la IA",
@@ -1613,6 +1752,18 @@ const es: Dict = {
     ledger: "Registro legendario",
   },
   credits: {
+    earningsEyebrow: "Tus ingresos",
+    earningsTitle: "Cómo te pagarán",
+    earningsDesc:
+      "Nunca cobramos por tu visibilidad. Cuando tu música capta la atención de un profesional a través de la plataforma, cobramos una comisión sobre ese acuerdo — nunca sobre tus reproducciones ni tu presencia aquí.",
+    earningsStatus: "Beta — primeros acuerdos próximamente",
+    earningsStep1Title: "1. Crea y publica",
+    earningsStep1Desc: "Sin barrera de entrada, sin aprobación editorial.",
+    earningsStep2Title: "2. La comunidad te clasifica",
+    earningsStep2Desc: "Votos, reproducciones y batallas deciden tu visibilidad — nunca un comité.",
+    earningsStep3Title: "3. Te descubren, te pagan",
+    earningsStep3Desc:
+      "Comisión solo sobre acuerdos profesionales generados a través de la plataforma.",
     eyebrow: "Estudio y créditos",
     title: "Créditos y suscripción",
     desc: "Impulsa tu estudio. Cada generación con IA gasta créditos — elige un plan o recarga cuando quieras.",
@@ -1767,10 +1918,26 @@ const es: Dict = {
       "Radio Favorite": "Favorito de la radio",
     },
     items: {
-      "hof-1": { title: "Mejor artista virtual", crown: "Artista del año", note: "3,2M de oyentes mensuales · Campeón de batalla" },
-      "hof-2": { title: "Mejor creador de prompts", crown: "Maestro del oficio", note: "Prompt Platino · estilo más clonado" },
-      "hof-3": { title: "Sello del mes", crown: "Casa de honor", note: "Casa con mayor reputación · 48,2K$ MRR" },
-      "hof-4": { title: "Corona del descubrimiento", crown: "Revelación", note: "Nueva identidad de mayor ascenso de la temporada" },
+      "hof-1": {
+        title: "Mejor artista virtual",
+        crown: "Artista del año",
+        note: "3,2M de oyentes mensuales · Campeón de batalla",
+      },
+      "hof-2": {
+        title: "Mejor creador de prompts",
+        crown: "Maestro del oficio",
+        note: "Prompt Platino · estilo más clonado",
+      },
+      "hof-3": {
+        title: "Sello del mes",
+        crown: "Casa de honor",
+        note: "Casa con mayor reputación · 48,2K$ MRR",
+      },
+      "hof-4": {
+        title: "Corona del descubrimiento",
+        crown: "Revelación",
+        note: "Nueva identidad de mayor ascenso de la temporada",
+      },
     },
   },
   community: {
@@ -1781,14 +1948,18 @@ const es: Dict = {
     verified: "Verificado",
     channels: "Canales",
     fanCircles: "Círculos de fans",
-    circlesLine: "Estás en {n} círculos. Los miembros desbloquean lanzamientos anticipados y poder de voto.",
+    circlesLine:
+      "Estás en {n} círculos. Los miembros desbloquean lanzamientos anticipados y poder de voto.",
     discoverCircles: "Descubrir círculos",
     noDms: "Sin mensajes",
     noDmsDesc: "Las invitaciones de colaboración y ofertas de sello llegarán aquí.",
     posts: {
-      "c-1": "Chrome Aria ya está disponible. La construí dentro de un solo haz de luz — dime qué escuchas en el segundo drop.",
-      "c-2": "Cuartos de final esta noche. Traigan los votos — convertimos todo este cuadro en oro. 🏆",
-      "c-3": "Sesión de prompts abierta este fin de semana. Comparto la cadena exacta de pads detrás de Amber Cathedral.",
+      "c-1":
+        "Chrome Aria ya está disponible. La construí dentro de un solo haz de luz — dime qué escuchas en el segundo drop.",
+      "c-2":
+        "Cuartos de final esta noche. Traigan los votos — convertimos todo este cuadro en oro. 🏆",
+      "c-3":
+        "Sesión de prompts abierta este fin de semana. Comparto la cadena exacta de pads detrás de Amber Cathedral.",
     },
   },
   analytics: {
@@ -1821,7 +1992,8 @@ const es: Dict = {
     title: "Preferencias del estudio",
     desc: "Gestiona cómo se comportan tu estudio, identidad y cuenta en Ai Music Factory.",
     accountsTitle: "Las cuentas llegan pronto",
-    accountsDesc: "Inicio de sesión, perfiles reales, subidas e historial de votos se conectarán una vez validada la experiencia. Esto es una vista previa de interfaz.",
+    accountsDesc:
+      "Inicio de sesión, perfiles reales, subidas e historial de votos se conectarán una vez validada la experiencia. Esto es una vista previa de interfaz.",
     studioProfile: "Perfil del estudio",
     studioName: "Nombre del estudio",
     handle: "Usuario",
@@ -1837,6 +2009,12 @@ const es: Dict = {
     publicReputationDesc: "Muestra tu puntuación de reputación en tu perfil.",
     emailDigests: "Resúmenes por correo",
     emailDigestsDesc: "Resumen semanal de reproducciones y votos.",
+    replayIntro: "Repetir la intro",
+    replayIntroDesc:
+      "Vuelve a ver el video de apertura de la marca la próxima vez que cargues el inicio.",
+    replayIntroAction: "Repetir",
+    lightMode: "Modo claro",
+    lightModeDesc: "Cambia a una interfaz clara, misma identidad, luminosidad invertida.",
     platinumTier: "Nivel Platino",
     changeAvatar: "Cambiar avatar",
     plan: "Plan",
@@ -1848,7 +2026,14 @@ const es: Dict = {
   charts: {
     new: "NUEVO",
     playTrack: "Reproducir {title} de {artist}",
-    regions: { Global: "Global", US: "EE. UU.", UK: "RU", France: "Francia", Nigeria: "Nigeria", Brazil: "Brasil" },
+    regions: {
+      Global: "Global",
+      US: "EE. UU.",
+      UK: "RU",
+      France: "Francia",
+      Nigeria: "Nigeria",
+      Brazil: "Brasil",
+    },
   },
   library: {
     eyebrow: "Tu espacio",
@@ -1911,8 +2096,13 @@ const zh: Dict = {
     settings: "设置",
     library: "音乐库",
     credits: "积分",
+    menu: "菜单",
   },
-  topbar: { searchPlaceholder: "搜索艺人、曲目、厂牌…", create: "创作" },
+  topbar: {
+    searchPlaceholder: "搜索艺人、曲目、厂牌…",
+    searchEmpty: "未找到结果。",
+    create: "创作",
+  },
   sidebar: {
     platinumTitle: "升级白金会员",
     platinumDesc: "无限分轨、优先母带处理和厂牌工具。",
@@ -1951,6 +2141,7 @@ const zh: Dict = {
   },
   common: {
     viewAll: "查看全部",
+    moreOptions: "更多选项",
     all: "全部",
     vs: "VS",
     plays: "播放",
@@ -1991,6 +2182,14 @@ const zh: Dict = {
     Triumphant: "凯旋",
     Ethereal: "空灵",
     Reflective: "沉思",
+  },
+  dailyJury: {
+    eyebrow: "今日评审",
+    title: "为今天的 3 首曲目投票",
+    doneTitle: "今日评审已完成",
+    streak: "连续 {n} 天",
+    voteFor: "为 {title} 投票",
+    comeBack: "明天再来评选 3 首新曲目，保持你的连续记录。",
   },
   home: {
     hero: {
@@ -2069,8 +2268,10 @@ const zh: Dict = {
     mood: "氛围",
     voice: "人声",
     quickMoods: "快速氛围：",
+    rightsNotice: "歌词由 AI 撰写，人声和伴奏均在本设备上生成。你保留对在此创作内容的权利。",
     gen: {
       ready: "AI 引擎已连接 —— 生成真实的演唱预览",
+      phases: "分析提示词|创作副歌|演唱表现|编排伴奏|母带处理",
       generating: "正在创作你的曲目…",
       resultTitle: "已生成预览",
       lyricsLabel: "AI 创作的歌词",
@@ -2137,10 +2338,51 @@ const zh: Dict = {
     thematic: "主题",
     votesShaping: "人在听 · 投票塑造轮播",
   },
+  settings: {
+    eyebrow: "设置",
+    title: "工作室偏好设置",
+    desc: "管理你在 Ai Music Factory 上的工作室行为、身份和账户。",
+    accountsTitle: "账户功能即将推出",
+    accountsDesc: "登录、真实资料、导入记录和投票历史将在体验验证后开放。这是一个界面预览。",
+    studioProfile: "工作室资料",
+    studioName: "工作室名称",
+    handle: "用户名",
+    primaryGenre: "主要曲风",
+    location: "所在地",
+    bio: "简介",
+    preferences: "偏好设置",
+    battleInvites: "对决邀请",
+    battleInvitesDesc: "允许其他艺人向你发起挑战。",
+    radioAutoSubmit: "自动提交电台",
+    radioAutoSubmitDesc: "将新发布的作品加入 AI 电台轮播。",
+    publicReputation: "公开声誉",
+    publicReputationDesc: "在你的主页展示声誉分数。",
+    emailDigests: "邮件摘要",
+    emailDigestsDesc: "每周播放和投票摘要。",
+    replayIntro: "重新播放开场动画",
+    replayIntroDesc: "下次加载首页时重新观看品牌介绍视频。",
+    replayIntroAction: "重新播放",
+    lightMode: "浅色模式",
+    lightModeDesc: "切换到浅色界面——同样的视觉身份，亮度反转。",
+    platinumTier: "白金等级",
+    changeAvatar: "更换头像",
+    plan: "订阅方案",
+    planDesc: "白金 · 无限干声轨道、优先母带处理、厂牌工具。",
+    managePlan: "管理订阅",
+    discard: "取消",
+    saveChanges: "保存更改",
+  },
   charts: {
     new: "新曲",
     playTrack: "播放 {title} - {artist}",
-    regions: { Global: "全球", US: "美国", UK: "英国", France: "法国", Nigeria: "尼日利亚", Brazil: "巴西" },
+    regions: {
+      Global: "全球",
+      US: "美国",
+      UK: "英国",
+      France: "法国",
+      Nigeria: "尼日利亚",
+      Brazil: "巴西",
+    },
   },
   library: {
     eyebrow: "你的空间",
@@ -2182,6 +2424,17 @@ const zh: Dict = {
     cta: "打开工作室",
   },
   credits: {
+    earningsEyebrow: "你的收益",
+    earningsTitle: "你将如何获得报酬",
+    earningsDesc:
+      "我们绝不会为你的曝光收费。当你的音乐通过平台吸引到专业人士时，我们只对该笔交易收取佣金——从不针对你的播放量或你在平台上的存在收费。",
+    earningsStatus: "测试阶段 —— 首批合作即将到来",
+    earningsStep1Title: "1. 创作并发布",
+    earningsStep1Desc: "没有准入门槛，没有编辑审核。",
+    earningsStep2Title: "2. 由社区为你评级",
+    earningsStep2Desc: "投票、播放量和对决决定你的曝光度——从不由委员会决定。",
+    earningsStep3Title: "3. 被发现，获得报酬",
+    earningsStep3Desc: "仅对通过平台促成的专业合作收取佣金。",
     eyebrow: "工坊与积分",
     title: "积分与订阅",
     desc: "为你的工作室充能。每次 AI 生成都会消耗积分 —— 选择套餐或随需充值。",
@@ -2239,8 +2492,13 @@ const pt: Dict = {
     settings: "Configurações",
     library: "Biblioteca",
     credits: "Créditos",
+    menu: "Menu",
   },
-  topbar: { searchPlaceholder: "Buscar artistas, faixas, selos…", create: "Criar" },
+  topbar: {
+    searchPlaceholder: "Buscar artistas, faixas, selos…",
+    searchEmpty: "Nenhum resultado encontrado.",
+    create: "Criar",
+  },
   sidebar: {
     platinumTitle: "Seja Platina",
     platinumDesc: "Stems ilimitados, masterização prioritária e ferramentas de selo.",
@@ -2279,6 +2537,7 @@ const pt: Dict = {
   },
   common: {
     viewAll: "Ver tudo",
+    moreOptions: "Mais opções",
     all: "Todos",
     vs: "VS",
     plays: "reproduções",
@@ -2319,6 +2578,14 @@ const pt: Dict = {
     Triumphant: "Triunfante",
     Ethereal: "Etéreo",
     Reflective: "Reflexivo",
+  },
+  dailyJury: {
+    eyebrow: "O júri de hoje",
+    title: "Avalie 3 faixas hoje",
+    doneTitle: "Júri de hoje concluído",
+    streak: "{n} dias seguidos",
+    voteFor: "Votar em {title}",
+    comeBack: "Volte amanhã para 3 novas faixas e mantenha sua sequência.",
   },
   home: {
     hero: {
@@ -2397,8 +2664,12 @@ const pt: Dict = {
     mood: "Clima",
     voice: "Voz",
     quickMoods: "Climas rápidos:",
+    rightsNotice:
+      "A letra é escrita por IA, e o vocal e o instrumental são gerados neste mesmo dispositivo. Você mantém os direitos sobre o que cria aqui.",
     gen: {
       ready: "Motor de IA conectado — gere uma prévia cantada de verdade",
+      phases:
+        "Analisando o prompt|Escrevendo o refrão|Interpretação vocal|Composição do instrumental|Masterização",
       generating: "Criando sua faixa…",
       resultTitle: "Prévia gerada",
       lyricsLabel: "Letra escrita pela IA",
@@ -2465,10 +2736,53 @@ const pt: Dict = {
     thematic: "Temáticas",
     votesShaping: "ouvindo · os votos moldam a rotação",
   },
+  settings: {
+    eyebrow: "Configurações",
+    title: "Preferências do estúdio",
+    desc: "Gerencie o comportamento do seu estúdio, sua identidade e sua conta na Ai Music Factory.",
+    accountsTitle: "Contas em breve",
+    accountsDesc:
+      "Login, perfis reais, importações e histórico de votos serão conectados assim que a experiência for validada. Esta é uma prévia da interface.",
+    studioProfile: "Perfil do estúdio",
+    studioName: "Nome do estúdio",
+    handle: "Nome de usuário",
+    primaryGenre: "Gênero principal",
+    location: "Localização",
+    bio: "Bio",
+    preferences: "Preferências",
+    battleInvites: "Convites para batalhas",
+    battleInvitesDesc: "Permita que outros artistas te desafiem.",
+    radioAutoSubmit: "Envio automático para a rádio",
+    radioAutoSubmitDesc: "Enviar novos lançamentos para a rotação da Rádio IA.",
+    publicReputation: "Reputação pública",
+    publicReputationDesc: "Exibir sua pontuação de reputação no seu perfil.",
+    emailDigests: "Resumos por e-mail",
+    emailDigestsDesc: "Resumo semanal de reproduções e votos.",
+    replayIntro: "Reassistir a introdução",
+    replayIntroDesc:
+      "Ver novamente o vídeo de abertura da marca no próximo carregamento da página inicial.",
+    replayIntroAction: "Reassistir",
+    lightMode: "Modo claro",
+    lightModeDesc: "Alternar para uma interface clara, mesma identidade, brilho invertido.",
+    platinumTier: "Nível Platina",
+    changeAvatar: "Alterar avatar",
+    plan: "Plano",
+    planDesc: "Platina · stems ilimitados, masterização prioritária, ferramentas de selo.",
+    managePlan: "Gerenciar plano",
+    discard: "Descartar",
+    saveChanges: "Salvar alterações",
+  },
   charts: {
     new: "NOVO",
     playTrack: "Reproduzir {title} de {artist}",
-    regions: { Global: "Global", US: "EUA", UK: "Reino Unido", France: "França", Nigeria: "Nigéria", Brazil: "Brasil" },
+    regions: {
+      Global: "Global",
+      US: "EUA",
+      UK: "Reino Unido",
+      France: "França",
+      Nigeria: "Nigéria",
+      Brazil: "Brasil",
+    },
   },
   library: {
     eyebrow: "Seu espaço",
@@ -2510,6 +2824,17 @@ const pt: Dict = {
     cta: "Abrir estúdio",
   },
   credits: {
+    earningsEyebrow: "Seus ganhos",
+    earningsTitle: "Como você será pago",
+    earningsDesc:
+      "Nunca cobramos pela sua visibilidade. Quando sua música chama a atenção de um profissional através da plataforma, cobramos uma comissão sobre esse acordo — nunca sobre suas reproduções ou sua presença aqui.",
+    earningsStatus: "Beta — primeiros acordos em breve",
+    earningsStep1Title: "1. Crie e publique",
+    earningsStep1Desc: "Sem barreira de entrada, sem aprovação editorial.",
+    earningsStep2Title: "2. A comunidade te classifica",
+    earningsStep2Desc: "Votos, reproduções e batalhas decidem sua visibilidade — nunca um comitê.",
+    earningsStep3Title: "3. Você é descoberto, você é pago",
+    earningsStep3Desc: "Comissão apenas sobre acordos profissionais gerados através da plataforma.",
     eyebrow: "Ateliê & créditos",
     title: "Créditos & assinatura",
     desc: "Abasteça seu estúdio. Cada geração de IA consome créditos — escolha um plano ou recarregue quando quiser.",
@@ -2567,8 +2892,13 @@ const ar: Dict = {
     settings: "الإعدادات",
     library: "المكتبة",
     credits: "الأرصدة",
+    menu: "القائمة",
   },
-  topbar: { searchPlaceholder: "ابحث عن فنانين أو مقاطع أو علامات…", create: "إنشاء" },
+  topbar: {
+    searchPlaceholder: "ابحث عن فنانين أو مقاطع أو علامات…",
+    searchEmpty: "لا توجد نتائج.",
+    create: "إنشاء",
+  },
   sidebar: {
     platinumTitle: "ترقَّ إلى البلاتيني",
     platinumDesc: "مقاطع غير محدودة، ماسترة ذات أولوية وأدوات العلامة.",
@@ -2607,6 +2937,7 @@ const ar: Dict = {
   },
   common: {
     viewAll: "عرض الكل",
+    moreOptions: "خيارات إضافية",
     all: "الكل",
     vs: "ضد",
     plays: "تشغيلات",
@@ -2647,6 +2978,14 @@ const ar: Dict = {
     Triumphant: "منتصر",
     Ethereal: "أثيري",
     Reflective: "تأملي",
+  },
+  dailyJury: {
+    eyebrow: "لجنة اليوم",
+    title: "قيّم 3 مقاطع اليوم",
+    doneTitle: "اكتملت لجنة اليوم",
+    streak: "{n} أيام متتالية",
+    voteFor: "التصويت لـ {title}",
+    comeBack: "عد غدًا لتقييم 3 مقاطع جديدة والحفاظ على تتابعك.",
   },
   home: {
     hero: {
@@ -2725,8 +3064,11 @@ const ar: Dict = {
     mood: "الأجواء",
     voice: "الصوت",
     quickMoods: "أجواء سريعة:",
+    rightsNotice:
+      "الكلمات مكتوبة بواسطة الذكاء الاصطناعي، ويتم توليد الصوت والموسيقى مباشرة على هذا الجهاز. تحتفظ بحقوق ما تنشئه هنا.",
     gen: {
       ready: "محرك الذكاء الاصطناعي متصل — ولّد معاينة غنائية حقيقية",
+      phases: "تحليل الفكرة|كتابة اللازمة|الأداء الصوتي|توليف الموسيقى|الماسترينغ",
       generating: "جارٍ إنشاء مقطعك…",
       resultTitle: "معاينة مولّدة",
       lyricsLabel: "كلمات كتبها الذكاء الاصطناعي",
@@ -2793,10 +3135,52 @@ const ar: Dict = {
     thematic: "مواضيعية",
     votesShaping: "يستمعون · الأصوات تشكّل التشغيل",
   },
+  settings: {
+    eyebrow: "الإعدادات",
+    title: "تفضيلات الاستوديو",
+    desc: "أدر سلوك استوديوك وهويتك وحسابك على Ai Music Factory.",
+    accountsTitle: "الحسابات قادمة قريبًا",
+    accountsDesc:
+      "سيتم تفعيل تسجيل الدخول والملفات الشخصية الحقيقية والاستيراد وسجل التصويت بمجرد التحقق من التجربة. هذه معاينة للواجهة فقط.",
+    studioProfile: "ملف الاستوديو",
+    studioName: "اسم الاستوديو",
+    handle: "اسم المستخدم",
+    primaryGenre: "النوع الأساسي",
+    location: "الموقع",
+    bio: "نبذة",
+    preferences: "التفضيلات",
+    battleInvites: "دعوات المنازلات",
+    battleInvitesDesc: "اسمح لفنانين آخرين بتحديك.",
+    radioAutoSubmit: "إرسال تلقائي إلى الراديو",
+    radioAutoSubmitDesc: "إرسال الإصدارات الجديدة إلى دوران راديو الذكاء الاصطناعي.",
+    publicReputation: "السمعة العامة",
+    publicReputationDesc: "إظهار نقاط سمعتك في ملفك الشخصي.",
+    emailDigests: "ملخصات البريد الإلكتروني",
+    emailDigestsDesc: "ملخص أسبوعي للاستماع والتصويت.",
+    replayIntro: "إعادة تشغيل المقدمة",
+    replayIntroDesc: "شاهد فيديو تعريف العلامة مرة أخرى عند تحميل الصفحة الرئيسية التالية.",
+    replayIntroAction: "إعادة التشغيل",
+    lightMode: "الوضع الفاتح",
+    lightModeDesc: "التبديل إلى واجهة فاتحة — نفس الهوية، مع سطوع معكوس.",
+    platinumTier: "المستوى البلاتيني",
+    changeAvatar: "تغيير الصورة الرمزية",
+    plan: "الخطة",
+    planDesc: "بلاتيني · مسارات غير محدودة، ماسترينغ ذو أولوية، أدوات العلامات.",
+    managePlan: "إدارة الخطة",
+    discard: "تجاهل",
+    saveChanges: "حفظ التغييرات",
+  },
   charts: {
     new: "جديد",
     playTrack: "تشغيل {title} لـ {artist}",
-    regions: { Global: "عالمي", US: "الولايات المتحدة", UK: "المملكة المتحدة", France: "فرنسا", Nigeria: "نيجيريا", Brazil: "البرازيل" },
+    regions: {
+      Global: "عالمي",
+      US: "الولايات المتحدة",
+      UK: "المملكة المتحدة",
+      France: "فرنسا",
+      Nigeria: "نيجيريا",
+      Brazil: "البرازيل",
+    },
   },
   library: {
     eyebrow: "مساحتك",
@@ -2838,6 +3222,17 @@ const ar: Dict = {
     cta: "افتح الاستوديو",
   },
   credits: {
+    earningsEyebrow: "أرباحك",
+    earningsTitle: "كيف سيتم الدفع لك",
+    earningsDesc:
+      "نحن لا نتقاضى أبدًا رسومًا مقابل ظهورك. عندما تجذب موسيقاك انتباه أحد المحترفين عبر المنصة، نأخذ عمولة على تلك الصفقة — أبدًا على مرات استماعك أو وجودك هنا.",
+    earningsStatus: "تجريبي — أولى الصفقات قادمة قريبًا",
+    earningsStep1Title: "1. أنشئ وانشر",
+    earningsStep1Desc: "بدون حاجز دخول، بدون موافقة تحريرية.",
+    earningsStep2Title: "2. المجتمع يصنّفك",
+    earningsStep2Desc: "الأصوات والاستماع والمنازلات تحدد ظهورك — أبدًا لجنة.",
+    earningsStep3Title: "3. يتم اكتشافك، يتم الدفع لك",
+    earningsStep3Desc: "عمولة فقط على الصفقات الاحترافية الناتجة عن المنصة.",
     eyebrow: "الورشة والأرصدة",
     title: "الأرصدة والاشتراك",
     desc: "زوّد استوديوك بالطاقة. كل توليد بالذكاء الاصطناعي يستهلك أرصدة — اختر خطة أو اشحن عند الحاجة.",
@@ -2886,11 +3281,7 @@ function resolve(dict: Dict, key: string): unknown {
   }, dict);
 }
 
-export function translate(
-  lang: Lang,
-  key: string,
-  vars?: Record<string, string | number>,
-): string {
+export function translate(lang: Lang, key: string, vars?: Record<string, string | number>): string {
   let value = resolve(translations[lang], key);
   if (value === undefined) value = resolve(translations.en, key);
   if (value === undefined) value = resolve(translations.fr, key);

@@ -32,11 +32,13 @@ export function AudioPlayer() {
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <div className="relative">
             <img
+              loading="eager"
               src={track.cover}
               alt={track.artist}
               className={cn(
-                "h-12 w-12 rounded-lg object-cover ring-1 ring-border",
-                isPlaying && "ring-[color-mix(in_oklab,var(--gold)_45%,transparent)]",
+                "h-12 w-12 rounded-lg object-cover ring-1 ring-border transition-shadow duration-[var(--duration-slow)]",
+                isPlaying &&
+                  "ring-[color-mix(in_oklab,var(--gold)_45%,transparent)] animate-glow-breathe",
               )}
             />
           </div>
@@ -76,7 +78,7 @@ export function AudioPlayer() {
 
         {/* Right: time + volume + equalizer */}
         <div className="hidden flex-1 items-center justify-end gap-4 lg:flex">
-          <span className="text-xs tabular-nums text-muted-foreground">
+          <span className="font-mono text-xs tabular-nums text-muted-foreground">
             {elapsed} / {total}
           </span>
           <WaveBars active={isPlaying} />
@@ -104,7 +106,7 @@ function PlayerIcon({
       onClick={onClick}
       aria-label={ariaLabel}
       className={cn(
-        "grid h-9 w-9 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground",
+        "grid h-11 w-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:h-9 sm:w-9",
         className,
       )}
     >

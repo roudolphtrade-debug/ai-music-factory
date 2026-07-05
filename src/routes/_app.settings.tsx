@@ -6,12 +6,16 @@ import { SectionHeading } from "@/components/premium/SectionHeading";
 import { GoldBadge } from "@/components/premium/Chips";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/context";
+import { useTheme } from "@/theme/context";
 
 export const Route = createFileRoute("/_app/settings")({
   head: () => ({
     meta: [
       { title: "Settings — Ai Music Factory" },
-      { name: "description", content: "Manage your studio profile, identity and platform preferences." },
+      {
+        name: "description",
+        content: "Manage your studio profile, identity and platform preferences.",
+      },
     ],
   }),
   component: SettingsPage,
@@ -42,7 +46,9 @@ function SettingsPage() {
         <div className="space-y-6">
           {/* PROFILE */}
           <section className="rounded-2xl border border-border bg-card p-6">
-            <h2 className="font-display text-xl font-semibold text-foreground">{t("settings.studioProfile")}</h2>
+            <h2 className="font-display text-xl font-semibold text-foreground">
+              {t("settings.studioProfile")}
+            </h2>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <FormField label={t("settings.studioName")} defaultValue="Studio A" />
               <FormField label={t("settings.handle")} defaultValue="@studio-a" />
@@ -59,12 +65,43 @@ function SettingsPage() {
 
           {/* PREFERENCES */}
           <section className="rounded-2xl border border-border bg-card p-6">
-            <h2 className="font-display text-xl font-semibold text-foreground">{t("settings.preferences")}</h2>
+            <h2 className="font-display text-xl font-semibold text-foreground">
+              {t("settings.preferences")}
+            </h2>
             <div className="mt-4 divide-y divide-border/60">
-              <ToggleRow label={t("settings.battleInvites")} desc={t("settings.battleInvitesDesc")} defaultOn />
-              <ToggleRow label={t("settings.radioAutoSubmit")} desc={t("settings.radioAutoSubmitDesc")} defaultOn />
-              <ToggleRow label={t("settings.publicReputation")} desc={t("settings.publicReputationDesc")} defaultOn />
+              <ToggleRow
+                label={t("settings.battleInvites")}
+                desc={t("settings.battleInvitesDesc")}
+                defaultOn
+              />
+              <ToggleRow
+                label={t("settings.radioAutoSubmit")}
+                desc={t("settings.radioAutoSubmitDesc")}
+                defaultOn
+              />
+              <ToggleRow
+                label={t("settings.publicReputation")}
+                desc={t("settings.publicReputationDesc")}
+                defaultOn
+              />
               <ToggleRow label={t("settings.emailDigests")} desc={t("settings.emailDigestsDesc")} />
+              <LightModeToggleRow />
+              <div className="flex items-center justify-between gap-4 py-4">
+                <div>
+                  <p className="text-sm font-medium text-foreground">{t("settings.replayIntro")}</p>
+                  <p className="text-xs text-muted-foreground">{t("settings.replayIntroDesc")}</p>
+                </div>
+                <Button
+                  variant="noir"
+                  size="sm"
+                  onClick={() => {
+                    localStorage.removeItem("afm-intro-seen");
+                    window.location.href = "/";
+                  }}
+                >
+                  {t("settings.replayIntroAction")}
+                </Button>
+              </div>
             </div>
           </section>
         </div>
@@ -86,7 +123,9 @@ function SettingsPage() {
           </div>
 
           <div className="rounded-2xl border border-border bg-card p-6">
-            <h3 className="font-display text-base font-semibold text-foreground">{t("settings.plan")}</h3>
+            <h3 className="font-display text-base font-semibold text-foreground">
+              {t("settings.plan")}
+            </h3>
             <p className="mt-1 text-sm text-muted-foreground">{t("settings.planDesc")}</p>
             <Button variant="gold" className="mt-4 w-full">
               {t("settings.managePlan")}
@@ -130,6 +169,36 @@ function FormField({
         />
       )}
     </label>
+  );
+}
+
+function LightModeToggleRow() {
+  const { theme, toggleTheme } = useTheme();
+  const { t } = useI18n();
+  const on = theme === "light";
+  return (
+    <div className="flex items-center justify-between gap-4 py-4">
+      <div>
+        <p className="text-sm font-medium text-foreground">{t("settings.lightMode")}</p>
+        <p className="text-xs text-muted-foreground">{t("settings.lightModeDesc")}</p>
+      </div>
+      <button
+        type="button"
+        onClick={toggleTheme}
+        aria-pressed={on}
+        className={cn(
+          "relative h-6 w-11 shrink-0 rounded-full transition-colors",
+          on ? "bg-gold-gradient" : "bg-secondary",
+        )}
+      >
+        <span
+          className={cn(
+            "absolute top-0.5 h-5 w-5 rounded-full bg-foreground transition-transform",
+            on ? "translate-x-[1.4rem]" : "translate-x-0.5",
+          )}
+        />
+      </button>
+    </div>
   );
 }
 

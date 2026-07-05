@@ -10,7 +10,11 @@ export const Route = createFileRoute("/_app/hall-of-fame")({
   head: () => ({
     meta: [
       { title: "Hall of Fame — Ai Music Factory" },
-      { name: "description", content: "The most decorated artists, prompts and labels — celebrated with prestige and honour." },
+      {
+        name: "description",
+        content:
+          "The most decorated artists, prompts and labels — celebrated with prestige and honour.",
+      },
     ],
   }),
   component: HallOfFamePage,
@@ -43,6 +47,7 @@ function HallOfFamePage() {
           <img
             src={artistImages[top.artistId]}
             alt={top.winner}
+            loading="eager"
             className="h-40 w-40 rounded-2xl object-cover ring-1 ring-[color-mix(in_oklab,var(--gold)_35%,transparent)] sm:h-48 sm:w-48"
           />
           <div>
@@ -53,7 +58,9 @@ function HallOfFamePage() {
             <h2 className="mt-3 font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
               {top.winner}
             </h2>
-            <p className="mt-2 text-base text-muted-foreground">{t(`hallOfFame.items.${top.id}.note`)}</p>
+            <p className="mt-2 text-base text-muted-foreground">
+              {t(`hallOfFame.items.${top.id}.note`)}
+            </p>
             <GoldBadge variant="solid" className="mt-5">
               {t(`hallOfFame.items.${top.id}.title`)}
             </GoldBadge>
@@ -73,6 +80,7 @@ function HallOfFamePage() {
               <img
                 src={artistImages[h.artistId]}
                 alt={h.winner}
+                loading="lazy"
                 className="h-16 w-16 rounded-xl object-cover ring-1 ring-border"
               />
               <div>
@@ -80,11 +88,17 @@ function HallOfFamePage() {
                   <Trophy className="h-3.5 w-3.5" />
                   <span className="eyebrow">{t(`hallOfFame.items.${h.id}.crown`)}</span>
                 </div>
-                <p className="mt-1 font-display text-xl font-semibold text-foreground">{h.winner}</p>
+                <p className="mt-1 font-display text-xl font-semibold text-foreground">
+                  {h.winner}
+                </p>
               </div>
             </div>
-            <p className="relative mt-4 text-xs text-muted-foreground">{t(`hallOfFame.items.${h.id}.title`)}</p>
-            <p className="relative mt-1 text-sm text-muted-foreground">{t(`hallOfFame.items.${h.id}.note`)}</p>
+            <p className="relative mt-4 text-xs text-muted-foreground">
+              {t(`hallOfFame.items.${h.id}.title`)}
+            </p>
+            <p className="relative mt-1 text-sm text-muted-foreground">
+              {t(`hallOfFame.items.${h.id}.note`)}
+            </p>
           </article>
         ))}
       </section>

@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { LanguageProvider } from "../i18n/context";
+import { ThemeProvider } from "../theme/context";
 import { Toaster } from "../components/ui/sonner";
 
 function NotFoundComponent() {
@@ -79,6 +80,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "theme-color", content: "#0a0a0a" },
       { title: "Ai Music Factory — A social OS for AI-native artists" },
       {
         name: "description",
@@ -89,24 +91,29 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "Ai Music Factory — A social OS for AI-native artists" },
       {
         property: "og:description",
-        content: "The social operating system for AI-native artists.",
+        content:
+          "Ai Music Factory is the premium social operating system for AI-native artists: create tracks, build virtual identities, run labels, battle, and rise through the ranks.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Ai Music Factory — A social OS for AI-native artists" },
-      { name: "description", content: "AI Music Forge is a premium web platform for AI-native artists, blending music creation, virtual identity, and community." },
-      { property: "og:description", content: "AI Music Forge is a premium web platform for AI-native artists, blending music creation, virtual identity, and community." },
-      { name: "twitter:description", content: "AI Music Forge is a premium web platform for AI-native artists, blending music creation, virtual identity, and community." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/NFPyARWBLfSXjc3yb5gXwHymGlA3/social-images/social-1782184363409-AI_Music_F_logo.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/NFPyARWBLfSXjc3yb5gXwHymGlA3/social-images/social-1782184363409-AI_Music_F_logo.webp" },
+      {
+        name: "twitter:description",
+        content:
+          "Ai Music Factory is the premium social operating system for AI-native artists: create tracks, build virtual identities, run labels, battle, and rise through the ranks.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/NFPyARWBLfSXjc3yb5gXwHymGlA3/social-images/social-1782184363409-AI_Music_F_logo.webp",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/NFPyARWBLfSXjc3yb5gXwHymGlA3/social-images/social-1782184363409-AI_Music_F_logo.webp",
+      },
     ],
     links: [
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Manrope:wght@400;500;600;700;800&display=swap",
-      },
       {
         rel: "stylesheet",
         href: appCss,
@@ -121,7 +128,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="fr" className="dark">
+    <html lang="fr" dir="ltr" className="dark">
       <head>
         <HeadContent />
       </head>
@@ -138,11 +145,13 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
-        <Toaster />
-      </LanguageProvider>
+      <ThemeProvider>
+        <LanguageProvider>
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+          <Toaster />
+        </LanguageProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

@@ -68,7 +68,6 @@ function CreditsPage() {
     });
   };
 
-
   return (
     <div className="space-y-10">
       <SectionHeading
@@ -81,7 +80,7 @@ function CreditsPage() {
               <Gem className="h-5 w-5" />
             </span>
             <div>
-              <p className="font-display text-2xl font-semibold leading-none text-foreground">
+              <p className="font-mono text-2xl font-semibold leading-none tabular-nums text-foreground">
                 {formatNumber(balance)}
               </p>
               <p className="text-xs text-muted-foreground">{t("credits.balance")}</p>
@@ -91,10 +90,63 @@ function CreditsPage() {
       />
 
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatModule label={t("credits.balance")} value={formatNumber(balance)} delta={t("credits.creditsUnit")} icon={<Gem className="h-5 w-5" />} />
-        <StatModule label={t("credits.currentPlan")} value={t(`credits.plans.${plan}.name`)} delta={t("credits.perMonth", { n: formatNumber(active.monthlyCredits) })} />
-        <StatModule label={t("credits.costTrack")} value={`${COSTS.track}`} delta={t("credits.creditsUnit")} icon={<Sparkles className="h-5 w-5" />} />
-        <StatModule label={t("credits.costVoice")} value={`${COSTS.voice}`} delta={t("credits.creditsUnit")} icon={<Zap className="h-5 w-5" />} />
+        <StatModule
+          label={t("credits.balance")}
+          value={formatNumber(balance)}
+          delta={t("credits.creditsUnit")}
+          icon={<Gem className="h-5 w-5" />}
+        />
+        <StatModule
+          label={t("credits.currentPlan")}
+          value={t(`credits.plans.${plan}.name`)}
+          delta={t("credits.perMonth", { n: formatNumber(active.monthlyCredits) })}
+        />
+        <StatModule
+          label={t("credits.costTrack")}
+          value={`${COSTS.track}`}
+          delta={t("credits.creditsUnit")}
+          icon={<Sparkles className="h-5 w-5" />}
+        />
+        <StatModule
+          label={t("credits.costVoice")}
+          value={`${COSTS.voice}`}
+          delta={t("credits.creditsUnit")}
+          icon={<Zap className="h-5 w-5" />}
+        />
+      </section>
+
+      {/* CREATOR EARNINGS — how the platform intends to pay creators, stated
+          plainly rather than left as an implied promise the product doesn't
+          yet fulfill. */}
+      <section className="rounded-2xl border border-[color-mix(in_oklab,var(--gold)_25%,transparent)] bg-noir-gradient p-6 sm:p-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="eyebrow text-gold">{t("credits.earningsEyebrow")}</p>
+            <h2 className="mt-1 font-display text-xl font-semibold text-foreground">
+              {t("credits.earningsTitle")}
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+              {t("credits.earningsDesc")}
+            </p>
+          </div>
+          <GoldBadge variant="outline" className="shrink-0">
+            {t("credits.earningsStatus")}
+          </GoldBadge>
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border border-border/60 bg-card/50 p-4">
+            <p className="text-sm font-medium text-foreground">{t("credits.earningsStep1Title")}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{t("credits.earningsStep1Desc")}</p>
+          </div>
+          <div className="rounded-xl border border-border/60 bg-card/50 p-4">
+            <p className="text-sm font-medium text-foreground">{t("credits.earningsStep2Title")}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{t("credits.earningsStep2Desc")}</p>
+          </div>
+          <div className="rounded-xl border border-border/60 bg-card/50 p-4">
+            <p className="text-sm font-medium text-foreground">{t("credits.earningsStep3Title")}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{t("credits.earningsStep3Desc")}</p>
+          </div>
+        </div>
       </section>
 
       {/* PLANS */}
@@ -108,7 +160,9 @@ function CreditsPage() {
                 key={p.id}
                 className={cn(
                   "relative flex flex-col rounded-2xl border bg-card p-6",
-                  p.featured ? "border-gold/50 shadow-[0_0_0_1px_color-mix(in_oklab,var(--gold)_30%,transparent)]" : "border-border",
+                  p.featured
+                    ? "border-gold/50 shadow-[0_0_0_1px_color-mix(in_oklab,var(--gold)_30%,transparent)]"
+                    : "border-border",
                 )}
               >
                 {p.featured && (
@@ -119,10 +173,16 @@ function CreditsPage() {
                 <p className="font-display text-xl font-semibold text-foreground">
                   {t(`credits.plans.${p.id}.name`)}
                 </p>
-                <p className="mt-1 text-sm text-muted-foreground">{t(`credits.plans.${p.id}.tag`)}</p>
-                <p className="mt-4 font-display text-3xl font-semibold text-foreground">
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {t(`credits.plans.${p.id}.tag`)}
+                </p>
+                <p className="mt-4 font-mono text-3xl font-semibold tabular-nums text-foreground">
                   {p.price === 0 ? t("credits.free") : `$${p.price}`}
-                  {p.price > 0 && <span className="text-base font-normal text-muted-foreground">{t("credits.month")}</span>}
+                  {p.price > 0 && (
+                    <span className="text-base font-normal text-muted-foreground">
+                      {t("credits.month")}
+                    </span>
+                  )}
                 </p>
                 <p className="mt-1 text-sm text-gold">
                   {t("credits.perMonth", { n: formatNumber(p.monthlyCredits) })}
@@ -151,23 +211,28 @@ function CreditsPage() {
 
       {/* TOP-UP PACKS */}
       <section className="space-y-5">
-        <SectionHeading eyebrow={t("credits.packsEyebrow")} title={t("credits.packsTitle")} description={t("credits.packsDesc")} />
+        <SectionHeading
+          eyebrow={t("credits.packsEyebrow")}
+          title={t("credits.packsTitle")}
+          description={t("credits.packsDesc")}
+        />
         <div className="grid gap-5 sm:grid-cols-3">
           {PACKS.map((pack) => (
-            <div key={pack.id} className="flex flex-col items-start rounded-2xl border border-border bg-card p-6">
+            <div
+              key={pack.id}
+              className="flex flex-col items-start rounded-2xl border border-border bg-card p-6"
+            >
               <span className="grid h-11 w-11 place-items-center rounded-xl border border-border/70 bg-[color-mix(in_oklab,var(--gold)_6%,transparent)] text-gold">
                 <Gem className="h-5 w-5" />
               </span>
-              <p className="mt-4 font-display text-2xl font-semibold text-foreground">
+              <p className="mt-4 font-mono text-2xl font-semibold tabular-nums text-foreground">
                 {formatNumber(pack.credits)}
-                {pack.bonus ? <span className="ml-2 text-sm font-medium text-gold">+{pack.bonus}</span> : null}
+                {pack.bonus ? (
+                  <span className="ml-2 text-sm font-medium text-gold">+{pack.bonus}</span>
+                ) : null}
               </p>
               <p className="text-xs text-muted-foreground">{t("credits.creditsUnit")}</p>
-              <Button
-                variant="outline"
-                className="mt-5 w-full"
-                onClick={() => onBuyPack(pack)}
-              >
+              <Button variant="outline" className="mt-5 w-full" onClick={() => onBuyPack(pack)}>
                 {t("credits.buy", { price: `$${pack.price}` })}
               </Button>
             </div>
@@ -194,7 +259,7 @@ function CreditsPage() {
               <span className="flex-1 text-sm text-foreground">{t(e.reasonKey)}</span>
               <span
                 className={cn(
-                  "text-sm font-semibold tabular-nums",
+                  "font-mono text-sm font-semibold tabular-nums",
                   e.amount >= 0 ? "text-gold" : "text-muted-foreground",
                 )}
               >

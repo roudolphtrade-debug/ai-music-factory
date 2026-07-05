@@ -1,7 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, UserPlus, UserMinus, Users, TrendingUp, Coins, Percent, Building2 } from "lucide-react";
+import {
+  ArrowLeft,
+  UserPlus,
+  UserMinus,
+  Users,
+  TrendingUp,
+  Coins,
+  Percent,
+  Building2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { GoldBadge, ReputationChip } from "@/components/premium/Chips";
@@ -71,9 +80,13 @@ function LabelDetailPage() {
             <h1 className="font-display text-4xl font-semibold tracking-tight text-foreground">
               {label.name}
             </h1>
-            {label.tagline && <p className="text-base italic text-muted-foreground">{label.tagline}</p>}
+            {label.tagline && (
+              <p className="text-base italic text-muted-foreground">{label.tagline}</p>
+            )}
             <p className="text-sm text-muted-foreground/80">{label.specialty}</p>
-            <p className="max-w-xl text-sm text-muted-foreground">{TIER_CONFIG[label.tier].pitch}</p>
+            <p className="max-w-xl text-sm text-muted-foreground">
+              {TIER_CONFIG[label.tier].pitch}
+            </p>
           </div>
           <ReputationChip score={sim.reputation} />
         </div>
@@ -81,10 +94,27 @@ function LabelDetailPage() {
 
       {/* STATS */}
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatModule label={t("labels.roster")} value={`${sim.roster.length}`} icon={<Users className="h-5 w-5" />} />
-        <StatModule label={t("labels.detail.totalListeners")} value={formatCompact(sim.totalListeners)} icon={<TrendingUp className="h-5 w-5" />} />
-        <StatModule label={t("labels.detail.grossRevenue")} value={formatMoney(sim.monthlyRevenue)} icon={<Coins className="h-5 w-5" />} />
-        <StatModule label={t("labels.detail.labelCut")} value={`${Math.round(sim.labelShare * 100)}%`} delta={formatMoney(sim.labelRevenue)} icon={<Percent className="h-5 w-5" />} />
+        <StatModule
+          label={t("labels.roster")}
+          value={`${sim.roster.length}`}
+          icon={<Users className="h-5 w-5" />}
+        />
+        <StatModule
+          label={t("labels.detail.totalListeners")}
+          value={formatCompact(sim.totalListeners)}
+          icon={<TrendingUp className="h-5 w-5" />}
+        />
+        <StatModule
+          label={t("labels.detail.grossRevenue")}
+          value={formatMoney(sim.monthlyRevenue)}
+          icon={<Coins className="h-5 w-5" />}
+        />
+        <StatModule
+          label={t("labels.detail.labelCut")}
+          value={`${Math.round(sim.labelShare * 100)}%`}
+          delta={formatMoney(sim.labelRevenue)}
+          icon={<Percent className="h-5 w-5" />}
+        />
       </section>
 
       {/* ROYALTY SIMULATOR */}
@@ -99,7 +129,9 @@ function LabelDetailPage() {
             <div className="space-y-3">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">{t("labels.detail.growthScenario")}</span>
-                <span className="font-display text-lg font-semibold gold-text">{growth.toFixed(1)}×</span>
+                <span className="font-display text-lg font-semibold gold-text">
+                  {growth.toFixed(1)}×
+                </span>
               </div>
               <Slider
                 value={[growth]}
@@ -110,12 +142,16 @@ function LabelDetailPage() {
               />
             </div>
             <div className="rounded-xl border border-gold/30 bg-[color-mix(in_oklab,var(--gold)_7%,transparent)] p-5">
-              <p className="eyebrow text-muted-foreground/70">{t("labels.detail.projectedLabelMrr")}</p>
+              <p className="eyebrow text-muted-foreground/70">
+                {t("labels.detail.projectedLabelMrr")}
+              </p>
               <p className="mt-1 font-display text-4xl font-semibold gold-text">
                 {formatMoney(projectedLabelRevenue)}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {t("labels.detail.projectedArtistPool", { v: formatMoney(sim.artistPool * growth) })}
+                {t("labels.detail.projectedArtistPool", {
+                  v: formatMoney(sim.artistPool * growth),
+                })}
               </p>
             </div>
           </div>
@@ -134,9 +170,16 @@ function LabelDetailPage() {
                       key={artist.id}
                       className="flex items-center gap-3 rounded-xl border border-border bg-secondary/30 p-2.5"
                     >
-                      <img src={artistImages[artist.id]} alt={artist.name} className="h-9 w-9 rounded-lg object-cover" />
+                      <img
+                        loading="lazy"
+                        src={artistImages[artist.id]}
+                        alt={artist.name}
+                        className="h-9 w-9 rounded-lg object-cover"
+                      />
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-foreground">{artist.name}</p>
+                        <p className="truncate text-sm font-medium text-foreground">
+                          {artist.name}
+                        </p>
                         <p className="text-xs text-muted-foreground">
                           {formatCompact(listeners)} {t("labels.detail.listeners")}
                         </p>
@@ -154,9 +197,16 @@ function LabelDetailPage() {
 
       {/* ROSTER MANAGEMENT */}
       <section className="space-y-5">
-        <SectionHeading eyebrow={t("labels.detail.rosterEyebrow")} title={t("labels.detail.signedTitle")} />
+        <SectionHeading
+          eyebrow={t("labels.detail.rosterEyebrow")}
+          title={t("labels.detail.signedTitle")}
+        />
         {sim.roster.length === 0 ? (
-          <EmptyState icon={<Users className="h-6 w-6" />} title={t("labels.detail.emptyRosterTitle")} description={t("labels.detail.emptyRosterDesc")} />
+          <EmptyState
+            icon={<Users className="h-6 w-6" />}
+            title={t("labels.detail.emptyRosterTitle")}
+            description={t("labels.detail.emptyRosterDesc")}
+          />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {sim.roster.map((a) => (
@@ -184,7 +234,10 @@ function LabelDetailPage() {
 
         {available.length > 0 && (
           <>
-            <SectionHeading eyebrow={t("labels.detail.scoutEyebrow")} title={t("labels.detail.signTitle")} />
+            <SectionHeading
+              eyebrow={t("labels.detail.scoutEyebrow")}
+              title={t("labels.detail.signTitle")}
+            />
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {available.map((a) => (
                 <ArtistRow
@@ -227,7 +280,12 @@ function ArtistRow({
 }) {
   return (
     <div className="flex items-center gap-3 rounded-xl border border-border surface-premium p-3">
-      <img src={artistImages[id]} alt={name} className="h-11 w-11 rounded-lg object-cover" />
+      <img
+        loading="lazy"
+        src={artistImages[id]}
+        alt={name}
+        className="h-11 w-11 rounded-lg object-cover"
+      />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-foreground">{name}</p>
         <p className="truncate text-xs text-muted-foreground">{meta}</p>

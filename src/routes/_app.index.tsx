@@ -17,8 +17,10 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SectionHeading } from "@/components/premium/SectionHeading";
 import { StatModule } from "@/components/premium/StatModule";
+import { DailyJury } from "@/components/premium/DailyJury";
 import { ArtistCard } from "@/components/premium/ArtistCard";
 import { RankingRow } from "@/components/premium/RankingRow";
 import { GoldBadge, StatusChip } from "@/components/premium/Chips";
@@ -30,16 +32,21 @@ import { LikeButton } from "@/components/premium/LikeButton";
 import { useI18n } from "@/i18n/context";
 import { PlayButton } from "@/components/audio/PlayButton";
 import { usePlayer } from "@/audio/PlayerProvider";
-import { playableById, playableTracks, radioQueue, makePlayable, chartSourceAt } from "@/audio/tracks";
+import { useLiveDemoData } from "@/hooks/useLiveDemoData";
+import {
+  playableById,
+  playableTracks,
+  radioQueue,
+  makePlayable,
+  chartSourceAt,
+} from "@/audio/tracks";
 import { useLibrary } from "@/library/LibraryProvider";
 import { cn } from "@/lib/utils";
 import {
-  platformStats,
   topCreators,
   artists,
   battles,
   nowPlaying,
-  activityFeed,
   hallOfFame,
   artistImages,
   globalCharts,
@@ -74,6 +81,7 @@ function HomePage() {
   const { t, relTime } = useI18n();
   const { favorites, history } = useLibrary();
   const { isActive } = usePlayer();
+  const { stats: platformStats, activity: activityFeed } = useLiveDemoData();
   const liveBattle = battles[0];
   const [region, setRegion] = useState<ChartRegion>("Global");
   const charts = globalCharts.filter((c) => c.regions.includes(region));
@@ -89,8 +97,14 @@ function HomePage() {
     }),
   );
 
-  const historyTracks = history.map((h) => playableById[h.id]).filter(Boolean).slice(0, 4);
-  const favTracks = favorites.map((id) => playableById[id]).filter(Boolean).slice(0, 4);
+  const historyTracks = history
+    .map((h) => playableById[h.id])
+    .filter(Boolean)
+    .slice(0, 4);
+  const favTracks = favorites
+    .map((id) => playableById[id])
+    .filter(Boolean)
+    .slice(0, 4);
 
   return (
     <div className="space-y-12">
@@ -139,19 +153,22 @@ function HomePage() {
                 <img
                   src={artistImages[nowPlaying.track.artistId]}
                   alt={nowPlaying.track.artist}
+                  loading="eager"
                   className="h-20 w-20 rounded-xl object-cover ring-1 ring-border"
                 />
                 <div className="absolute inset-0 grid place-items-center">
-                  <PlayButton track={playableById[nowPlaying.track.id]} queue={radioQueue} size="sm" />
+                  <PlayButton
+                    track={playableById[nowPlaying.track.id]}
+                    queue={radioQueue}
+                    size="sm"
+                  />
                 </div>
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate font-display text-xl font-semibold text-foreground">
                   {nowPlaying.track.title}
                 </p>
-                <p className="truncate text-sm text-muted-foreground">
-                  {nowPlaying.track.artist}
-                </p>
+                <p className="truncate text-sm text-muted-foreground">{nowPlaying.track.artist}</p>
                 <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                   <Equalizer />
                   {t("common.listeningNow", { n: nowPlaying.listeners })}
@@ -164,13 +181,18 @@ function HomePage() {
                 {t("common.upNext")} ·{" "}
                 <span className="text-foreground">{nowPlaying.upNext.title}</span>
               </span>
-              <Link to="/radio" className="inline-flex items-center gap-1 text-gold hover:underline">
+              <Link
+                to="/radio"
+                className="inline-flex items-center gap-1 text-gold hover:underline"
+              >
                 {t("common.openRadio")} <ArrowUpRight className="h-3.5 w-3.5" />
               </Link>
             </div>
           </div>
         </div>
       </section>
+
+      <DailyJury />
 
       {/* STATS */}
       <Reveal as="section" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -225,191 +247,192 @@ function HomePage() {
         </Reveal>
       )}
 
-
-
-
-      {/* TOP CHARTS */}
+      {/* DISCOVER — Charts, Genres, Trending Artists and Leaderboard/Activity
+          used to be four separate stacked full-width sections back to back.
+          Same content, same routes, same features — grouped under one set of
+          tabs so the homepage has one scroll-stop here instead of four. */}
       <Reveal as="section" className="space-y-6">
+        <Tabs defaultValue="charts">
+          <TabsList>
+            <TabsTrigger value="charts">{t("home.charts.eyebrow")}</TabsTrigger>
+            <TabsTrigger value="genres">{t("home.genres.eyebrow")}</TabsTrigger>
+            <TabsTrigger value="trending">{t("home.trending.eyebrow")}</TabsTrigger>
+            <TabsTrigger value="leaderboard">{t("home.leaderboard.eyebrow")}</TabsTrigger>
+          </TabsList>
 
-        <SectionHeading
-          eyebrow={t("home.charts.eyebrow")}
-          title={t("home.charts.title")}
-          description={t("home.charts.desc")}
-        />
-        <div className="flex flex-wrap gap-2">
-          {chartRegions.map((r) => (
-            <button
-              key={r}
-              onClick={() => setRegion(r)}
-              className={cn(
-                "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
-                region === r
-                  ? "bg-gold-gradient text-primary-foreground"
-                  : "border border-border text-muted-foreground hover:border-[color-mix(in_oklab,var(--gold)_40%,transparent)] hover:text-foreground",
-              )}
+          {/* CHARTS */}
+          <TabsContent value="charts" className="space-y-6">
+            <SectionHeading title={t("home.charts.title")} description={t("home.charts.desc")} />
+            <div className="flex flex-wrap gap-2">
+              {chartRegions.map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setRegion(r)}
+                  className={cn(
+                    "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+                    region === r
+                      ? "bg-gold-gradient text-primary-foreground"
+                      : "border border-border text-muted-foreground hover:border-[color-mix(in_oklab,var(--gold)_40%,transparent)] hover:text-foreground",
+                  )}
+                >
+                  {t(`charts.regions.${r}`)}
+                </button>
+              ))}
+            </div>
+            <div
+              key={region}
+              className="animate-list-fade overflow-hidden rounded-2xl border border-border surface-premium"
             >
-              {t(`charts.regions.${r}`)}
-            </button>
-          ))}
-        </div>
-        <div key={region} className="animate-list-fade overflow-hidden rounded-2xl border border-border surface-premium">
-          {charts.map((c, i) => {
-            const track = chartQueue[i];
-            const active = isActive(track.id);
-            return (
-              <div
-                key={`${c.rank}-${c.title}`}
-                className={cn(
-                  "group flex items-center gap-3 px-3 py-3 transition-colors hover:bg-secondary/40 sm:gap-4 sm:px-4",
-                  i !== charts.length - 1 && "border-b border-border/60",
-                )}
-              >
-                <span className="w-5 shrink-0 text-center font-display text-base font-semibold tabular-nums text-foreground sm:w-6 sm:text-lg">
-                  {c.rank}
-                </span>
-                <ChartChange change={c.change} isNew={c.isNew} newLabel={t("charts.new")} />
-                {/* Cover doubles as the play control. On mobile (no hover) the
-                    control stays visible so users know the row is tappable; on
-                    desktop it's revealed on hover, and always shown when active. */}
-                <div className="relative h-11 w-11 shrink-0">
-                  <img
-                    src={artistImages[c.artistId]}
-                    alt={c.artist}
-                    loading="lazy"
-                    className="h-11 w-11 rounded-lg object-cover ring-1 ring-border"
-                  />
+              {charts.map((c, i) => {
+                const track = chartQueue[i];
+                const active = isActive(track.id);
+                return (
                   <div
+                    key={`${c.rank}-${c.title}`}
                     className={cn(
-                      "absolute inset-0 grid place-items-center rounded-lg bg-black/45 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100",
-                      active && "opacity-100 sm:opacity-100",
+                      "group flex items-center gap-3 px-3 py-3 transition-colors hover:bg-secondary/40 sm:gap-4 sm:px-4",
+                      i !== charts.length - 1 && "border-b border-border/60",
                     )}
                   >
-                    <PlayButton
-                      track={track}
-                      queue={chartQueue}
-                      size="sm"
-                      label={t("charts.playTrack", { title: c.title, artist: c.artist })}
-                    />
+                    <span className="w-5 shrink-0 text-center font-display text-base font-semibold tabular-nums text-foreground sm:w-6 sm:text-lg">
+                      {c.rank}
+                    </span>
+                    <ChartChange change={c.change} isNew={c.isNew} newLabel={t("charts.new")} />
+                    {/* Cover doubles as the play control. On mobile (no hover) the
+                        control stays visible so users know the row is tappable; on
+                        desktop it's revealed on hover, and always shown when active. */}
+                    <div className="relative h-11 w-11 shrink-0">
+                      <img
+                        src={artistImages[c.artistId]}
+                        alt={c.artist}
+                        loading="lazy"
+                        className="h-11 w-11 rounded-lg object-cover ring-1 ring-border"
+                      />
+                      <div
+                        className={cn(
+                          "absolute inset-0 grid place-items-center rounded-lg bg-black/45 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100",
+                          active && "opacity-100 sm:opacity-100",
+                        )}
+                      >
+                        <PlayButton
+                          track={track}
+                          queue={chartQueue}
+                          size="sm"
+                          label={t("charts.playTrack", { title: c.title, artist: c.artist })}
+                        />
+                      </div>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <Link
+                        to="/artists/$artistId"
+                        params={{ artistId: c.artistId }}
+                        className="block truncate font-medium text-foreground transition-colors hover:text-gold"
+                      >
+                        {c.title}
+                      </Link>
+                      <Link
+                        to="/artists/$artistId"
+                        params={{ artistId: c.artistId }}
+                        className="block truncate text-xs text-muted-foreground transition-colors hover:text-gold"
+                      >
+                        {c.artist}
+                      </Link>
+                    </div>
+                    <GoldBadge variant="outline" className="hidden sm:inline-flex">
+                      {c.genre}
+                    </GoldBadge>
+                    <LikeButton trackId={track.id} size="sm" />
+                    <span className="hidden w-16 text-right text-xs tabular-nums text-muted-foreground sm:block">
+                      {c.plays}
+                    </span>
                   </div>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <Link
-                    to="/artists/$artistId"
-                    params={{ artistId: c.artistId }}
-                    className="block truncate font-medium text-foreground transition-colors hover:text-gold"
-                  >
-                    {c.title}
-                  </Link>
-                  <Link
-                    to="/artists/$artistId"
-                    params={{ artistId: c.artistId }}
-                    className="block truncate text-xs text-muted-foreground transition-colors hover:text-gold"
-                  >
-                    {c.artist}
-                  </Link>
-                </div>
-                <GoldBadge variant="outline" className="hidden sm:inline-flex">
-                  {c.genre}
-                </GoldBadge>
-                <LikeButton trackId={track.id} size="sm" />
-                <span className="hidden w-16 text-right text-xs tabular-nums text-muted-foreground sm:block">
-                  {c.plays}
-                </span>
+                );
+              })}
+            </div>
+          </TabsContent>
+
+          {/* GENRES */}
+          <TabsContent value="genres" className="space-y-6">
+            <SectionHeading title={t("home.genres.title")} description={t("home.genres.desc")} />
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {chartGenres.map((g) => (
+                <Link
+                  key={g.name}
+                  to="/radio"
+                  className="group flex items-center gap-3 rounded-xl border border-border surface-premium px-4 py-3.5 transition-colors hover:border-[color-mix(in_oklab,var(--gold)_40%,transparent)]"
+                >
+                  <span className="icon-tile h-10 w-10">
+                    <ListMusic className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-foreground">{g.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("home.genres.tracks", { n: g.tracks })}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </TabsContent>
+
+          {/* TRENDING ARTISTS */}
+          <TabsContent value="trending" className="space-y-6">
+            <SectionHeading
+              title={t("home.trending.title")}
+              description={t("home.trending.desc")}
+              action={
+                <Button asChild variant="ghost-gold" size="sm">
+                  <Link to="/artists">{t("common.viewAll")}</Link>
+                </Button>
+              }
+            />
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+              {artists.slice(0, 4).map((a) => (
+                <ArtistCard key={a.id} artist={a} />
+              ))}
+            </div>
+          </TabsContent>
+
+          {/* LEADERBOARD + ACTIVITY */}
+          <TabsContent value="leaderboard" className="grid gap-6 lg:grid-cols-3">
+            <div className="rounded-2xl border border-border bg-card p-6 lg:col-span-2">
+              <SectionHeading title={t("home.leaderboard.title")} />
+              <div className="mt-4 divide-y divide-border/60">
+                {topCreators.map((c) => (
+                  <RankingRow
+                    key={c.artistId}
+                    rank={c.rank}
+                    artistId={c.artistId}
+                    name={c.name}
+                    meta={t("home.leaderboard.meta", { n: c.listeners })}
+                    reputation={c.reputation}
+                  />
+                ))}
               </div>
-            );
-          })}
-        </div>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <SectionHeading title={t("home.activity.title")} />
+              <ul className="mt-4 space-y-4">
+                {activityFeed.map((a) => (
+                  <li key={a.id} className="flex gap-3">
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
+                    <div className="min-w-0">
+                      <p className="text-sm text-foreground">
+                        {a.who} {t(`home.activity.${a.actionKey}`, a.actionVars)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {a.detailKey ? t(`home.activity.${a.detailKey}`) : a.detail} ·{" "}
+                        {relTime(a.time)}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </TabsContent>
+        </Tabs>
       </Reveal>
-
-
-      {/* GENRES */}
-      <Reveal as="section" className="space-y-6">
-
-        <SectionHeading
-          eyebrow={t("home.genres.eyebrow")}
-          title={t("home.genres.title")}
-          description={t("home.genres.desc")}
-        />
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {chartGenres.map((g) => (
-            <Link
-              key={g.name}
-              to="/radio"
-              className="group flex items-center gap-3 rounded-xl border border-border surface-premium px-4 py-3.5 transition-colors hover:border-[color-mix(in_oklab,var(--gold)_40%,transparent)]"
-            >
-              <span className="icon-tile h-10 w-10">
-                <ListMusic className="h-4 w-4" />
-              </span>
-              <div className="min-w-0">
-                <p className="truncate font-medium text-foreground">{g.name}</p>
-                <p className="text-xs text-muted-foreground">{t("home.genres.tracks", { n: g.tracks })}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </Reveal>
-
-
-      {/* TRENDING ARTISTS */}
-      <Reveal as="section" className="space-y-6">
-
-        <SectionHeading
-          eyebrow={t("home.trending.eyebrow")}
-          title={t("home.trending.title")}
-          description={t("home.trending.desc")}
-          action={
-            <Button asChild variant="ghost-gold" size="sm">
-              <Link to="/artists">{t("common.viewAll")}</Link>
-            </Button>
-          }
-        />
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
-          {artists.slice(0, 4).map((a) => (
-            <ArtistCard key={a.id} artist={a} />
-          ))}
-        </div>
-      </Reveal>
-
-
-      {/* TWO COLUMN: TOP CREATORS + ACTIVITY */}
-      <Reveal as="section" className="grid gap-6 lg:grid-cols-3">
-
-        <div className="rounded-2xl border border-border bg-card p-6 lg:col-span-2">
-          <SectionHeading eyebrow={t("home.leaderboard.eyebrow")} title={t("home.leaderboard.title")} />
-          <div className="mt-4 divide-y divide-border/60">
-            {topCreators.map((c) => (
-              <RankingRow
-                key={c.artistId}
-                rank={c.rank}
-                artistId={c.artistId}
-                name={c.name}
-                meta={t("home.leaderboard.meta", { n: c.listeners })}
-                reputation={c.reputation}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-border bg-card p-6">
-          <SectionHeading eyebrow={t("home.activity.eyebrow")} title={t("home.activity.title")} />
-          <ul className="mt-4 space-y-4">
-            {activityFeed.map((a) => (
-              <li key={a.id} className="flex gap-3">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
-                <div className="min-w-0">
-                  <p className="text-sm text-foreground">
-                    {a.who} {t(`home.activity.${a.actionKey}`, a.actionVars)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {(a.detailKey ? t(`home.activity.${a.detailKey}`) : a.detail)} · {relTime(a.time)}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </Reveal>
-
 
       {/* CURRENT BATTLES + CONTEST */}
       <Reveal as="section" className="grid gap-6 lg:grid-cols-3">
@@ -435,7 +458,9 @@ function HomePage() {
               </span>
               <BattleSide side={liveBattle.b} align="right" />
             </div>
-            <p className="mt-4 text-center text-xs text-muted-foreground">{endsLabel(liveBattle, t)}</p>
+            <p className="mt-4 text-center text-xs text-muted-foreground">
+              {endsLabel(liveBattle, t)}
+            </p>
           </div>
         </div>
 
@@ -472,7 +497,6 @@ function HomePage() {
         </div>
       </Reveal>
 
-
       {/* HALL OF FAME PREVIEW */}
       <Reveal as="section" className="space-y-6">
         <SectionHeading
@@ -496,14 +520,17 @@ function HomePage() {
                 <Trophy className="h-4 w-4" />
                 <span className="eyebrow">{t(`hallOfFame.items.${h.id}.crown`)}</span>
               </div>
-              <p className="mt-3 text-xs text-muted-foreground">{t(`hallOfFame.items.${h.id}.title`)}</p>
+              <p className="mt-3 text-xs text-muted-foreground">
+                {t(`hallOfFame.items.${h.id}.title`)}
+              </p>
               <p className="font-display text-xl font-semibold text-foreground">{h.winner}</p>
-              <p className="mt-2 text-xs text-muted-foreground">{t(`hallOfFame.items.${h.id}.note`)}</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {t(`hallOfFame.items.${h.id}.note`)}
+              </p>
             </Link>
           ))}
         </div>
       </Reveal>
-
     </div>
   );
 }
@@ -543,7 +570,15 @@ function endsLabel(b: Battle, t: (k: string, v?: Record<string, string | number>
   return t(b.ends.key === "left" ? "time.left" : "time.startsIn", { t: b.ends.text });
 }
 
-function ChartChange({ change, isNew, newLabel }: { change: number; isNew?: boolean; newLabel: string }) {
+function ChartChange({
+  change,
+  isNew,
+  newLabel,
+}: {
+  change: number;
+  isNew?: boolean;
+  newLabel: string;
+}) {
   if (isNew) {
     return (
       <span className="w-10 text-center text-[0.6rem] font-bold tracking-wider text-gold">
@@ -588,6 +623,7 @@ function BattleSide({
       <img
         src={artistImages[side.artistId]}
         alt={side.name}
+        loading="lazy"
         className="h-16 w-16 rounded-xl object-cover ring-1 ring-border"
       />
       <div>

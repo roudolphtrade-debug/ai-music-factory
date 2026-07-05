@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Wand2, Sparkles, Loader2, Download, RotateCcw, Music4 } from "lucide-react";
+import { Wand2, Sparkles, Loader2, Download, RotateCcw, Music4, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { PlayButton } from "@/components/audio/PlayButton";
@@ -11,9 +11,19 @@ import { useGeneratedDrafts } from "@/library/GeneratedDraftsProvider";
 import { useCredits } from "@/library/CreditsProvider";
 import { COSTS } from "@/library/credits";
 import { artistImages, moods, type ArtistId } from "@/data/mock";
+import { composeFinalTrack } from "@/audio/mixTrack";
 import { useI18n } from "@/i18n/context";
 
-const genres = ["Hip-Hop", "Trap", "Afrobeats", "UK Drill", "Amapiano", "Reggaeton", "Hyperpop", "Neo-Soul"];
+const genres = [
+  "Hip-Hop",
+  "Trap",
+  "Afrobeats",
+  "UK Drill",
+  "Amapiano",
+  "Reggaeton",
+  "Hyperpop",
+  "Neo-Soul",
+];
 const voiceKeys = ["Instrumental", "Warm tenor", "Soprano", "Alto", "Custom voice"];
 const GEN_COVER: ArtistId = "art-1";
 
@@ -40,7 +50,6 @@ export function StudioComposer() {
   const { play } = usePlayer();
   const { addDraft } = useGeneratedDrafts();
   const { canAfford, spend } = useCredits();
-
 
   const [prompt, setPrompt] = useState(
     "Cinematic ambient pop with golden-hour pads, warm analogue tape saturation, and a slow euphoric build toward a wordless choir.",
@@ -104,13 +113,20 @@ export function StudioComposer() {
         return;
       }
       const lyrics = decodeLyrics(res.headers.get("X-Lyrics"));
-      const blob = await res.blob();
+      const vocalBlob = await res.blob();
+      // Compose an original instrumental bed (drums/bass/pad, synthesized on
+      // the fly — no samples, no API, no cost) and mix it under the vocal
+      // performance. Falls back to the vocal-only take if mixing fails.
+      const blob = await composeFinalTrack(vocalBlob, genre, mood);
       // Track generated successfully — debit the wallet.
       spend("track");
 
-
       const id = `gen-${Date.now()}`;
-      const title = clean.split(/[.,—-]/)[0].trim().slice(0, 42) || t("studio.gen.newTrack");
+      const title =
+        clean
+          .split(/[.,—-]/)[0]
+          .trim()
+          .slice(0, 42) || t("studio.gen.newTrack");
       const duration = "0:20";
 
       // Persist the draft (audio Blob + metadata) — provider owns the object URL.
@@ -167,7 +183,11 @@ export function StudioComposer() {
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Field label={t("studio.genre")}>
-          <Select value={genre} onChange={setGenre} options={genres.map((g) => ({ value: g, label: g }))} />
+          <Select
+            value={genre}
+            onChange={setGenre}
+            options={genres.map((g) => ({ value: g, label: g }))}
+          />
         </Field>
         <Field label={t("studio.mood")}>
           <Select
@@ -206,7 +226,11 @@ export function StudioComposer() {
 
       <div className="flex flex-wrap items-center gap-3 border-t border-border pt-5">
         <Button variant="gold" onClick={generate} disabled={phase === "generating"}>
-          {phase === "generating" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+          {phase === "generating" ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Sparkles className="h-4 w-4" />
+          )}
           {phase === "generating" ? t("studio.gen.generating") : t("studio.generate")}
         </Button>
         <Button variant="noir" disabled={phase === "generating"}>
@@ -220,6 +244,11 @@ export function StudioComposer() {
         )}
       </div>
 
+      <p className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground/80">
+        <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold/70" />
+        {t("studio.rightsNotice")}
+      </p>
+
       {/* GENERATING OVERLAY */}
       {phase === "generating" && (
         <div className="animate-fade-in rounded-2xl border border-[color-mix(in_oklab,var(--gold)_30%,transparent)] bg-noir-gradient p-6">
@@ -228,7 +257,9 @@ export function StudioComposer() {
               <Music4 className="h-5 w-5 animate-pulse" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="font-display text-lg font-semibold text-foreground">{t("studio.gen.generating")}</p>
+              <p className="font-display text-lg font-semibold text-foreground">
+                {t("studio.gen.generating")}
+              </p>
               <p className="truncate text-sm text-gold">{phaseLabels[stepIndex]}</p>
             </div>
             <Equalizer />
@@ -256,12 +287,15 @@ export function StudioComposer() {
           </div>
           <div className="mt-4 flex items-center gap-4">
             <img
+              loading="lazy"
               src={result.track.cover}
               alt={result.track.title}
               className="h-16 w-16 rounded-xl object-cover ring-1 ring-border"
             />
             <div className="min-w-0 flex-1">
-              <p className="truncate font-display text-xl font-semibold text-foreground">{result.track.title}</p>
+              <p className="truncate font-display text-xl font-semibold text-foreground">
+                {result.track.title}
+              </p>
               <p className="truncate text-sm text-muted-foreground">{result.track.artist}</p>
             </div>
             <PlayButton track={result.track} size="md" />
@@ -273,7 +307,9 @@ export function StudioComposer() {
               <p className="mb-1.5 text-xs uppercase tracking-wide text-muted-foreground">
                 {t("studio.gen.lyricsLabel")}
               </p>
-              <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/90">{result.lyrics}</p>
+              <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/90">
+                {result.lyrics}
+              </p>
             </div>
           )}
 
@@ -282,7 +318,7 @@ export function StudioComposer() {
               <RotateCcw className="h-4 w-4" /> {t("studio.gen.regenerate")}
             </Button>
             <Button variant="ghost" size="sm" asChild>
-              <a href={result.url} download={`${result.track.title}.mp3`}>
+              <a href={result.url} download={`${result.track.title}.wav`}>
                 <Download className="h-4 w-4" /> {t("studio.gen.download")}
               </a>
             </Button>

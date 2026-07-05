@@ -50,7 +50,9 @@ function Side({
       onClick={onVote}
       className={cn(
         "group relative flex w-full items-center gap-3 overflow-hidden rounded-xl border px-3 py-2.5 text-left transition-colors",
-        isWinner ? "border-gold/60 bg-[color-mix(in_oklab,var(--gold)_8%,transparent)]" : "border-border hover:bg-secondary/40",
+        isWinner
+          ? "border-gold/60 bg-[color-mix(in_oklab,var(--gold)_8%,transparent)]"
+          : "border-border hover:bg-secondary/40",
       )}
     >
       <span
@@ -59,6 +61,7 @@ function Side({
         aria-hidden
       />
       <img
+        loading="lazy"
         src={artistImages[competitor.artistId]}
         alt={competitor.name}
         className="relative h-9 w-9 shrink-0 rounded-lg object-cover"
@@ -68,7 +71,9 @@ function Side({
           {competitor.name}
           {isWinner && <Check className="h-3.5 w-3.5 text-gold" />}
         </span>
-        <span className="truncate text-xs text-muted-foreground">{BATTLE_TRACKS[competitor.artistId]}</span>
+        <span className="truncate text-xs text-muted-foreground">
+          {BATTLE_TRACKS[competitor.artistId]}
+        </span>
       </span>
       <span className="relative shrink-0 text-right">
         {decided ? (
@@ -99,8 +104,18 @@ function MatchCard({ match }: { match: Match }) {
         {open && !match.votedFor && <GoldBadge variant="outline">{t("bracket.open")}</GoldBadge>}
         {match.votedFor && <GoldBadge variant="outline">{t("bracket.voted")}</GoldBadge>}
       </div>
-      <Side match={match} side="a" competitor={match.a} onVote={() => match.a && vote(match.id, match.a.artistId)} />
-      <Side match={match} side="b" competitor={match.b} onVote={() => match.b && vote(match.id, match.b.artistId)} />
+      <Side
+        match={match}
+        side="a"
+        competitor={match.a}
+        onVote={() => match.a && vote(match.id, match.a.artistId)}
+      />
+      <Side
+        match={match}
+        side="b"
+        competitor={match.b}
+        onVote={() => match.b && vote(match.id, match.b.artistId)}
+      />
     </div>
   );
 }
@@ -109,11 +124,8 @@ export function BracketView() {
   const { t } = useI18n();
   const { bracket, reset } = useBattles();
   const final = bracket.matches.find((m) => m.id === "m-f-0");
-  const champ = final && final.votedFor
-    ? final.a?.artistId === final.votedFor
-      ? final.a
-      : final.b
-    : null;
+  const champ =
+    final && final.votedFor ? (final.a?.artistId === final.votedFor ? final.a : final.b) : null;
 
   const rounds: RoundKey[] = ["quarterFinal", "semiFinal", "final"];
 
@@ -121,10 +133,16 @@ export function BracketView() {
     <div className="space-y-6">
       {champ && (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-gold/50 bg-[color-mix(in_oklab,var(--gold)_6%,transparent)] p-6 text-center sm:flex-row sm:text-left">
-          <img src={artistImages[champ.artistId]} alt={champ.name} className="h-16 w-16 rounded-xl object-cover" />
+          <img
+            loading="lazy"
+            src={artistImages[champ.artistId]}
+            alt={champ.name}
+            className="h-16 w-16 rounded-xl object-cover"
+          />
           <div className="flex-1">
             <p className="eyebrow flex items-center justify-center gap-2 text-gold sm:justify-start">
-              <Crown className="h-4 w-4" /> {t("bracket.championEyebrow", { season: bracket.season })}
+              <Crown className="h-4 w-4" />{" "}
+              {t("bracket.championEyebrow", { season: bracket.season })}
             </p>
             <p className="font-display text-2xl font-semibold text-foreground">{champ.name}</p>
             <p className="text-sm text-muted-foreground">{BATTLE_TRACKS[champ.artistId]}</p>
@@ -139,7 +157,9 @@ export function BracketView() {
         {rounds.map((round) => (
           <div key={round} className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-display text-lg font-semibold text-foreground">{t(ROUND_LABEL[round])}</h3>
+              <h3 className="font-display text-lg font-semibold text-foreground">
+                {t(ROUND_LABEL[round])}
+              </h3>
               <span className="text-xs text-muted-foreground">
                 {t("bracket.matchCount", { n: matchesByRound(bracket, round).length })}
               </span>

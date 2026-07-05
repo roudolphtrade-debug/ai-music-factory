@@ -140,7 +140,9 @@ export function CreateLabelDialog({ trigger }: { trigger?: React.ReactNode }) {
                     {t(`labels.tier.${tr}`)}
                   </span>
                   <span className="mt-1 block text-xs text-muted-foreground">
-                    {t("labels.create.cut", { pct: `${Math.round(TIER_CONFIG[tr].labelShare * 100)}` })}
+                    {t("labels.create.cut", {
+                      pct: `${Math.round(TIER_CONFIG[tr].labelShare * 100)}`,
+                    })}
                   </span>
                 </button>
               ))}
@@ -170,12 +172,15 @@ export function CreateLabelDialog({ trigger }: { trigger?: React.ReactNode }) {
                     )}
                   >
                     <img
+                      loading="lazy"
                       src={artistImages[a.id]}
                       alt={a.name}
                       className="h-10 w-10 rounded-lg object-cover"
                     />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-foreground">{a.name}</span>
+                      <span className="block truncate text-sm font-medium text-foreground">
+                        {a.name}
+                      </span>
                       <span className="block truncate text-xs text-muted-foreground">
                         {a.genres.join(" · ")}
                       </span>

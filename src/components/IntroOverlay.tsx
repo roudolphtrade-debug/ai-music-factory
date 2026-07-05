@@ -1,12 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import introVideo from "@/assets/intro.mp4.asset.json";
+import introVideo from "@/assets/intro.mp4";
+import introPoster from "@/assets/intro-poster.webp";
 import { cn } from "@/lib/utils";
 
-const SESSION_KEY = "afm-intro-seen";
+const SEEN_KEY = "afm-intro-seen";
 
 /**
  * Cinematic first-load reveal built around the brand intro video.
- * Shows once per session, can be skipped on click, and never blocks SSR.
+ * Shows once, ever, per browser — not once per session. Forcing it back on
+ * every new tab/session is the kind of thing a restrained brand doesn't do;
+ * a "replay" affordance lives in Settings for anyone who wants to see it
+ * again on purpose (e.g. before a demo).
+ * Can be skipped on click. Never blocks SSR.
  * Near the end of the clip the tagline "Step into the light" lights up.
  */
 export function IntroOverlay() {
@@ -16,7 +21,14 @@ export function IntroOverlay() {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (sessionStorage.getItem(SESSION_KEY)) return;
+    if (localStorage.getItem(SEEN_KEY)) return;
+    // Respect the user's OS-level motion preference: never force an
+    // autoplaying full-screen video on people who have asked for reduced motion.
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) {
+      localStorage.setItem(SEEN_KEY, "1");
+      return;
+    }
     setMounted(true);
     // Reveal the tagline a beat before the clip resolves.
     const textTimer = setTimeout(() => setShowText(true), 3000);
@@ -28,11 +40,21 @@ export function IntroOverlay() {
     };
   }, []);
 
+  // Let keyboard users skip instantly with Escape.
+  useEffect(() => {
+    if (!mounted || leaving) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLeaving(true);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [mounted, leaving]);
+
   useEffect(() => {
     if (!mounted || !leaving) return;
     const t = setTimeout(() => {
       setMounted(false);
-      sessionStorage.setItem(SESSION_KEY, "1");
+      localStorage.setItem(SEEN_KEY, "1");
     }, 700);
     return () => clearTimeout(t);
   }, [leaving, mounted]);
@@ -48,12 +70,16 @@ export function IntroOverlay() {
         "fixed inset-0 z-[120] grid cursor-pointer place-items-center overflow-hidden bg-black",
         leaving ? "animate-intro-out" : "animate-intro-in",
       )}
-      role="presentation"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Ai Music Factory intro"
     >
       <video
         ref={videoRef}
-        src={introVideo.url}
+        src={introVideo}
+        poster={introPoster}
         autoPlay
+        preload="auto"
         muted
         playsInline
         onTimeUpdate={(e) => {
@@ -62,7 +88,7 @@ export function IntroOverlay() {
         }}
         onEnded={() => setLeaving(true)}
         onError={() => setLeaving(true)}
-        className="h-full w-full object-contain"
+        className="h-full w-full object-cover"
       />
 
       {/* Vignette for a cinematic frame */}
@@ -71,6 +97,9 @@ export function IntroOverlay() {
       {/* Cinematic tagline reveal */}
       {showText && (
         <div className="pointer-events-none absolute inset-0 grid place-items-center px-6">
+          {/* one-time soft flash synced to the payoff word landing */}
+          <div className="animate-intro-flash absolute inset-0 bg-white motion-reduce:hidden" />
+
           {/* expanding light burst behind the words */}
           <div
             className="animate-intro-glow absolute h-[60vmin] w-[60vmin] rounded-full"
@@ -79,17 +108,46 @@ export function IntroOverlay() {
                 "radial-gradient(circle, color-mix(in oklab, var(--gold) 45%, white) 0%, color-mix(in oklab, var(--gold) 22%, transparent) 35%, transparent 70%)",
             }}
           />
-          <h2 className="animate-intro-text relative text-center font-display text-3xl font-semibold uppercase tracking-[0.22em] sm:text-5xl md:text-6xl">
-            <span className="intro-text-shine drop-shadow-[0_0_28px_color-mix(in_oklab,var(--gold)_60%,transparent)]">
-              Step into the light
+
+          <div className="relative flex flex-col items-center gap-2 text-center sm:gap-3">
+            <span
+              className="animate-intro-word text-xs font-medium uppercase tracking-[0.5em] text-white/70 sm:text-sm"
+              style={{ animationDelay: "0ms" }}
+            >
+              Step into
             </span>
-          </h2>
+
+            <h2 className="font-display text-4xl font-semibold uppercase tracking-[0.16em] sm:text-6xl md:text-7xl">
+              <span
+                className="intro-text-shine animate-intro-word inline-block drop-shadow-[0_0_36px_color-mix(in_oklab,var(--gold)_65%,transparent)]"
+                style={{ animationDelay: "260ms" }}
+              >
+                the light
+              </span>
+            </h2>
+
+            {/* light line drawing outward beneath the payoff word */}
+            <span className="animate-intro-line mt-1 h-px w-40 bg-gradient-to-r from-transparent via-gold to-transparent sm:w-56" />
+          </div>
         </div>
       )}
 
-      <span className="absolute bottom-[8%] left-1/2 -translate-x-1/2 text-[0.6rem] uppercase tracking-[0.3em] text-white/45">
-        Tap to enter
-      </span>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          dismiss();
+        }}
+        className="absolute right-5 top-5 z-[121] rounded-full border border-white/30 bg-black/40 px-4 py-2 text-xs font-medium uppercase tracking-[0.2em] text-white/90 backdrop-blur-sm transition-colors hover:border-white/60 hover:bg-black/60 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:right-8 sm:top-8"
+      >
+        Passer
+      </button>
+
+      <div className="absolute bottom-[6%] left-1/2 flex -translate-x-1/2 flex-col items-center gap-2">
+        <span className="text-[0.65rem] uppercase tracking-[0.3em] text-white/70">
+          Appuyez n'importe où pour continuer
+        </span>
+      </div>
     </div>
   );
 }

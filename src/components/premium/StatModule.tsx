@@ -29,7 +29,7 @@ export function StatModule({
           </span>
         )}
       </div>
-      <p className="mt-4 font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+      <p className="mt-4 font-mono text-3xl font-semibold tracking-tight tabular-nums text-foreground sm:text-4xl">
         {value}
       </p>
       {delta && <p className="mt-1.5 text-xs text-muted-foreground">{delta}</p>}

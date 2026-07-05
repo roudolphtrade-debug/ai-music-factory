@@ -1,13 +1,6 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
-import {
-  UserPlus,
-  Check,
-  Users,
-  Sparkles,
-  Building2,
-  ArrowLeft,
-} from "lucide-react";
+import { UserPlus, Check, Users, Sparkles, Building2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GoldBadge, ReputationChip, StatusChip } from "@/components/premium/Chips";
 import { VoteButton } from "@/components/premium/VoteButton";
@@ -60,6 +53,7 @@ function ArtistProfilePage() {
         <div className="grid gap-0 md:grid-cols-[0.8fr_1.2fr]">
           <div className="relative aspect-[4/5] md:aspect-auto">
             <img
+              loading="eager"
               src={artistImages[artist.id]}
               alt={artist.name}
               className="h-full w-full object-cover"
@@ -93,10 +87,7 @@ function ArtistProfilePage() {
             </div>
 
             <div className="flex flex-wrap gap-3 pt-2">
-              <Button
-                variant={following ? "noir" : "gold"}
-                onClick={() => setFollowing((f) => !f)}
-              >
+              <Button variant={following ? "noir" : "gold"} onClick={() => setFollowing((f) => !f)}>
                 {following ? <Check className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
                 {following ? t("artistProfile.following") : t("artistProfile.follow")}
               </Button>
@@ -121,7 +112,9 @@ function ArtistProfilePage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* RELEASES */}
         <div className="space-y-4 lg:col-span-2">
-          <h2 className="font-display text-2xl font-semibold text-foreground">{t("artistProfile.releases")}</h2>
+          <h2 className="font-display text-2xl font-semibold text-foreground">
+            {t("artistProfile.releases")}
+          </h2>
           <Playlist
             tracks={playableReleases}
             subtitleFor={(p) => {
@@ -135,7 +128,9 @@ function ArtistProfilePage() {
                   <span className="hidden text-xs text-muted-foreground sm:block">
                     {meta?.plays} {t("artistProfile.plays")}
                   </span>
-                  <span className="hidden text-xs tabular-nums text-muted-foreground sm:block">{p.duration}</span>
+                  <span className="hidden text-xs tabular-nums text-muted-foreground sm:block">
+                    {p.duration}
+                  </span>
                   <LikeButton trackId={p.id} size="sm" />
                   <AddToPlaylistButton trackId={p.id} size="sm" />
                   <ShareButton title={p.title} artist={p.artist} trackId={p.id} size="sm" />
@@ -145,11 +140,12 @@ function ArtistProfilePage() {
           />
         </div>
 
-
         {/* SIDE: bio, badges, community */}
         <div className="space-y-6">
           <div className="rounded-2xl border border-border bg-card p-6">
-            <h3 className="font-display text-xl font-semibold text-foreground">{t("artistProfile.about")}</h3>
+            <h3 className="font-display text-xl font-semibold text-foreground">
+              {t("artistProfile.about")}
+            </h3>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{artist.bio}</p>
             <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
               <Sparkles className="h-3.5 w-3.5 text-gold" /> {artist.aesthetic}
@@ -159,9 +155,10 @@ function ArtistProfilePage() {
             </div>
           </div>
 
-
           <div className="rounded-2xl border border-border bg-card p-6">
-            <h3 className="font-display text-xl font-semibold text-foreground">{t("artistProfile.badges")}</h3>
+            <h3 className="font-display text-xl font-semibold text-foreground">
+              {t("artistProfile.badges")}
+            </h3>
             <div className="mt-3 flex flex-wrap gap-2">
               {artist.badges.map((b) => (
                 <GoldBadge key={b}>{b}</GoldBadge>
@@ -171,7 +168,9 @@ function ArtistProfilePage() {
 
           <div className="rounded-2xl border border-border bg-card p-6">
             <div className="flex items-center justify-between">
-              <h3 className="font-display text-xl font-semibold text-foreground">{t("artistProfile.community")}</h3>
+              <h3 className="font-display text-xl font-semibold text-foreground">
+                {t("artistProfile.community")}
+              </h3>
               <StatusChip status="Live" />
             </div>
             <p className="mt-3 text-sm text-muted-foreground">
@@ -191,7 +190,9 @@ function ProfileStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-border bg-card p-5">
       <p className="eyebrow text-muted-foreground">{label}</p>
-      <p className="mt-2 font-display text-2xl font-semibold text-foreground sm:text-3xl">{value}</p>
+      <p className="mt-2 font-display text-2xl font-semibold text-foreground sm:text-3xl">
+        {value}
+      </p>
     </div>
   );
 }
@@ -201,7 +202,9 @@ function ArtistNotFound() {
   const router = useRouter();
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/40 px-6 py-20 text-center">
-      <h2 className="font-display text-2xl font-semibold text-foreground">{t("artistProfile.notFoundTitle")}</h2>
+      <h2 className="font-display text-2xl font-semibold text-foreground">
+        {t("artistProfile.notFoundTitle")}
+      </h2>
       <p className="mt-2 text-sm text-muted-foreground">{t("artistProfile.notFoundDesc")}</p>
       <div className="mt-5 flex gap-3">
         <Button variant="ghost-gold" onClick={() => router.history.back()}>

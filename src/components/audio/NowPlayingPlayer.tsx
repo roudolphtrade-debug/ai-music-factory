@@ -49,6 +49,7 @@ export function NowPlayingPlayer({
         <div className="relative mx-auto shrink-0 lg:mx-0">
           <span className="pointer-events-none absolute -inset-3 rounded-[1.6rem] border border-[color-mix(in_oklab,var(--gold)_20%,transparent)]" />
           <img
+            loading="eager"
             src={display.cover}
             alt={display.artist}
             className={cn(
@@ -58,7 +59,8 @@ export function NowPlayingPlayer({
           />
           {live && (
             <span className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-background/70 px-2.5 py-1 backdrop-blur-sm">
-              <WaveBars active className="h-3" /> <span className="text-[0.65rem] text-foreground">{t("audio.onAir")}</span>
+              <WaveBars active className="h-3" />{" "}
+              <span className="text-[0.65rem] text-foreground">{t("audio.onAir")}</span>
             </span>
           )}
         </div>

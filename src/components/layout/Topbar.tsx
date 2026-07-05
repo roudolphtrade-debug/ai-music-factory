@@ -1,7 +1,9 @@
 import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { Search, Plus, Menu } from "lucide-react";
 import { NotificationsBell } from "@/components/premium/NotificationsBell";
 import { CircularFlag } from "@/components/premium/CircularFlag";
+import { SearchPalette } from "@/components/layout/SearchPalette";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/context";
 import { LANGS } from "@/i18n/translations";
@@ -9,6 +11,7 @@ import { cn } from "@/lib/utils";
 
 export function Topbar({ onMenu }: { onMenu: () => void }) {
   const { t, lang, setLang } = useI18n();
+  const [searchOpen, setSearchOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-xl">
@@ -22,14 +25,19 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
           <Menu className="h-5 w-5" />
         </button>
 
-        <div className="relative hidden max-w-md flex-1 sm:block">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="search"
-            placeholder={t("topbar.searchPlaceholder")}
-            className="h-10 w-full rounded-lg border border-input bg-secondary/30 pl-10 pr-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-[color-mix(in_oklab,var(--gold)_38%,transparent)]"
-          />
-        </div>
+        <button
+          type="button"
+          onClick={() => setSearchOpen(true)}
+          className="relative flex h-9 flex-1 items-center gap-2 rounded-lg border border-input bg-secondary/30 px-3 text-left text-sm text-muted-foreground/70 outline-none transition-colors hover:border-[color-mix(in_oklab,var(--gold)_28%,transparent)] sm:max-w-md sm:px-3.5"
+        >
+          <Search className="h-4 w-4 shrink-0" />
+          <span className="min-w-0 flex-1 truncate">{t("topbar.searchPlaceholder")}</span>
+          <kbd className="hidden shrink-0 items-center gap-0.5 rounded border border-border bg-secondary/60 px-1.5 py-0.5 text-[0.65rem] font-medium text-muted-foreground/80 sm:inline-flex">
+            ⌘K
+          </kbd>
+        </button>
+
+        <SearchPalette open={searchOpen} onOpenChange={setSearchOpen} />
 
         <div className="ml-auto flex min-w-0 items-center gap-1.5 sm:gap-3">
           {/* Language switcher — compact circular SVG flags, scales cleanly on mobile */}
@@ -50,7 +58,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
                   "h-6 w-6 sm:h-7 sm:w-auto sm:px-2",
                   lang === l.code
                     ? "text-gold ring-1 ring-gold ring-offset-1 ring-offset-background shadow-[0_0_12px_-4px_color-mix(in_oklab,var(--gold)_55%,transparent)] sm:shadow-[0_0_14px_-4px_color-mix(in_oklab,var(--gold)_55%,transparent)]"
-                    : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                    : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground",
                 )}
               >
                 <CircularFlag lang={l.code} className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -68,15 +76,15 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
             </Link>
           </Button>
           <NotificationsBell />
-          <button
-            type="button"
+          <Link
+            to="/settings"
             className="flex shrink-0 items-center gap-2 rounded-lg border border-border bg-secondary/30 py-1 pl-1 pr-1.5 transition-colors hover:border-[color-mix(in_oklab,var(--gold)_28%,transparent)] sm:pr-2.5"
           >
             <span className="grid h-8 w-8 place-items-center rounded-md border border-[color-mix(in_oklab,var(--gold)_30%,transparent)] bg-[color-mix(in_oklab,var(--gold)_12%,transparent)] text-sm font-semibold text-gold">
               A
             </span>
             <span className="hidden text-sm font-medium text-foreground md:block">Studio A</span>
-          </button>
+          </Link>
         </div>
       </div>
     </header>

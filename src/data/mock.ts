@@ -1,12 +1,12 @@
-import artist1 from "@/assets/artist-1.jpg";
-import artist2 from "@/assets/artist-2.jpg";
-import artist3 from "@/assets/artist-3.jpg";
-import artist4 from "@/assets/artist-4.jpg";
-import artist5 from "@/assets/artist-5.jpg";
-import artist6 from "@/assets/artist-6.jpg";
-import labelMaisonNoir from "@/assets/label-maison-noir.jpg";
-import labelHaloAtelier from "@/assets/label-halo-atelier.jpg";
-import labelGoldhouse from "@/assets/label-goldhouse.jpg";
+import artist1 from "@/assets/artist-1.webp";
+import artist2 from "@/assets/artist-2.webp";
+import artist3 from "@/assets/artist-3.webp";
+import artist4 from "@/assets/artist-4.webp";
+import artist5 from "@/assets/artist-5.webp";
+import artist6 from "@/assets/artist-6.webp";
+import labelMaisonNoir from "@/assets/label-maison-noir.webp";
+import labelHaloAtelier from "@/assets/label-halo-atelier.webp";
+import labelGoldhouse from "@/assets/label-goldhouse.webp";
 
 export const artistImages = {
   "art-1": artist1,
@@ -150,23 +150,158 @@ export interface Track {
 }
 
 export const tracks: Track[] = [
-  { id: "t-1", title: "Amber Cathedral", artistId: "art-1", artist: "SØL Aurelius", genre: "Ambient Pop", mood: "Euphoric", duration: "3:48", plays: "1.2M" },
-  { id: "t-2", title: "Porcelain Halo", artistId: "art-2", artist: "Seraphine 9", genre: "Hyperpop", mood: "Ethereal", duration: "2:54", plays: "2.8M" },
-  { id: "t-3", title: "Server Prayer", artistId: "art-3", artist: "ORACLE", genre: "Techno", mood: "Hypnotic", duration: "5:12", plays: "920K" },
-  { id: "t-4", title: "Gilded", artistId: "art-4", artist: "MIDAS PRIME", genre: "Trap", mood: "Triumphant", duration: "3:21", plays: "4.0M" },
-  { id: "t-5", title: "Gold Thread", artistId: "art-5", artist: "Nyla Solenne", genre: "Neo-Soul", mood: "Intimate", duration: "4:03", plays: "1.7M" },
-  { id: "t-6", title: "Mirror Highway", artistId: "art-6", artist: "VISR", genre: "Synthwave", mood: "Nostalgic", duration: "4:30", plays: "660K" },
-  { id: "t-8", title: "Chrome Aria", artistId: "art-2", artist: "Seraphine 9", genre: "Art Pop", mood: "Dramatic", duration: "3:09", plays: "1.5M" },
+  {
+    id: "t-1",
+    title: "Amber Cathedral",
+    artistId: "art-1",
+    artist: "SØL Aurelius",
+    genre: "Ambient Pop",
+    mood: "Euphoric",
+    duration: "3:48",
+    plays: "1.2M",
+  },
+  {
+    id: "t-2",
+    title: "Porcelain Halo",
+    artistId: "art-2",
+    artist: "Seraphine 9",
+    genre: "Hyperpop",
+    mood: "Ethereal",
+    duration: "2:54",
+    plays: "2.8M",
+  },
+  {
+    id: "t-3",
+    title: "Server Prayer",
+    artistId: "art-3",
+    artist: "ORACLE",
+    genre: "Techno",
+    mood: "Hypnotic",
+    duration: "5:12",
+    plays: "920K",
+  },
+  {
+    id: "t-4",
+    title: "Gilded",
+    artistId: "art-4",
+    artist: "MIDAS PRIME",
+    genre: "Trap",
+    mood: "Triumphant",
+    duration: "3:21",
+    plays: "4.0M",
+  },
+  {
+    id: "t-5",
+    title: "Gold Thread",
+    artistId: "art-5",
+    artist: "Nyla Solenne",
+    genre: "Neo-Soul",
+    mood: "Intimate",
+    duration: "4:03",
+    plays: "1.7M",
+  },
+  {
+    id: "t-6",
+    title: "Mirror Highway",
+    artistId: "art-6",
+    artist: "VISR",
+    genre: "Synthwave",
+    mood: "Nostalgic",
+    duration: "4:30",
+    plays: "660K",
+  },
+  {
+    id: "t-8",
+    title: "Chrome Aria",
+    artistId: "art-2",
+    artist: "Seraphine 9",
+    genre: "Art Pop",
+    mood: "Dramatic",
+    duration: "3:09",
+    plays: "1.5M",
+  },
   // ---- Studio masters (real uploaded audio, ordered 1 → 9) ----
-  { id: "t-101", title: "Aurora Doré", artistId: "art-1", artist: "SØL Aurelius", genre: "Ambient Pop", mood: "Euphoric", duration: "3:38", plays: "612K" },
-  { id: "t-102", title: "Nuit de Saphir", artistId: "art-2", artist: "Seraphine 9", genre: "Hyperpop", mood: "Ethereal", duration: "2:42", plays: "498K" },
-  { id: "t-103", title: "Échos du Vide", artistId: "art-3", artist: "ORACLE", genre: "Techno", mood: "Hypnotic", duration: "4:08", plays: "377K" },
-  { id: "t-104", title: "Couronne d'Or", artistId: "art-4", artist: "MIDAS PRIME", genre: "Trap", mood: "Triumphant", duration: "2:59", plays: "1.1M" },
-  { id: "t-105", title: "Mirage Néon", artistId: "art-6", artist: "VISR", genre: "Synthwave", mood: "Nostalgic", duration: "4:34", plays: "284K" },
-  
-  { id: "t-107", title: "Soleil de Minuit", artistId: "art-5", artist: "Nyla Solenne", genre: "Neo-Soul", mood: "Intimate", duration: "4:45", plays: "356K" },
-  { id: "t-108", title: "Royaume Pourpre", artistId: "art-4", artist: "MIDAS PRIME", genre: "Hip-Hop", mood: "Triumphant", duration: "4:24", plays: "742K" },
-  { id: "t-109", title: "Or Liquide", artistId: "art-2", artist: "Seraphine 9", genre: "Art Pop", mood: "Ethereal", duration: "3:52", plays: "529K" },
+  {
+    id: "t-101",
+    title: "Aurora Doré",
+    artistId: "art-1",
+    artist: "SØL Aurelius",
+    genre: "Ambient Pop",
+    mood: "Euphoric",
+    duration: "3:38",
+    plays: "612K",
+  },
+  {
+    id: "t-102",
+    title: "Nuit de Saphir",
+    artistId: "art-2",
+    artist: "Seraphine 9",
+    genre: "Hyperpop",
+    mood: "Ethereal",
+    duration: "2:42",
+    plays: "498K",
+  },
+  {
+    id: "t-103",
+    title: "Échos du Vide",
+    artistId: "art-3",
+    artist: "ORACLE",
+    genre: "Techno",
+    mood: "Hypnotic",
+    duration: "4:08",
+    plays: "377K",
+  },
+  {
+    id: "t-104",
+    title: "Couronne d'Or",
+    artistId: "art-4",
+    artist: "MIDAS PRIME",
+    genre: "Trap",
+    mood: "Triumphant",
+    duration: "2:59",
+    plays: "1.1M",
+  },
+  {
+    id: "t-105",
+    title: "Mirage Néon",
+    artistId: "art-6",
+    artist: "VISR",
+    genre: "Synthwave",
+    mood: "Nostalgic",
+    duration: "4:34",
+    plays: "284K",
+  },
+
+  {
+    id: "t-107",
+    title: "Soleil de Minuit",
+    artistId: "art-5",
+    artist: "Nyla Solenne",
+    genre: "Neo-Soul",
+    mood: "Intimate",
+    duration: "4:45",
+    plays: "356K",
+  },
+  {
+    id: "t-108",
+    title: "Royaume Pourpre",
+    artistId: "art-4",
+    artist: "MIDAS PRIME",
+    genre: "Hip-Hop",
+    mood: "Triumphant",
+    duration: "4:24",
+    plays: "742K",
+  },
+  {
+    id: "t-109",
+    title: "Or Liquide",
+    artistId: "art-2",
+    artist: "Seraphine 9",
+    genre: "Art Pop",
+    mood: "Ethereal",
+    duration: "3:52",
+    plays: "529K",
+  },
 ];
 
 export const nowPlaying = {
@@ -194,16 +329,108 @@ export interface ChartEntry {
 }
 
 export const globalCharts: ChartEntry[] = [
-  { rank: 1, change: 0, title: "Midas Touch", artist: "MIDAS PRIME", artistId: "art-4", genre: "Trap", plays: "12.4M", regions: ["Global", "US", "UK", "Brazil"] },
-  { rank: 2, change: 2, title: "Lagos Gold", artist: "Nyla Solenne", artistId: "art-5", genre: "Afrobeats", plays: "9.8M", regions: ["Global", "UK", "Nigeria", "France"] },
-  { rank: 3, change: 1, title: "Opp Block", artist: "ORACLE", artistId: "art-3", genre: "UK Drill", plays: "8.1M", regions: ["Global", "UK"] },
-  { rank: 4, change: -2, title: "Porcelain Halo", artist: "Seraphine 9", artistId: "art-2", genre: "Hyperpop", plays: "7.6M", regions: ["Global", "US", "France"] },
-  { rank: 5, change: 0, isNew: true, title: "Brick by Brick", artist: "MIDAS PRIME", artistId: "art-4", genre: "Drill", plays: "6.9M", regions: ["Global", "UK", "US"] },
-  { rank: 6, change: 3, title: "Amapiano Mirage", artist: "VISR", artistId: "art-6", genre: "Amapiano", plays: "6.2M", regions: ["Global", "Nigeria", "Brazil"] },
-  { rank: 7, change: -1, title: "Amber Cathedral", artist: "SØL Aurelius", artistId: "art-1", genre: "Electronica", plays: "5.8M", regions: ["Global", "France", "US"] },
-  { rank: 8, change: 1, title: "Corazón de Oro", artist: "Nyla Solenne", artistId: "art-5", genre: "Reggaeton", plays: "5.1M", regions: ["Global", "Brazil", "US"] },
-  { rank: 9, change: 0, isNew: true, title: "Server Phonk", artist: "ORACLE", artistId: "art-3", genre: "Phonk", plays: "4.7M", regions: ["Global", "US", "Brazil"] },
-  { rank: 10, change: -3, title: "Gold Dust", artist: "Seraphine 9", artistId: "art-2", genre: "R&B", plays: "4.2M", regions: ["Global", "UK", "France"] },
+  {
+    rank: 1,
+    change: 0,
+    title: "Midas Touch",
+    artist: "MIDAS PRIME",
+    artistId: "art-4",
+    genre: "Trap",
+    plays: "12.4M",
+    regions: ["Global", "US", "UK", "Brazil"],
+  },
+  {
+    rank: 2,
+    change: 2,
+    title: "Lagos Gold",
+    artist: "Nyla Solenne",
+    artistId: "art-5",
+    genre: "Afrobeats",
+    plays: "9.8M",
+    regions: ["Global", "UK", "Nigeria", "France"],
+  },
+  {
+    rank: 3,
+    change: 1,
+    title: "Opp Block",
+    artist: "ORACLE",
+    artistId: "art-3",
+    genre: "UK Drill",
+    plays: "8.1M",
+    regions: ["Global", "UK"],
+  },
+  {
+    rank: 4,
+    change: -2,
+    title: "Porcelain Halo",
+    artist: "Seraphine 9",
+    artistId: "art-2",
+    genre: "Hyperpop",
+    plays: "7.6M",
+    regions: ["Global", "US", "France"],
+  },
+  {
+    rank: 5,
+    change: 0,
+    isNew: true,
+    title: "Brick by Brick",
+    artist: "MIDAS PRIME",
+    artistId: "art-4",
+    genre: "Drill",
+    plays: "6.9M",
+    regions: ["Global", "UK", "US"],
+  },
+  {
+    rank: 6,
+    change: 3,
+    title: "Amapiano Mirage",
+    artist: "VISR",
+    artistId: "art-6",
+    genre: "Amapiano",
+    plays: "6.2M",
+    regions: ["Global", "Nigeria", "Brazil"],
+  },
+  {
+    rank: 7,
+    change: -1,
+    title: "Amber Cathedral",
+    artist: "SØL Aurelius",
+    artistId: "art-1",
+    genre: "Electronica",
+    plays: "5.8M",
+    regions: ["Global", "France", "US"],
+  },
+  {
+    rank: 8,
+    change: 1,
+    title: "Corazón de Oro",
+    artist: "Nyla Solenne",
+    artistId: "art-5",
+    genre: "Reggaeton",
+    plays: "5.1M",
+    regions: ["Global", "Brazil", "US"],
+  },
+  {
+    rank: 9,
+    change: 0,
+    isNew: true,
+    title: "Server Phonk",
+    artist: "ORACLE",
+    artistId: "art-3",
+    genre: "Phonk",
+    plays: "4.7M",
+    regions: ["Global", "US", "Brazil"],
+  },
+  {
+    rank: 10,
+    change: -3,
+    title: "Gold Dust",
+    artist: "Seraphine 9",
+    artistId: "art-2",
+    genre: "R&B",
+    plays: "4.2M",
+    regions: ["Global", "UK", "France"],
+  },
 ];
 
 export const chartGenres = [
@@ -241,7 +468,8 @@ export const projects: CreatorProject[] = [
     genre: "Ambient Pop",
     mood: "Euphoric",
     voice: "Warm tenor",
-    prompt: "Cinematic ambient pop with golden-hour pads, soft analogue tape warmth, and a slow euphoric build.",
+    prompt:
+      "Cinematic ambient pop with golden-hour pads, soft analogue tape warmth, and a slow euphoric build.",
     status: "Published",
     updated: { n: 2, u: "h" },
     versions: 4,
@@ -253,7 +481,8 @@ export const projects: CreatorProject[] = [
     genre: "Electronica",
     mood: "Reflective",
     voice: "Instrumental",
-    prompt: "Late-night electronica, sparse piano, vinyl crackle, distant choir, restrained 90 BPM groove.",
+    prompt:
+      "Late-night electronica, sparse piano, vinyl crackle, distant choir, restrained 90 BPM groove.",
     status: "Mastering",
     updated: { u: "yesterday" },
     versions: 2,
@@ -265,7 +494,8 @@ export const projects: CreatorProject[] = [
     genre: "Neo-Soul",
     mood: "Intimate",
     voice: "Alto",
-    prompt: "Re-imagine the original as a slow-burn neo-soul ballad with live drum feel and lush horns.",
+    prompt:
+      "Re-imagine the original as a slow-burn neo-soul ballad with live drum feel and lush horns.",
     status: "Review",
     updated: { n: 3, u: "d" },
     versions: 6,
@@ -395,22 +625,61 @@ export interface BattleHistoryEntry {
 }
 
 export const battleHistory: BattleHistoryEntry[] = [
-  { id: "h-1", winner: "Seraphine 9", loser: "VISR", round: { phase: "final", season: 6 }, margin: "62% · 38%" },
-  { id: "h-2", winner: "MIDAS PRIME", loser: "Nyla Solenne", round: { phase: "semiFinal", season: 6 }, margin: "54% · 46%" },
-  { id: "h-3", winner: "ORACLE", loser: "SØL Aurelius", round: { phase: "semiFinal", season: 6 }, margin: "51% · 49%" },
-  { id: "h-4", winner: "Nyla Solenne", loser: "Seraphine 9", round: { phase: "quarterFinal", season: 6 }, margin: "58% · 42%" },
+  {
+    id: "h-1",
+    winner: "Seraphine 9",
+    loser: "VISR",
+    round: { phase: "final", season: 6 },
+    margin: "62% · 38%",
+  },
+  {
+    id: "h-2",
+    winner: "MIDAS PRIME",
+    loser: "Nyla Solenne",
+    round: { phase: "semiFinal", season: 6 },
+    margin: "54% · 46%",
+  },
+  {
+    id: "h-3",
+    winner: "ORACLE",
+    loser: "SØL Aurelius",
+    round: { phase: "semiFinal", season: 6 },
+    margin: "51% · 49%",
+  },
+  {
+    id: "h-4",
+    winner: "Nyla Solenne",
+    loser: "Seraphine 9",
+    round: { phase: "quarterFinal", season: 6 },
+    margin: "58% · 42%",
+  },
 ];
 
 export const radioStations = [
   { id: "s-1", name: "Golden Hour", mood: "Warm · Ambient", listeners: "12.4K", live: true },
   { id: "s-2", name: "Trap Mansion", mood: "Trap · Hip-Hop", listeners: "18.9K", live: true },
-  { id: "s-3", name: "Lagos After Dark", mood: "Afrobeats · Amapiano", listeners: "15.2K", live: true },
+  {
+    id: "s-3",
+    name: "Lagos After Dark",
+    mood: "Afrobeats · Amapiano",
+    listeners: "15.2K",
+    live: true,
+  },
   { id: "s-4", name: "Opp Block Radio", mood: "UK Drill · Drill", listeners: "11.7K", live: false },
   { id: "s-5", name: "Velvet Lounge", mood: "Neo-Soul · R&B", listeners: "5.2K", live: false },
   { id: "s-6", name: "Community Curated", mood: "Voted by fans", listeners: "14.9K", live: true },
 ];
 
-export const moods = ["Euphoric", "Hypnotic", "Intimate", "Dramatic", "Nostalgic", "Triumphant", "Ethereal", "Reflective"];
+export const moods = [
+  "Euphoric",
+  "Hypnotic",
+  "Intimate",
+  "Dramatic",
+  "Nostalgic",
+  "Triumphant",
+  "Ethereal",
+  "Reflective",
+];
 
 export interface HallOfFameEntry {
   id: string;
@@ -450,7 +719,8 @@ export const topCreators = artists.slice(0, 5).map((a, i) => ({
 export interface ActivityItem {
   id: string;
   who: string;
-  actionKey: "publishedRelease" | "enteredBattle" | "signedArtist" | "crossedListeners" | "climbedTrending";
+  actionKey:
+    "publishedRelease" | "enteredBattle" | "signedArtist" | "crossedListeners" | "climbedTrending";
   actionVars?: Record<string, string>;
   detail?: string;
   detailKey?: string;
@@ -458,11 +728,42 @@ export interface ActivityItem {
 }
 
 export const activityFeed: ActivityItem[] = [
-  { id: "a-1", who: "Seraphine 9", actionKey: "publishedRelease", detail: "Chrome Aria", time: { n: 8, u: "m" } },
-  { id: "a-2", who: "MIDAS PRIME", actionKey: "enteredBattle", detail: "vs Seraphine 9", time: { n: 21, u: "m" } },
-  { id: "a-3", who: "Maison Noir", actionKey: "signedArtist", detail: "ORACLE", time: { n: 1, u: "h" } },
-  { id: "a-4", who: "Nyla Solenne", actionKey: "crossedListeners", actionVars: { n: "2.5M" }, detailKey: "milestone", time: { n: 2, u: "h" } },
-  { id: "a-5", who: "VISR", actionKey: "climbedTrending", detail: "Synthwave", time: { n: 3, u: "h" } },
+  {
+    id: "a-1",
+    who: "Seraphine 9",
+    actionKey: "publishedRelease",
+    detail: "Chrome Aria",
+    time: { n: 8, u: "m" },
+  },
+  {
+    id: "a-2",
+    who: "MIDAS PRIME",
+    actionKey: "enteredBattle",
+    detail: "vs Seraphine 9",
+    time: { n: 21, u: "m" },
+  },
+  {
+    id: "a-3",
+    who: "Maison Noir",
+    actionKey: "signedArtist",
+    detail: "ORACLE",
+    time: { n: 1, u: "h" },
+  },
+  {
+    id: "a-4",
+    who: "Nyla Solenne",
+    actionKey: "crossedListeners",
+    actionVars: { n: "2.5M" },
+    detailKey: "milestone",
+    time: { n: 2, u: "h" },
+  },
+  {
+    id: "a-5",
+    who: "VISR",
+    actionKey: "climbedTrending",
+    detail: "Synthwave",
+    time: { n: 3, u: "h" },
+  },
 ];
 
 export function getArtist(id: string) {
