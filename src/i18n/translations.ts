@@ -628,6 +628,7 @@ const fr: Dict = {
     delete: "Supprimer",
     deleted: "Playlist supprimée",
   },
+  onboarding: {
     eyebrow: "Bienvenue",
     title: "Prenez vos marques",
     desc: "Trois gestes pour faire de Ai Music Factory votre studio.",
