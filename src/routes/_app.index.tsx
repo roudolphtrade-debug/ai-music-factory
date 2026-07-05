@@ -253,50 +253,65 @@ function HomePage() {
           ))}
         </div>
         <div key={region} className="animate-list-fade overflow-hidden rounded-2xl border border-border surface-premium">
-          {charts.map((c, i) => (
-            <div
-              key={`${c.rank}-${c.title}`}
-              className={cn(
-                "group flex items-center gap-4 px-4 py-3 transition-colors hover:bg-secondary/40",
-                i !== charts.length - 1 && "border-b border-border/60",
-              )}
-            >
-              <span className="w-6 text-center font-display text-lg font-semibold tabular-nums text-foreground">
-                {c.rank}
-              </span>
-              <ChartChange change={c.change} isNew={c.isNew} newLabel={t("charts.new")} />
-              <div className="relative h-11 w-11 shrink-0">
-                <img
-                  src={artistImages[c.artistId]}
-                  alt={c.artist}
-                  loading="lazy"
-                  className="h-11 w-11 rounded-lg object-cover ring-1 ring-border"
-                />
-                <div className="absolute inset-0 hidden place-items-center rounded-lg bg-black/45 opacity-0 transition-opacity group-hover:opacity-100 sm:grid">
-                  <PlayButton track={chartQueue[i]} queue={chartQueue} size="sm" />
+          {charts.map((c, i) => {
+            const track = chartQueue[i];
+            const active = isActive(track.id);
+            return (
+              <div
+                key={`${c.rank}-${c.title}`}
+                className={cn(
+                  "group flex items-center gap-3 px-3 py-3 transition-colors hover:bg-secondary/40 sm:gap-4 sm:px-4",
+                  i !== charts.length - 1 && "border-b border-border/60",
+                )}
+              >
+                <span className="w-5 shrink-0 text-center font-display text-base font-semibold tabular-nums text-foreground sm:w-6 sm:text-lg">
+                  {c.rank}
+                </span>
+                <ChartChange change={c.change} isNew={c.isNew} newLabel={t("charts.new")} />
+                {/* Cover doubles as the play control: revealed on hover (desktop)
+                    and when the track is active/selected (mobile) to keep the list light. */}
+                <div className="relative h-11 w-11 shrink-0">
+                  <img
+                    src={artistImages[c.artistId]}
+                    alt={c.artist}
+                    loading="lazy"
+                    className="h-11 w-11 rounded-lg object-cover ring-1 ring-border"
+                  />
+                  <div
+                    className={cn(
+                      "absolute inset-0 grid place-items-center rounded-lg bg-black/45 opacity-0 transition-opacity group-hover:opacity-100",
+                      active && "opacity-100",
+                    )}
+                  >
+                    <PlayButton track={track} queue={chartQueue} size="sm" />
+                  </div>
                 </div>
+                <div className="min-w-0 flex-1">
+                  <Link
+                    to="/artists/$artistId"
+                    params={{ artistId: c.artistId }}
+                    className="block truncate font-medium text-foreground transition-colors hover:text-gold"
+                  >
+                    {c.title}
+                  </Link>
+                  <Link
+                    to="/artists/$artistId"
+                    params={{ artistId: c.artistId }}
+                    className="block truncate text-xs text-muted-foreground transition-colors hover:text-gold"
+                  >
+                    {c.artist}
+                  </Link>
+                </div>
+                <GoldBadge variant="outline" className="hidden sm:inline-flex">
+                  {c.genre}
+                </GoldBadge>
+                <LikeButton trackId={track.id} size="sm" />
+                <span className="hidden w-16 text-right text-xs tabular-nums text-muted-foreground sm:block">
+                  {c.plays}
+                </span>
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-foreground">{c.title}</p>
-                <Link
-                  to="/artists/$artistId"
-                  params={{ artistId: c.artistId }}
-                  className="truncate text-xs text-muted-foreground transition-colors hover:text-gold"
-                >
-                  {c.artist}
-                </Link>
-              </div>
-              <GoldBadge variant="outline" className="hidden sm:inline-flex">
-                {c.genre}
-              </GoldBadge>
-              <PlayButton track={chartQueue[i]} queue={chartQueue} size="sm" className="sm:hidden" />
-              <LikeButton trackId={chartQueue[i].id} size="sm" className="hidden sm:inline-flex" />
-              <span className="w-16 text-right text-xs tabular-nums text-muted-foreground">
-                {c.plays}
-              </span>
-
-            </div>
-          ))}
+            );
+          })}
         </div>
       </Reveal>
 
