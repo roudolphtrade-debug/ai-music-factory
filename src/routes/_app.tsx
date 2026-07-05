@@ -18,17 +18,19 @@ function AppLayout() {
     <NotificationsProvider>
       <CreditsProvider>
         <LibraryProvider>
-          <LabelsProvider>
-            <BattlesProvider>
-              <GeneratedDraftsProvider>
-                <PlayerProvider>
-                  <AppShell>
-                    <Outlet />
-                  </AppShell>
-                </PlayerProvider>
-              </GeneratedDraftsProvider>
-            </BattlesProvider>
-          </LabelsProvider>
+          <PlaylistsProvider>
+            <LabelsProvider>
+              <BattlesProvider>
+                <GeneratedDraftsProvider>
+                  <PlayerProvider>
+                    <AppShell>
+                      <Outlet />
+                    </AppShell>
+                  </PlayerProvider>
+                </GeneratedDraftsProvider>
+              </BattlesProvider>
+            </LabelsProvider>
+          </PlaylistsProvider>
         </LibraryProvider>
       </CreditsProvider>
     </NotificationsProvider>
