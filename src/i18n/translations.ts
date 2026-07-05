@@ -583,6 +583,7 @@ const fr: Dict = {
   },
   charts: {
     new: "NOUVEAU",
+    playTrack: "Lire {title} de {artist}",
     regions: { Global: "Monde", US: "USA", UK: "UK", France: "France", Nigeria: "Nigéria", Brazil: "Brésil" },
   },
   library: {
@@ -1214,6 +1215,7 @@ const en: Dict = {
   },
   charts: {
     new: "NEW",
+    playTrack: "Play {title} by {artist}",
     regions: { Global: "Global", US: "US", UK: "UK", France: "France", Nigeria: "Nigeria", Brazil: "Brazil" },
   },
   library: {
@@ -1845,6 +1847,7 @@ const es: Dict = {
   },
   charts: {
     new: "NUEVO",
+    playTrack: "Reproducir {title} de {artist}",
     regions: { Global: "Global", US: "EE. UU.", UK: "RU", France: "Francia", Nigeria: "Nigeria", Brazil: "Brasil" },
   },
   library: {
@@ -2136,6 +2139,7 @@ const zh: Dict = {
   },
   charts: {
     new: "新曲",
+    playTrack: "播放 {title} - {artist}",
     regions: { Global: "全球", US: "美国", UK: "英国", France: "法国", Nigeria: "尼日利亚", Brazil: "巴西" },
   },
   library: {
@@ -2463,6 +2467,7 @@ const pt: Dict = {
   },
   charts: {
     new: "NOVO",
+    playTrack: "Reproduzir {title} de {artist}",
     regions: { Global: "Global", US: "EUA", UK: "Reino Unido", France: "França", Nigeria: "Nigéria", Brazil: "Brasil" },
   },
   library: {
@@ -2790,6 +2795,7 @@ const ar: Dict = {
   },
   charts: {
     new: "جديد",
+    playTrack: "تشغيل {title} لـ {artist}",
     regions: { Global: "عالمي", US: "الولايات المتحدة", UK: "المملكة المتحدة", France: "فرنسا", Nigeria: "نيجيريا", Brazil: "البرازيل" },
   },
   library: {

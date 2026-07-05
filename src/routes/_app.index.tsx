@@ -284,7 +284,12 @@ function HomePage() {
                       active && "opacity-100 sm:opacity-100",
                     )}
                   >
-                    <PlayButton track={track} queue={chartQueue} size="sm" />
+                    <PlayButton
+                      track={track}
+                      queue={chartQueue}
+                      size="sm"
+                      label={t("charts.playTrack", { title: c.title, artist: c.artist })}
+                    />
                   </div>
                 </div>
                 <div className="min-w-0 flex-1">
