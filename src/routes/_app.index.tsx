@@ -197,7 +197,8 @@ function HomePage() {
       <DailyJury />
 
       {/* STATS */}
-      <Reveal as="section" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <Reveal as="section" className="relative grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <DemoBadge className="absolute -top-6 right-0" />
         {platformStats.map((s, i) => (
           <StatModule
             key={s.key}
