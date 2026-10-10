@@ -102,7 +102,7 @@ const fr: Dict = {
     startsIn: "Commence dans {t}",
   },
   status: {
-    live: "En direct",
+    live: "En écoute",
     upcoming: "À venir",
     scheduled: "Programmé",
     published: "Publié",
@@ -801,7 +801,7 @@ const en: Dict = {
     startsIn: "Starts in {t}",
   },
   status: {
-    live: "Live",
+    live: "Playing",
     upcoming: "Upcoming",
     scheduled: "Scheduled",
     published: "Published",
@@ -1496,7 +1496,7 @@ const es: Dict = {
     startsIn: "Empieza en {t}",
   },
   status: {
-    live: "En vivo",
+    live: "Sonando",
     upcoming: "Próximo",
     scheduled: "Programado",
     published: "Publicado",
@@ -2180,7 +2180,7 @@ const zh: Dict = {
     startsIn: "{t} 后开始",
   },
   status: {
-    live: "直播",
+    live: "播放中",
     upcoming: "即将",
     scheduled: "已排期",
     published: "已发布",
@@ -2580,7 +2580,7 @@ const pt: Dict = {
     startsIn: "Começa em {t}",
   },
   status: {
-    live: "Ao vivo",
+    live: "Tocando",
     upcoming: "Em breve",
     scheduled: "Agendado",
     published: "Publicado",
@@ -2984,7 +2984,7 @@ const ar: Dict = {
     startsIn: "يبدأ خلال {t}",
   },
   status: {
-    live: "مباشر",
+    live: "قيد التشغيل",
     upcoming: "قادم",
     scheduled: "مجدول",
     published: "منشور",
