@@ -439,6 +439,7 @@ function HomePage() {
           ))}
         </div>
       </Reveal>
+      <PillarBand />
     </div>
   );
 }
@@ -539,7 +540,6 @@ function BattleSide({
         <p className="text-xs text-muted-foreground">{side.track}</p>
       </div>
       <VoteButton initialVotes={side.votes} size="sm" />
-      <PillarBand />
     </div>
   );
 }
