@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Radio, AudioWaveform, Library, Menu } from "lucide-react";
+import { Home, Search, AudioWaveform, Library, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/context";
 
@@ -21,7 +21,6 @@ export function MobileTabBar({ onMenu }: { onMenu: () => void }) {
 
   const items = [
     { label: t("nav.home"), to: "/", icon: Home, exact: true },
-    { label: t("nav.radio"), to: "/radio", icon: Radio, exact: false },
   ] as const;
 
   const trailingItems = [
@@ -38,6 +37,14 @@ export function MobileTabBar({ onMenu }: { onMenu: () => void }) {
         {items.map((item) => (
           <TabLink key={item.to} {...item} active={isActive(item.to, item.exact)} />
         ))}
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new Event("afm:open-search"))}
+          className="flex flex-col items-center gap-1 py-2.5 text-muted-foreground transition-colors active:text-gold"
+        >
+          <Search className="h-5 w-5" />
+          <span className="text-[0.65rem] font-medium">{t("nav.search")}</span>
+        </button>
 
         {/* Raised center action — the core "create" flow gets visual priority */}
         <Link

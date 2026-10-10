@@ -19,6 +19,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SectionHeading } from "@/components/premium/SectionHeading";
+import { PillarBand } from "@/components/premium/PillarBand";
+import { DemoBadge } from "@/components/premium/DemoBadge";
 import { StatModule } from "@/components/premium/StatModule";
 import { DailyJury } from "@/components/premium/DailyJury";
 import { ArtistCard } from "@/components/premium/ArtistCard";
@@ -207,6 +209,8 @@ function HomePage() {
         ))}
       </Reveal>
 
+      <PillarBand />
+
       {/* CONTINUE LISTENING */}
       {historyTracks.length > 0 && (
         <Reveal as="section" className="space-y-6">
@@ -262,7 +266,7 @@ function HomePage() {
 
           {/* CHARTS */}
           <TabsContent value="charts" className="space-y-6">
-            <SectionHeading title={t("home.charts.title")} description={t("home.charts.desc")} />
+            <SectionHeading title={t("home.charts.title")} description={t("home.charts.desc")} action={<DemoBadge />} />
             <div className="flex flex-wrap gap-2">
               {chartRegions.map((r) => (
                 <button
