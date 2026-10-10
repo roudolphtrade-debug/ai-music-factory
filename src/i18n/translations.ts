@@ -16,7 +16,11 @@ type Dict = Record<string, unknown>;
 const fr: Dict = {
   language: { label: "Langue" },
   nav: {
-    sections: { studio: "Studio", discover: "Découvrir", you: "Vous" },
+    sections: { studio: "Studio", discover: "Découvrir", you: "Vous" , create: "Create", identity: "Identity", connect: "Connect", grow: "Grow" },
+    search: "Rechercher",
+    demo: "Démo",
+    challenges: "Défis créatifs",
+    pillarDesc: { create: "Créer et produire", identity: "Ton identité artiste", discover: "Écouter et explorer", connect: "Communauté et défis", grow: "Développer ta carrière" },
     home: "Accueil",
     studio: "Studio de création",
     avatarLab: "Avatar Lab",
@@ -711,7 +715,11 @@ const fr: Dict = {
 const en: Dict = {
   language: { label: "Language" },
   nav: {
-    sections: { studio: "Studio", discover: "Discover", you: "You" },
+    sections: { studio: "Studio", discover: "Discover", you: "You" , create: "Create", identity: "Identity", connect: "Connect", grow: "Grow" },
+    search: "Search",
+    demo: "Demo",
+    challenges: "Creative challenges",
+    pillarDesc: { create: "Make and produce", identity: "Your artist identity", discover: "Listen and explore", connect: "Community and challenges", grow: "Grow your career" },
     home: "Home",
     studio: "Creator Studio",
     avatarLab: "Avatar Lab",
@@ -1402,7 +1410,11 @@ const en: Dict = {
 const es: Dict = {
   language: { label: "Idioma" },
   nav: {
-    sections: { studio: "Studio", discover: "Descubrir", you: "Tú" },
+    sections: { studio: "Studio", discover: "Descubrir", you: "Tú" , create: "Create", identity: "Identity", connect: "Connect", grow: "Grow" },
+    search: "Buscar",
+    demo: "Demo",
+    challenges: "Retos creativos",
+    pillarDesc: { create: "Crear y producir", identity: "Tu identidad artística", discover: "Escuchar y explorar", connect: "Comunidad y retos", grow: "Haz crecer tu carrera" },
     home: "Inicio",
     studio: "Estudio de creación",
     avatarLab: "Avatar Lab",
@@ -2082,7 +2094,11 @@ const es: Dict = {
 const zh: Dict = {
   language: { label: "语言" },
   nav: {
-    sections: { studio: "工作室", discover: "发现", you: "我的" },
+    sections: { studio: "工作室", discover: "发现", you: "我的" , create: "Create", identity: "Identity", connect: "Connect", grow: "Grow" },
+    search: "搜索",
+    demo: "演示",
+    challenges: "创意挑战",
+    pillarDesc: { create: "创作与制作", identity: "你的艺术家身份", discover: "聆听与探索", connect: "社区与挑战", grow: "发展你的事业" },
     home: "首页",
     studio: "创作工作室",
     avatarLab: "形象实验室",
@@ -2478,7 +2494,11 @@ const zh: Dict = {
 const pt: Dict = {
   language: { label: "Idioma" },
   nav: {
-    sections: { studio: "Estúdio", discover: "Descobrir", you: "Você" },
+    sections: { studio: "Estúdio", discover: "Descobrir", you: "Você" , create: "Create", identity: "Identity", connect: "Connect", grow: "Grow" },
+    search: "Buscar",
+    demo: "Demo",
+    challenges: "Desafios criativos",
+    pillarDesc: { create: "Criar e produzir", identity: "Sua identidade artística", discover: "Ouvir e explorar", connect: "Comunidade e desafios", grow: "Cresça sua carreira" },
     home: "Início",
     studio: "Estúdio de criação",
     avatarLab: "Laboratório de avatar",
@@ -2878,7 +2898,11 @@ const pt: Dict = {
 const ar: Dict = {
   language: { label: "اللغة" },
   nav: {
-    sections: { studio: "الاستوديو", discover: "اكتشف", you: "أنت" },
+    sections: { studio: "الاستوديو", discover: "اكتشف", you: "أنت" , create: "Create", identity: "Identity", connect: "Connect", grow: "Grow" },
+    search: "بحث",
+    demo: "تجريبي",
+    challenges: "تحديات إبداعية",
+    pillarDesc: { create: "أنشئ وأنتج", identity: "هويتك الفنية", discover: "استمع واستكشف", connect: "المجتمع والتحديات", grow: "طوّر مسيرتك" },
     home: "الرئيسية",
     studio: "استوديو الإنشاء",
     avatarLab: "مختبر الأفاتار",

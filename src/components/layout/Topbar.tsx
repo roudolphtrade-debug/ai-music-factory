@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, Plus, Menu } from "lucide-react";
 import { NotificationsBell } from "@/components/premium/NotificationsBell";
 import { CircularFlag } from "@/components/premium/CircularFlag";
@@ -12,6 +12,11 @@ import { cn } from "@/lib/utils";
 export function Topbar({ onMenu }: { onMenu: () => void }) {
   const { t, lang, setLang } = useI18n();
   const [searchOpen, setSearchOpen] = useState(false);
+  useEffect(() => {
+    const open = () => setSearchOpen(true);
+    window.addEventListener("afm:open-search", open);
+    return () => window.removeEventListener("afm:open-search", open);
+  }, []);
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-xl">
