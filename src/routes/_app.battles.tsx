@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Swords } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Swords, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/premium/SectionHeading";
 import { BattleAudioCard } from "@/components/audio/BattleAudioCard";
@@ -28,9 +28,16 @@ function BattlesPage() {
         title={t("battles.title")}
         description={t("battles.desc")}
         action={
-          <Button variant="gold" size="lg">
-            <Swords className="h-4 w-4" /> {t("battles.joinNext")}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="ghost-gold" size="lg">
+              <Link to="/hall-of-fame">
+                <Crown className="h-4 w-4" /> {t("nav.hallOfFame")}
+              </Link>
+            </Button>
+            <Button variant="gold" size="lg">
+              <Swords className="h-4 w-4" /> {t("battles.joinNext")}
+            </Button>
+          </div>
         }
       />
 

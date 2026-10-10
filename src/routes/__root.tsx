@@ -82,26 +82,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "theme-color", content: "#0a0a0a" },
-      { title: "Ai Music Factory — A social OS for AI-native artists" },
+      { title: "Ai Music Factory — Music enters a new era" },
       {
         name: "description",
         content:
-          "Ai Music Factory is the premium social operating system for AI-native artists: create tracks, build virtual identities, run labels, battle, and rise through the ranks.",
+          "Create, discover and share music in the age of AI — a premium platform for human, hybrid and AI artists, producers, fans and professionals.",
       },
       { name: "author", content: "Ai Music Factory" },
-      { property: "og:title", content: "Ai Music Factory — A social OS for AI-native artists" },
+      { property: "og:title", content: "Ai Music Factory — Music enters a new era" },
       {
         property: "og:description",
         content:
-          "Ai Music Factory is the premium social operating system for AI-native artists: create tracks, build virtual identities, run labels, battle, and rise through the ranks.",
+          "Create, discover and share music in the age of AI — a premium platform for human, hybrid and AI artists, producers, fans and professionals.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Ai Music Factory — A social OS for AI-native artists" },
+      { name: "twitter:title", content: "Ai Music Factory — Music enters a new era" },
       {
         name: "twitter:description",
         content:
-          "Ai Music Factory is the premium social operating system for AI-native artists: create tracks, build virtual identities, run labels, battle, and rise through the ranks.",
+          "Create, discover and share music in the age of AI — a premium platform for human, hybrid and AI artists, producers, fans and professionals.",
       },
       {
         property: "og:image",

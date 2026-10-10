@@ -24,8 +24,8 @@ const fr: Dict = {
     home: "Accueil",
     studio: "Studio de création",
     avatarLab: "Avatar Lab",
-    artists: "Artistes virtuels",
-    radio: "Radio IA",
+    artists: "Artistes",
+    radio: "Radio",
     battles: "Battles",
     labels: "Labels virtuels",
     hallOfFame: "Temple de la renommée",
@@ -102,7 +102,7 @@ const fr: Dict = {
     startsIn: "Commence dans {t}",
   },
   status: {
-    live: "En direct",
+    live: "En écoute",
     upcoming: "À venir",
     scheduled: "Programmé",
     published: "Publié",
@@ -131,13 +131,13 @@ const fr: Dict = {
   },
   home: {
     hero: {
-      badge: "Saison 7 · En direct",
-      titleLead: "La scène où les",
-      titleAccent: "machines deviennent des icônes.",
+      badge: "À la une",
+      titleLead: "La musique entre dans",
+      titleAccent: "une nouvelle ère.",
       subtitle:
-        "Créez de la musique, forgez une identité virtuelle, bâtissez un label et grimpez au classement grâce aux battles et à la réputation — le système d'exploitation social des artistes nés de l'IA.",
+        "Créez, découvrez et partagez la musique à l'ère de l'intelligence artificielle — pour les artistes humains, hybrides et IA, les producteurs, les fans et les professionnels.",
       startCreating: "Commencer à créer",
-      exploreArtists: "Explorer les artistes",
+      exploreArtists: "Explorer la musique",
     },
     stats: {
       tracksPublished: "Titres publiés",
@@ -282,7 +282,7 @@ const fr: Dict = {
   artists: {
     eyebrow: "Découvrir",
     title: "Artistes virtuels",
-    desc: "Un roster d'icônes nées de l'IA — chacune avec une identité, un son et une communauté uniques.",
+    desc: "Des artistes de tous horizons — humains, hybrides et IA — chacun avec une identité, un son et une communauté.",
   },
   artistProfile: {
     allArtists: "Tous les artistes",
@@ -301,7 +301,7 @@ const fr: Dict = {
     enterCommunity: "Entrer dans la communauté",
     plays: "écoutes",
     notFoundTitle: "Artiste introuvable",
-    notFoundDesc: "Cette identité virtuelle a peut-être été retirée ou n'a jamais existé.",
+    notFoundDesc: "Cet artiste a peut-être été retiré ou n'a jamais existé.",
     goBack: "Retour",
     browse: "Parcourir les artistes",
   },
@@ -723,8 +723,8 @@ const en: Dict = {
     home: "Home",
     studio: "Creator Studio",
     avatarLab: "Avatar Lab",
-    artists: "Virtual Artists",
-    radio: "AI Radio",
+    artists: "Artists",
+    radio: "Radio",
     battles: "Battles",
     labels: "Virtual Labels",
     hallOfFame: "Hall of Fame",
@@ -801,7 +801,7 @@ const en: Dict = {
     startsIn: "Starts in {t}",
   },
   status: {
-    live: "Live",
+    live: "Playing",
     upcoming: "Upcoming",
     scheduled: "Scheduled",
     published: "Published",
@@ -830,13 +830,13 @@ const en: Dict = {
   },
   home: {
     hero: {
-      badge: "Season 7 · Now live",
-      titleLead: "The stage where",
-      titleAccent: "machines become icons.",
+      badge: "Featured",
+      titleLead: "Music is entering",
+      titleAccent: "a new era.",
       subtitle:
-        "Create music, forge a virtual identity, build a label, and rise through battles and reputation — the social operating system for AI-native artists.",
+        "Create, discover and share music in the age of artificial intelligence — for human, hybrid and AI artists, producers, fans and professionals.",
       startCreating: "Start creating",
-      exploreArtists: "Explore artists",
+      exploreArtists: "Explore music",
     },
     stats: {
       tracksPublished: "Tracks Published",
@@ -897,7 +897,7 @@ const en: Dict = {
   studio: {
     eyebrow: "Creator Studio",
     title: "Compose your next release",
-    desc: "Prompt, shape and master tracks with a workflow built for AI-native artists.",
+    desc: "Prompt, shape and master tracks with a workflow built for every artist.",
     createNew: "Create new track",
     newComposition: "New composition",
     prompt: "Prompt",
@@ -981,7 +981,7 @@ const en: Dict = {
   artists: {
     eyebrow: "Discover",
     title: "Virtual artists",
-    desc: "A roster of AI-native icons — each with a distinct identity, sound and following.",
+    desc: "Artists from every horizon — human, hybrid and AI — each with a distinct identity, sound and following.",
   },
   artistProfile: {
     allArtists: "All artists",
@@ -1418,8 +1418,8 @@ const es: Dict = {
     home: "Inicio",
     studio: "Estudio de creación",
     avatarLab: "Avatar Lab",
-    artists: "Artistas virtuales",
-    radio: "Radio IA",
+    artists: "Artistas",
+    radio: "Radio",
     battles: "Batallas",
     labels: "Sellos virtuales",
     hallOfFame: "Salón de la fama",
@@ -1496,7 +1496,7 @@ const es: Dict = {
     startsIn: "Empieza en {t}",
   },
   status: {
-    live: "En vivo",
+    live: "Sonando",
     upcoming: "Próximo",
     scheduled: "Programado",
     published: "Publicado",
@@ -1525,13 +1525,13 @@ const es: Dict = {
   },
   home: {
     hero: {
-      badge: "Temporada 7 · En vivo",
-      titleLead: "El escenario donde las",
-      titleAccent: "máquinas se vuelven íconos.",
+      badge: "Destacado",
+      titleLead: "La música entra en",
+      titleAccent: "una nueva era.",
       subtitle:
-        "Crea música, forja una identidad virtual, construye un sello y asciende mediante batallas y reputación — el sistema operativo social para artistas nativos de la IA.",
+        "Crea, descubre y comparte música en la era de la inteligencia artificial — para artistas humanos, híbridos e IA, productores, fans y profesionales.",
       startCreating: "Empezar a crear",
-      exploreArtists: "Explorar artistas",
+      exploreArtists: "Explorar música",
     },
     stats: {
       tracksPublished: "Temas publicados",
@@ -2102,8 +2102,8 @@ const zh: Dict = {
     home: "首页",
     studio: "创作工作室",
     avatarLab: "形象实验室",
-    artists: "虚拟艺人",
-    radio: "AI 电台",
+    artists: "艺人",
+    radio: "电台",
     battles: "对决",
     labels: "虚拟厂牌",
     hallOfFame: "名人堂",
@@ -2180,7 +2180,7 @@ const zh: Dict = {
     startsIn: "{t} 后开始",
   },
   status: {
-    live: "直播",
+    live: "播放中",
     upcoming: "即将",
     scheduled: "已排期",
     published: "已发布",
@@ -2209,13 +2209,13 @@ const zh: Dict = {
   },
   home: {
     hero: {
-      badge: "第 7 季 · 直播中",
-      titleLead: "让机器成为",
-      titleAccent: "传奇的舞台。",
+      badge: "精选",
+      titleLead: "音乐正在进入",
+      titleAccent: "一个新时代。",
       subtitle:
-        "创作音乐、塑造虚拟身份、打造厂牌，凭借对决与声望登上排行榜 —— 这是 AI 原生艺人的社交操作系统。",
+        "在人工智能时代创作、发现和分享音乐——面向人类、混合与 AI 艺人、制作人、乐迷和专业人士。",
       startCreating: "开始创作",
-      exploreArtists: "探索艺人",
+      exploreArtists: "探索音乐",
     },
     stats: {
       tracksPublished: "已发布曲目",
@@ -2502,8 +2502,8 @@ const pt: Dict = {
     home: "Início",
     studio: "Estúdio de criação",
     avatarLab: "Laboratório de avatar",
-    artists: "Artistas virtuais",
-    radio: "Rádio IA",
+    artists: "Artistas",
+    radio: "Rádio",
     battles: "Batalhas",
     labels: "Selos virtuais",
     hallOfFame: "Hall da fama",
@@ -2580,7 +2580,7 @@ const pt: Dict = {
     startsIn: "Começa em {t}",
   },
   status: {
-    live: "Ao vivo",
+    live: "Tocando",
     upcoming: "Em breve",
     scheduled: "Agendado",
     published: "Publicado",
@@ -2609,13 +2609,13 @@ const pt: Dict = {
   },
   home: {
     hero: {
-      badge: "Temporada 7 · Ao vivo",
-      titleLead: "O palco onde as",
-      titleAccent: "máquinas viram ícones.",
+      badge: "Destaque",
+      titleLead: "A música entra em",
+      titleAccent: "uma nova era.",
       subtitle:
-        "Crie música, forje uma identidade virtual, construa um selo e suba no ranking com batalhas e reputação — o sistema operacional social dos artistas nascidos da IA.",
+        "Crie, descubra e compartilhe música na era da inteligência artificial — para artistas humanos, híbridos e IA, produtores, fãs e profissionais.",
       startCreating: "Começar a criar",
-      exploreArtists: "Explorar artistas",
+      exploreArtists: "Explorar música",
     },
     stats: {
       tracksPublished: "Faixas publicadas",
@@ -2906,8 +2906,8 @@ const ar: Dict = {
     home: "الرئيسية",
     studio: "استوديو الإنشاء",
     avatarLab: "مختبر الأفاتار",
-    artists: "فنانون افتراضيون",
-    radio: "راديو الذكاء الاصطناعي",
+    artists: "الفنانون",
+    radio: "الراديو",
     battles: "المنازلات",
     labels: "علامات افتراضية",
     hallOfFame: "قاعة المشاهير",
@@ -2984,7 +2984,7 @@ const ar: Dict = {
     startsIn: "يبدأ خلال {t}",
   },
   status: {
-    live: "مباشر",
+    live: "قيد التشغيل",
     upcoming: "قادم",
     scheduled: "مجدول",
     published: "منشور",
@@ -3013,13 +3013,13 @@ const ar: Dict = {
   },
   home: {
     hero: {
-      badge: "الموسم 7 · مباشر",
-      titleLead: "المنصة التي تتحول فيها",
-      titleAccent: "الآلات إلى أيقونات.",
+      badge: "مميز",
+      titleLead: "الموسيقى تدخل",
+      titleAccent: "عصرًا جديدًا.",
       subtitle:
-        "أنشئ الموسيقى، اصنع هوية افتراضية، ابنِ علامة وتسلّق الترتيب عبر المنازلات والسمعة — نظام التشغيل الاجتماعي للفنانين المولودين من الذكاء الاصطناعي.",
+        "أنشئ واكتشف وشارك الموسيقى في عصر الذكاء الاصطناعي — للفنانين البشر والهجينين والذكاء الاصطناعي والمنتجين والمعجبين والمحترفين.",
       startCreating: "ابدأ الإنشاء",
-      exploreArtists: "استكشف الفنانين",
+      exploreArtists: "استكشف الموسيقى",
     },
     stats: {
       tracksPublished: "مقاطع منشورة",

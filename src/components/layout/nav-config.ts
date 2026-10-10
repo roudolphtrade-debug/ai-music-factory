@@ -10,6 +10,7 @@ import {
   BarChart3,
   Settings,
   Library,
+  Gem,
   type LucideIcon,
 } from "lucide-react";
 
@@ -28,23 +29,18 @@ export interface NavSection {
 /** Navigation organised around the five product pillars. */
 export const navSections: NavSection[] = [
   {
-    heading: "nav.sections.create",
-    items: [{ label: "nav.studio", to: "/studio", icon: AudioWaveform }],
-  },
-  {
-    heading: "nav.sections.identity",
-    items: [
-      { label: "nav.avatarLab", to: "/avatar-lab", icon: Sparkles },
-      { label: "nav.settings", to: "/settings", icon: Settings },
-    ],
-  },
-  {
     heading: "nav.sections.discover",
     items: [
       { label: "nav.home", to: "/", icon: Home, exact: true },
       { label: "nav.artists", to: "/artists", icon: Users },
       { label: "nav.radio", to: "/radio", icon: Radio },
-      { label: "nav.library", to: "/library", icon: Library },
+    ],
+  },
+  {
+    heading: "nav.sections.create",
+    items: [
+      { label: "nav.studio", to: "/studio", icon: AudioWaveform },
+      { label: "nav.avatarLab", to: "/avatar-lab", icon: Sparkles },
     ],
   },
   {
@@ -59,6 +55,14 @@ export const navSections: NavSection[] = [
     items: [
       { label: "nav.analytics", to: "/analytics", icon: BarChart3 },
       { label: "nav.labels", to: "/labels", icon: Building2 },
+    ],
+  },
+  {
+    heading: "nav.sections.you",
+    items: [
+      { label: "nav.library", to: "/library", icon: Library },
+      { label: "nav.settings", to: "/settings", icon: Settings },
+      { label: "nav.credits", to: "/credits", icon: Gem },
     ],
   },
 ];
