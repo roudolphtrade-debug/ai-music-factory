@@ -13,6 +13,7 @@ import { useSpotlight } from "@/hooks/useSpotlight";
 import { releasesFor } from "@/audio/tracks";
 import { getArtist, artistImages, tracks } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
+import { ArtistNotFound } from "@/components/premium/ArtistNotFound";
 
 export const Route = createFileRoute("/_app/artists/$artistId")({
   head: () => ({
@@ -193,27 +194,6 @@ function ProfileStat({ label, value }: { label: string; value: string }) {
       <p className="mt-2 font-display text-2xl font-semibold text-foreground sm:text-3xl">
         {value}
       </p>
-    </div>
-  );
-}
-
-function ArtistNotFound() {
-  const { t } = useI18n();
-  const router = useRouter();
-  return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/40 px-6 py-20 text-center">
-      <h2 className="font-display text-2xl font-semibold text-foreground">
-        {t("artistProfile.notFoundTitle")}
-      </h2>
-      <p className="mt-2 text-sm text-muted-foreground">{t("artistProfile.notFoundDesc")}</p>
-      <div className="mt-5 flex gap-3">
-        <Button variant="ghost-gold" onClick={() => router.history.back()}>
-          {t("artistProfile.goBack")}
-        </Button>
-        <Button asChild variant="gold">
-          <Link to="/artists">{t("artistProfile.browse")}</Link>
-        </Button>
-      </div>
     </div>
   );
 }
