@@ -17,7 +17,7 @@ export function Logo({
             <span className="font-normal italic text-muted-foreground">Factory</span>
           </span>
           <span className="eyebrow mt-1 text-[0.5rem] tracking-[0.32em] text-muted-foreground/70">
-            Social OS for AI artists
+            Music · Create · Discover
           </span>
         </div>
       )}

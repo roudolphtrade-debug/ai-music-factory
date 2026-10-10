@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_app/artists/")({
   head: () => ({
     meta: [
       { title: "Virtual Artists — Ai Music Factory" },
-      { name: "description", content: "Discover and follow AI-native virtual artists across every genre and aesthetic." },
+      { name: "description", content: "Discover and follow human, hybrid and AI artists across every genre." },
     ],
   }),
   component: ArtistsPage,

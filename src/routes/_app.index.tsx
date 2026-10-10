@@ -65,7 +65,7 @@ export const Route = createFileRoute("/_app/")({
       {
         name: "description",
         content:
-          "The control room for AI-native artists: live charts, top creators, trending virtual artists, battles and AI radio.",
+          "Create, discover and share music in the age of AI: editorial selections, new talents, radio and creative challenges.",
       },
     ],
   }),

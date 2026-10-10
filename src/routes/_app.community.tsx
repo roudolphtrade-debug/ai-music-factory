@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_app/community")({
       { title: "Community — Ai Music Factory" },
       {
         name: "description",
-        content: "Fan circles, channels and live conversation around AI-native artists.",
+        content: "Fan circles, channels and live conversation around artists of every kind.",
       },
     ],
   }),
