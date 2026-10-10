@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SectionHeading } from "@/components/premium/SectionHeading";
+import { CinematicHero } from "@/components/premium/CinematicHero";
 import { PillarBand } from "@/components/premium/PillarBand";
 import { DemoBadge } from "@/components/premium/DemoBadge";
 import { StatModule } from "@/components/premium/StatModule";
@@ -110,107 +111,9 @@ function HomePage() {
 
   return (
     <div className="space-y-12">
+      <CinematicHero featured={chartQueue[0]} queue={chartQueue} cover={artistImages[charts[0].artistId]} />
       <OnboardingChecklist />
-      {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl border border-border bg-noir-gradient">
-        <div className="absolute inset-0 bg-spot" />
-        <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--gold)_22%,transparent),transparent_70%)]" />
-        <div className="relative grid gap-8 p-8 sm:p-12 lg:grid-cols-[1.4fr_1fr] lg:items-center">
-          <div>
-            <GoldBadge variant="outline" className="mb-5">
-              <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse-gold" />
-              {t("home.hero.badge")}
-            </GoldBadge>
-            <h1 className="font-display text-4xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-              {t("home.hero.titleLead")}{" "}
-              <span className="gold-text">{t("home.hero.titleAccent")}</span>
-            </h1>
-            <p className="mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
-              {t("home.hero.subtitle")}
-            </p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Button asChild variant="gold" size="xl">
-                <Link to="/studio">
-                  <Play className="h-4 w-4" />
-                  {t("home.hero.startCreating")}
-                </Link>
-              </Button>
-              <Button asChild variant="ghost-gold" size="xl">
-                <Link to="/artists">{t("home.hero.exploreArtists")}</Link>
-              </Button>
-            </div>
-          </div>
 
-          {/* AI Radio now playing */}
-          <div className="relative overflow-hidden rounded-2xl border border-[color-mix(in_oklab,var(--gold)_25%,transparent)] bg-card/70 p-5 backdrop-blur-sm">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs">
-                <Radio className="h-4 w-4 text-gold" />
-                <span className="eyebrow text-gold">{nowPlaying.station}</span>
-              </div>
-              <StatusChip status="Live" />
-            </div>
-            <div className="mt-4 flex items-center gap-4">
-              <div className="relative">
-                <img
-                  src={artistImages[nowPlaying.track.artistId]}
-                  alt={nowPlaying.track.artist}
-                  loading="eager"
-                  className="h-20 w-20 rounded-xl object-cover ring-1 ring-border"
-                />
-                <div className="absolute inset-0 grid place-items-center">
-                  <PlayButton
-                    track={playableById[nowPlaying.track.id]}
-                    queue={radioQueue}
-                    size="sm"
-                  />
-                </div>
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-display text-xl font-semibold text-foreground">
-                  {nowPlaying.track.title}
-                </p>
-                <p className="truncate text-sm text-muted-foreground">{nowPlaying.track.artist}</p>
-                <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                  <Equalizer />
-                  {t("common.listeningNow", { n: nowPlaying.listeners })}
-                </div>
-              </div>
-              <LikeButton trackId={nowPlaying.track.id} size="sm" className="self-start" />
-            </div>
-            <div className="mt-4 flex items-center justify-between border-t border-border pt-3 text-xs text-muted-foreground">
-              <span>
-                {t("common.upNext")} ·{" "}
-                <span className="text-foreground">{nowPlaying.upNext.title}</span>
-              </span>
-              <Link
-                to="/radio"
-                className="inline-flex items-center gap-1 text-gold hover:underline"
-              >
-                {t("common.openRadio")} <ArrowUpRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <DailyJury />
-
-      {/* STATS */}
-      <Reveal as="section" className="relative grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <DemoBadge className="absolute -top-6 right-0" />
-        {platformStats.map((s, i) => (
-          <StatModule
-            key={s.key}
-            label={t(`home.stats.${s.key}`)}
-            value={s.value}
-            delta={t(`home.stats.${s.deltaKey}`, { n: s.deltaN })}
-            icon={statIcons[i]}
-          />
-        ))}
-      </Reveal>
-
-      <PillarBand />
 
       {/* CONTINUE LISTENING */}
       {historyTracks.length > 0 && (
@@ -636,6 +539,7 @@ function BattleSide({
         <p className="text-xs text-muted-foreground">{side.track}</p>
       </div>
       <VoteButton initialVotes={side.votes} size="sm" />
+      <PillarBand />
     </div>
   );
 }
