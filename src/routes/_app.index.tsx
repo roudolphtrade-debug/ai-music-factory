@@ -18,6 +18,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SectionHeading } from "@/components/premium/SectionHeading";
+import { homeLaureates } from "@/i18n/home-editorial";
 import { EditorialSelection, ArtistDiscovery, CreateAndConnect } from "@/components/premium/HomeEditorial";
 import { CinematicHero } from "@/components/premium/CinematicHero";
 import { PillarBand } from "@/components/premium/PillarBand";
@@ -85,7 +86,7 @@ const statIcons = [
 ];
 
 function HomePage() {
-  const { t, relTime } = useI18n();
+  const { t, relTime, lang } = useI18n();
   const { favorites, history } = useLibrary();
   const { isActive } = usePlayer();
   const { stats: platformStats, activity: activityFeed } = useLiveDemoData();
@@ -212,7 +213,7 @@ function HomePage() {
                       />
                       <div
                         className={cn(
-                          "absolute inset-0 grid place-items-center rounded-lg bg-background/60 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100",
+                          "absolute inset-0 hidden place-items-center rounded-lg bg-background/60 sm:grid opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100",
                           active && "opacity-100 sm:opacity-100",
                         )}
                       >
@@ -224,6 +225,7 @@ function HomePage() {
                         />
                       </div>
                     </div>
+                    <div className="sm:hidden"><PlayButton track={track} queue={chartQueue} size="sm" label={t("charts.playTrack", { title: c.title, artist: c.artist })} /></div>
                     <div className="min-w-0 flex-1">
                       <Link
                         to="/artists/$artistId"
@@ -255,7 +257,7 @@ function HomePage() {
 
           {/* GENRES */}
           <TabsContent value="genres" className="space-y-6">
-            <SectionHeading title={t("home.genres.title")} description={t("home.genres.desc")} />
+            <SectionHeading title={t("home.genres.title")} description={t("home.genres.desc")} action={<DemoBadge />} />
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {chartGenres.map((g) => (
                 <Link
@@ -416,7 +418,7 @@ function HomePage() {
           }
         />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {hallOfFame.map((h) => (
+          {hallOfFame.map((h, index) => (
             <Link
               key={h.id}
               to="/hall-of-fame"
@@ -424,14 +426,14 @@ function HomePage() {
             >
               <div className="flex items-center gap-2 text-gold">
                 <Trophy className="h-4 w-4" /><DemoBadge />
-                <span className="eyebrow">{t(`hallOfFame.items.${h.id}.crown`)}</span>
+                <span className="eyebrow">{lang in homeLaureates ? homeLaureates[lang as keyof typeof homeLaureates][index]?.[1] : t(`hallOfFame.items.${h.id}.crown`)}</span>
               </div>
               <p className="mt-3 text-xs text-muted-foreground">
-                {t(`hallOfFame.items.${h.id}.title`)}
+                {lang in homeLaureates ? homeLaureates[lang as keyof typeof homeLaureates][index]?.[0] : t(`hallOfFame.items.${h.id}.title`)}
               </p>
               <p className="font-display text-xl font-semibold text-foreground">{h.winner}</p>
               <p className="mt-2 text-xs text-muted-foreground">
-                {t(`hallOfFame.items.${h.id}.note`)}
+                {lang in homeLaureates ? homeLaureates[lang as keyof typeof homeLaureates][index]?.[2] : t(`hallOfFame.items.${h.id}.note`)}
               </p>
             </Link>
           ))}

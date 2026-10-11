@@ -1,3 +1,4 @@
+import { useI18n } from "@/i18n/context";
 import { useState, type ReactNode } from "react";
 import { useRouterState } from "@tanstack/react-router";
 import { SidebarContent } from "./SidebarContent";
@@ -8,6 +9,7 @@ import { IntroOverlay } from "@/components/IntroOverlay";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const { lang } = useI18n();
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -21,7 +23,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Mobile sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="w-72 border-sidebar-border p-0">
+        <SheetContent side={lang === "ar" ? "right" : "left"} className="w-72 border-sidebar-border p-0">
           <SidebarContent onNavigate={() => setMobileOpen(false)} />
         </SheetContent>
       </Sheet>

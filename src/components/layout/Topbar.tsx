@@ -27,7 +27,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
           type="button"
           onClick={onMenu}
           className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:h-9 sm:w-9 lg:hidden"
-          aria-label="Menu"
+          aria-label={t("nav.menu")}
         >
           <Menu className="h-5 w-5" />
         </button>

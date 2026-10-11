@@ -21,8 +21,8 @@ export function CinematicHero({
   cover: string;
 }) {
   const { t } = useI18n();
-  const { isActive } = usePlayer();
-  const playing = isActive(featured.id);
+  const { isTrackPlaying } = usePlayer();
+  const playing = isTrackPlaying(featured.id);
   const words = t("home.hero.titleAccent").split(" ");
 
   return (
@@ -38,7 +38,7 @@ export function CinematicHero({
       <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/40" />
       <div className="hero-grain pointer-events-none absolute inset-0" />
 
-      <div className="relative flex home-opening flex-col justify-center gap-4 px-6 py-6 sm:px-10 lg:px-12">
+      <div className="relative flex home-opening flex-col justify-center gap-4 px-6 py-5 sm:px-10 lg:px-12">
         <div className="max-w-2xl">
           <p className="eyebrow mb-3 flex items-center gap-3 text-muted-foreground">
             <span className="inline-block h-px w-10 bg-gold-gradient" />
@@ -58,7 +58,7 @@ export function CinematicHero({
               ))}
             </span>
           </h1>
-          <p className="mt-3 max-w-lg text-sm leading-relaxed text-foreground/85 sm:text-base">
+          <p className="mt-3 max-w-lg text-[0.8125rem] leading-relaxed text-foreground/85 sm:text-base">
             {t("home.hero.subtitle")}
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
