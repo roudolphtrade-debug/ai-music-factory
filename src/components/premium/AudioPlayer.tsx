@@ -72,7 +72,7 @@ export function AudioPlayer({ compact = false }: { compact?: boolean }) {
           <PlayerIcon onClick={prev} aria-label={compact ? homeTransport[lang].previous : "Previous"}>
             <SkipBack className="h-4 w-4" />
           </PlayerIcon>
-          <PlayButton track={track} queue={radioQueue} size="md" label={compact ? t(isPlaying ? "common.pause" : "common.play") : undefined} />
+          <PlayButton track={track} queue={radioQueue} size="md" label={compact ? t(isPlaying ? "audio.pause" : "audio.play") : undefined} />
           <PlayerIcon onClick={next} aria-label={compact ? homeTransport[lang].next : "Next"}>
             <SkipForward className="h-4 w-4" />
           </PlayerIcon>
