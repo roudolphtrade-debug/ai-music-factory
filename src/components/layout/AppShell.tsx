@@ -30,7 +30,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className="lg:ps-72">
         <Topbar onMenu={() => setMobileOpen(true)} compact={pathname === "/"} />
-        <main className="mx-auto w-full max-w-7xl px-4 pb-52 pt-6 sm:px-6 lg:px-10 lg:pb-40 2xl:max-w-[100rem]">
+        <main className="mx-auto w-full max-w-7xl px-4 pb-[calc(13rem+env(safe-area-inset-bottom))] pt-6 sm:px-6 lg:px-10 lg:pb-40 2xl:max-w-[100rem]">
           <div key={pathname} className="animate-route-in">
             {children}
           </div>
