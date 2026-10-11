@@ -10,4 +10,8 @@
 - [x] Lot 1.1: harmonize homepage punctuation in six languages and verify mobile/desktop interactions.
 - [x] Lot 1.1: deliver captures and factual Muify comparison.
 - [x] Lot 2: player shuffle/repeat/queue/error states, Radio filters and demo stations, Library playlists editing.
+- [x] Lot 2: player shuffle/repeat/queue/error states, Radio filters and demo stations, Library playlists editing.
+- [ ] Lot 2.2-A: Radio Signature UX/UI composition with static monumental spectrum (blocked: Lot 2.1-A branch integration + user execution approval).
+- [ ] Lot 2.2-B: real Web Audio frequency analysis and synced animations (blocked: 2.2-A done; graceful fallback if CORS blocks AnalyserNode).
+- [ ] Lot 2.2-C: responsive/a11y/performance recipe across six languages (blocked: 2.2-B done).
 - [ ] Lot 3: start only after Lot 2 validation (blocked: user approval).
