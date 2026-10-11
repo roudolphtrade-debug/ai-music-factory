@@ -21,7 +21,7 @@ import { SectionHeading } from "@/components/premium/SectionHeading";
 import { homeLaureates } from "@/i18n/home-editorial";
 import labelMaisonNoir from "@/assets/label-maison-noir.webp";
 import stageImage from "@/assets/hero-stage.jpg";
-import { EditorialSelection, ArtistDiscovery, CreateAndConnect } from "@/components/premium/HomeEditorial";
+import { EditorialSelection, ArtistDiscovery, CreateAndConnect, DiscoveryCompanions } from "@/components/premium/HomeEditorial";
 import { CinematicHero } from "@/components/premium/CinematicHero";
 import { PillarBand } from "@/components/premium/PillarBand";
 import { DemoBadge } from "@/components/premium/DemoBadge";
@@ -65,8 +65,8 @@ import {
 export const Route = createFileRoute("/_app/")({
   head: () => ({
     meta: [
-      { title: "Discover music — AI Music Factory" },
-      { property: "og:title", content: "Discover music — AI Music Factory" },
+      { title: "Discover music · AI Music Factory" },
+      { property: "og:title", content: "Discover music · AI Music Factory" },
       { property: "og:description", content: "Explore editorial music selections, artists and creative possibilities at AI Music Factory." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -112,52 +112,12 @@ function HomePage() {
       <EditorialSelection />
 
 
-      {/* CONTINUE LISTENING */}
-      {historyTracks.length > 0 && (
-        <Reveal as="section" className="space-y-6">
-          <SectionHeading
-            eyebrow={t("library.eyebrow")}
-            title={t("library.continueListening")}
-            action={
-              <Button asChild variant="ghost-gold" size="sm">
-                <Link to="/library">{t("library.seeLibrary")}</Link>
-              </Button>
-            }
-          />
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {historyTracks.map((track) => (
-              <PersonalTrackCard key={track.id} track={track} queue={playableTracks} />
-            ))}
-          </div>
-        </Reveal>
-      )}
-
-      {/* YOUR FAVORITES */}
-      {favTracks.length > 0 && (
-        <Reveal as="section" className="space-y-6">
-          <SectionHeading
-            eyebrow={t("library.favorites")}
-            title={t("library.yourFavorites")}
-            action={
-              <Button asChild variant="ghost-gold" size="sm">
-                <Link to="/library">{t("library.seeLibrary")}</Link>
-              </Button>
-            }
-          />
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {favTracks.map((track) => (
-              <PersonalTrackCard key={track.id} track={track} queue={favTracks} />
-            ))}
-          </div>
-        </Reveal>
-      )}
-
       {/* DISCOVER — Charts, Genres, Trending Artists and Leaderboard/Activity
           used to be four separate stacked full-width sections back to back.
           Same content, same routes, same features — grouped under one set of
           tabs so the homepage has one scroll-stop here instead of four. */}
-      <Reveal as="section" className="space-y-6">
-        <Tabs defaultValue="charts">
+      <Reveal as="section" className="grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(0,2.1fr)_minmax(0,1fr)]">
+        <Tabs defaultValue="charts" className="home-discovery-tabs min-w-0">
           <TabsList className="flex h-auto w-full flex-wrap justify-start">
             <TabsTrigger value="charts">{t("home.charts.eyebrow")}</TabsTrigger>
             <TabsTrigger value="genres">{t("home.genres.eyebrow")}</TabsTrigger>
@@ -166,15 +126,15 @@ function HomePage() {
           </TabsList>
 
           {/* CHARTS */}
-          <TabsContent value="charts" className="space-y-6">
-            <SectionHeading title={t("home.charts.title")} description={t("editorial.selectionDesc")} action={<DemoBadge />} />
+          <TabsContent value="charts" className="space-y-4">
+            <SectionHeading title={t("home.charts.title")} description={t("editorial.selectionDesc")} action={<DemoBadge />} className="grid grid-cols-[minmax(0,1fr)_auto]" />
             <div className="flex flex-wrap gap-2">
               {chartRegions.map((r) => (
                 <Button variant={region === r ? "gold" : "outline"} size="sm"
                   key={r}
                   onClick={() => setRegion(r)}
                   className={cn(
-                    "h-9 rounded-full px-4 text-sm font-medium transition-colors",
+                    "h-9 rounded-md px-3 text-xs font-medium transition-colors",
                     region === r
                       ? "bg-gold-gradient text-primary-foreground"
                       : "border border-border text-muted-foreground hover:border-[color-mix(in_oklab,var(--gold)_40%,transparent)] hover:text-foreground",
@@ -186,7 +146,7 @@ function HomePage() {
             </div>
             <div
               key={region}
-              className="animate-list-fade overflow-hidden rounded-lg border border-border surface-premium"
+              className="home-chart-list animate-list-fade overflow-hidden rounded-lg border border-border bg-card"
             >
               {charts.map((c, i) => {
                 const track = chartQueue[i];
@@ -195,17 +155,13 @@ function HomePage() {
                   <div
                     key={`${c.rank}-${c.title}`}
                     className={cn(
-                      "group grid grid-cols-[1.25rem_2.5rem_minmax(0,1fr)_2.75rem_2.25rem] items-center gap-2 px-2 py-3 transition-colors hover:bg-secondary/40 sm:flex sm:gap-4 sm:px-4",
+                      "group grid grid-cols-[1.25rem_2.5rem_minmax(0,1fr)_2.75rem_2.75rem] items-center gap-1.5 px-2 py-2 transition-colors hover:bg-secondary/40 sm:gap-2 sm:px-3",
                       i !== charts.length - 1 && "border-b border-border/60",
+                      active && "bg-secondary/60",
                     )}
                   >
-                    <span className="w-5 shrink-0 text-center font-display text-base font-semibold tabular-nums text-foreground sm:w-6 sm:text-lg">
-                      {c.rank}
-                    </span>
-                    <div className="hidden sm:block"><ChartChange change={c.change} isNew={c.isNew} newLabel={t("charts.new")} /></div>
-                    {/* Cover doubles as the play control. On mobile (no hover) the
-                        control stays visible so users know the row is tappable; on
-                        desktop it's revealed on hover, and always shown when active. */}
+                    <div className="flex min-w-0 flex-col items-center gap-1"><span className="text-center font-display text-base font-semibold tabular-nums text-foreground sm:text-lg">{c.rank}</span><span className="hidden sm:block"><ChartChange change={c.change} isNew={c.isNew} newLabel={t("charts.new")} /></span></div>
+                    {/* Keep portraits unobstructed and playback visible beside the title. */}
                     <div className="relative h-10 w-10 shrink-0 sm:h-11 sm:w-11">
                       <img
                         src={artistImages[c.artistId]}
@@ -213,19 +169,6 @@ function HomePage() {
                         loading="lazy"
                         className="h-10 w-10 rounded-md object-cover ring-1 ring-border sm:h-11 sm:w-11"
                       />
-                      <div
-                        className={cn(
-                          "absolute inset-0 hidden place-items-center rounded-lg bg-background/60 sm:grid opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100",
-                          active && "opacity-100 sm:opacity-100",
-                        )}
-                      >
-                        <PlayButton
-                          track={track}
-                          queue={chartQueue}
-                          size="sm"
-                          label={t("charts.playTrack", { title: c.title, artist: c.artist })}
-                        />
-                      </div>
                     </div>
                     <div className="min-w-0 flex-1">
                       <Link
@@ -243,15 +186,10 @@ function HomePage() {
                       >
                         {c.artist}
                       </Link>
+                      <p className="hidden truncate text-[0.65rem] text-muted-foreground sm:block">{c.genre} · {c.plays}</p>
                     </div>
-                    <div className="sm:hidden"><PlayButton track={track} queue={chartQueue} size="md" label={t("charts.playTrack", { title: c.title, artist: c.artist })} /></div>
-                    <GoldBadge variant="outline" className="hidden sm:inline-flex">
-                      {c.genre}
-                    </GoldBadge>
-                    <LikeButton trackId={track.id} size="sm" />
-                    <span className="hidden w-16 text-right text-xs tabular-nums text-muted-foreground sm:block">
-                      {c.plays}
-                    </span>
+                    <PlayButton track={track} queue={chartQueue} size="md" label={t("charts.playTrack", { title: c.title, artist: c.artist })} />
+                    <LikeButton trackId={track.id} size="md" className="h-11 w-11 sm:h-11 sm:w-11" />
                   </div>
                 );
               })}
@@ -339,7 +277,48 @@ function HomePage() {
             </div>
           </TabsContent>
         </Tabs>
+        <DiscoveryCompanions />
       </Reveal>
+
+      {/* CONTINUE LISTENING */}
+      {historyTracks.length > 0 && (
+        <Reveal as="section" className="space-y-6">
+          <SectionHeading
+            eyebrow={t("library.eyebrow")}
+            title={t("library.continueListening")}
+            action={
+              <Button asChild variant="ghost-gold" size="sm">
+                <Link to="/library">{t("library.seeLibrary")}</Link>
+              </Button>
+            }
+          />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {historyTracks.map((track) => (
+              <PersonalTrackCard key={track.id} track={track} queue={playableTracks} />
+            ))}
+          </div>
+        </Reveal>
+      )}
+
+      {/* YOUR FAVORITES */}
+      {favTracks.length > 0 && (
+        <Reveal as="section" className="space-y-6">
+          <SectionHeading
+            eyebrow={t("library.favorites")}
+            title={t("library.yourFavorites")}
+            action={
+              <Button asChild variant="ghost-gold" size="sm">
+                <Link to="/library">{t("library.seeLibrary")}</Link>
+              </Button>
+            }
+          />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {favTracks.map((track) => (
+              <PersonalTrackCard key={track.id} track={track} queue={favTracks} />
+            ))}
+          </div>
+        </Reveal>
+      )}
 
       <ArtistDiscovery />
       <CreateAndConnect />

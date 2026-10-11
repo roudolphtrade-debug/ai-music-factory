@@ -15,7 +15,11 @@ import { useI18n } from "@/i18n/context";
 export const Route = createFileRoute("/_app/library")({
   head: () => ({
     meta: [
-      { title: "Library — Ai Music Factory" },
+      { property: "og:title", content: "Library · Ai Music Factory" },
+      { property: "og:description", content: "Your favorite tracks, playlists and listening history in one place." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { title: "Library · Ai Music Factory" },
       { name: "description", content: "Your favorite tracks, playlists and listening history in one place." },
     ],
   }),

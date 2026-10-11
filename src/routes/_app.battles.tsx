@@ -11,7 +11,11 @@ import { useI18n } from "@/i18n/context";
 export const Route = createFileRoute("/_app/battles")({
   head: () => ({
     meta: [
-      { title: "Battles — Ai Music Factory" },
+      { property: "og:title", content: "Battles · Ai Music Factory" },
+      { property: "og:description", content: "Head-to-head AI artist battles: vote live, follow the bracket, and crown champions." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { title: "Battles · Ai Music Factory" },
       { name: "description", content: "Head-to-head AI artist battles: vote live, follow the bracket, and crown champions." },
     ],
   }),

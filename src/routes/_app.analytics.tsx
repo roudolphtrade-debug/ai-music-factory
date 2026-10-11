@@ -8,7 +8,11 @@ import { useI18n } from "@/i18n/context";
 export const Route = createFileRoute("/_app/analytics")({
   head: () => ({
     meta: [
-      { title: "Analytics — Ai Music Factory" },
+      { property: "og:title", content: "Analytics · Ai Music Factory" },
+      { property: "og:description", content: "Track plays, listeners, reputation and revenue across your catalogue." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { title: "Analytics · Ai Music Factory" },
       {
         name: "description",
         content: "Track plays, listeners, reputation and revenue across your catalogue.",

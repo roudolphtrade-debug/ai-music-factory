@@ -10,7 +10,11 @@ import { useI18n } from "@/i18n/context";
 export const Route = createFileRoute("/_app/avatar-lab")({
   head: () => ({
     meta: [
-      { title: "Avatar Lab — Ai Music Factory" },
+      { property: "og:title", content: "Avatar Lab · Ai Music Factory" },
+      { property: "og:description", content: "Design a virtual identity: persona, aura, aesthetic and stage presence for your AI artist." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { title: "Avatar Lab · Ai Music Factory" },
       {
         name: "description",
         content:

@@ -17,7 +17,11 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_app/credits")({
   head: () => ({
     meta: [
-      { title: "Crédits & abonnement — Ai Music Factory" },
+      { property: "og:title", content: "Crédits & abonnement · Ai Music Factory" },
+      { property: "og:description", content: "Gérez vos crédits IA, choisissez un abonnement et rechargez votre studio pour générer plus de titres." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { title: "Crédits & abonnement · Ai Music Factory" },
       {
         name: "description",
         content:

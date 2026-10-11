@@ -25,7 +25,12 @@ import { useI18n } from "@/i18n/context";
 
 export const Route = createFileRoute("/_app/labels/$labelId")({
   head: () => ({
-    meta: [{ title: "Label — Ai Music Factory" }],
+    meta: [
+      { name: "description", content: "Explore the label identity and demonstration roster at AI Music Factory." },
+      { property: "og:title", content: "Label · Ai Music Factory" },
+      { property: "og:description", content: "Explore the label identity and demonstration roster at AI Music Factory." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },{ title: "Label · Ai Music Factory" }],
   }),
   component: LabelDetailPage,
 });
