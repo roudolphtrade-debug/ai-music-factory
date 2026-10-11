@@ -667,3 +667,14 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   mix-blend-mode: overlay;
 }
+
+/* Opening height leaves room for discovery above the persistent mobile bars. */
+.home-opening { min-height: 450px; }
+section.home-opening { min-height: min(570px, calc(100svh - 265px)); }
+section.home-opening > .home-opening { min-height: min(570px, calc(100svh - 265px)); }
+@media (min-width: 640px) {
+  section.home-opening, section.home-opening > .home-opening { min-height: min(570px, calc(100svh - 240px)); }
+}
+@media (max-height: 700px) {
+  section.home-opening, section.home-opening > .home-opening { min-height: 0; }
+}
