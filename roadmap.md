@@ -9,4 +9,5 @@
 - [x] Lot 1.1: recompose discovery as an editorial Bento and test scoped Calibri typography.
 - [x] Lot 1.1: harmonize homepage punctuation in six languages and verify mobile/desktop interactions.
 - [x] Lot 1.1: deliver captures and factual Muify comparison.
-- [ ] Start Radio only after Lot 1.1 validation (blocked: user approval).
+- [x] Lot 2: player shuffle/repeat/queue/error states, Radio filters and demo stations, Library playlists editing.
+- [ ] Lot 3: start only after Lot 2 validation (blocked: user approval).

@@ -59,7 +59,7 @@ function RadioPage() {
 
   return (
     <div className="space-y-10">
-      <SectionHeading eyebrow={t("radio.eyebrow")} title={t("radio.title")} description={t("radio.desc")} />
+      <SectionHeading eyebrow={t("radio.eyebrow")} title={t("radio.title")} description={l.radioIntro} />
 
       <NowPlayingPlayer station={label} subtitle={`${f("tracksCount", heroQueue.length)} · ${l.demoProgramming}`} queue={heroQueue} />
 

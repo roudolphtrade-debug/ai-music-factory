@@ -64,7 +64,7 @@ export function NowPlayingPlayer({
           {live && (
             <span className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-background/70 px-2.5 py-1 backdrop-blur-sm">
               <WaveBars active className="h-3" />{" "}
-              <span className="text-[0.65rem] text-foreground">{t("audio.onAir")}</span>
+              <span className="text-[0.65rem] text-foreground">{l.playing}</span>
             </span>
           )}
         </div>
