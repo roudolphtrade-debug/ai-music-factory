@@ -298,8 +298,8 @@ function HomePage() {
           </TabsContent>
 
           {/* LEADERBOARD + ACTIVITY */}
-          <TabsContent value="leaderboard" className="grid gap-6 lg:grid-cols-3">
-            <div className="rounded-2xl border border-border bg-card p-6 lg:col-span-2">
+          <TabsContent value="leaderboard" className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="min-w-0 rounded-2xl border border-border bg-card p-4 sm:p-6 lg:col-span-2">
               <SectionHeading title={t("home.leaderboard.title")} action={<DemoBadge />} />
               <div className="mt-4 divide-y divide-border/60">
                 {topCreators.map((c) => (
@@ -315,7 +315,7 @@ function HomePage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="min-w-0 rounded-2xl border border-border bg-card p-4 sm:p-6">
               <SectionHeading title={t("home.activity.title")} action={<DemoBadge />} />
               <ul className="mt-4 space-y-4">
                 {activityFeed.map((a) => (
@@ -344,7 +344,7 @@ function HomePage() {
 
       {/* CURRENT BATTLES + CONTEST */}
       <Reveal as="section" className="grid gap-6 lg:grid-cols-3">
-        <div className="rounded-2xl border border-border bg-card p-6 lg:col-span-2">
+        <div className="min-w-0 rounded-2xl border border-border bg-card p-4 sm:p-6 lg:col-span-2">
           <SectionHeading
             eyebrow={t("home.arena.eyebrow")}
             title={t("home.arena.title")}
@@ -374,7 +374,7 @@ function HomePage() {
 
         {/* Monthly contest */}
         <div className="relative overflow-hidden rounded-2xl border border-[color-mix(in_oklab,var(--gold)_28%,transparent)] bg-card p-6">
-          <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-spot" />
+          
           <div className="relative">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-gold" />
@@ -451,6 +451,7 @@ function PersonalTrackCard({
   track: (typeof playableTracks)[number];
   queue: (typeof playableTracks)[number][];
 }) {
+  const { t } = useI18n();
   return (
     <div className="group relative flex items-center gap-3 overflow-hidden rounded-2xl border border-border surface-premium p-3 card-hover">
       <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg">
@@ -466,7 +467,7 @@ function PersonalTrackCard({
         <p className="truncate text-xs text-muted-foreground">{track.artist}</p>
       </div>
       <LikeButton trackId={track.id} size="sm" />
-      <PlayButton track={track} queue={queue} size="sm" />
+      <PlayButton track={track} queue={queue} size="sm" label={t("charts.playTrack", { title: track.title, artist: track.artist })} />
     </div>
   );
 }
