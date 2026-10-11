@@ -116,6 +116,9 @@ export interface PlayableTrack {
   cover: string;
   /** Human readable mock duration shown before audio metadata loads. */
   duration: string;
+  /** Catalog genre and mood, used by Radio filters (absent for custom playables). */
+  genre?: string;
+  mood?: string;
 }
 
 export const playableTracks: PlayableTrack[] = tracks.map((t, i) => ({
@@ -126,6 +129,8 @@ export const playableTracks: PlayableTrack[] = tracks.map((t, i) => ({
   src: SONG_BY_ID[t.id] ?? sourceAt(i),
   cover: artistImages[t.artistId],
   duration: t.duration,
+  genre: t.genre,
+  mood: t.mood,
 }));
 
 /** Stable chart identifiers retain existing favorites and the numbered audio mapping. */

@@ -1,6 +1,8 @@
 import { Radio as RadioIcon, SkipBack, SkipForward, Shuffle } from "lucide-react";
-import { StatusChip, GoldBadge } from "@/components/premium/Chips";
-import { VoteButton } from "@/components/premium/VoteButton";
+import { GoldBadge } from "@/components/premium/Chips";
+import { DemoBadge } from "@/components/premium/DemoBadge";
+import { useListening } from "@/i18n/listening";
+import { homeTransport } from "@/i18n/home-editorial";
 import { LikeButton } from "@/components/premium/LikeButton";
 import { ShareButton } from "@/components/premium/ShareButton";
 import { usePlayer } from "@/audio/PlayerProvider";
@@ -19,15 +21,17 @@ import { cn } from "@/lib/utils";
  */
 export function NowPlayingPlayer({
   station,
-  listeners,
+  subtitle,
   queue,
 }: {
   station: string;
-  listeners: string;
+  /** Honest description of the current selection (no listener counts). */
+  subtitle?: string;
   queue: PlayableTrack[];
 }) {
   const { t } = useI18n();
-  const { current, isActive, prev, next } = usePlayer();
+  const { l, lang } = useListening();
+  const { current, isActive, prev, next, shuffle, toggleShuffle, status } = usePlayer();
   const spotlight = useSpotlight<HTMLElement>();
 
   // Show the live track if one belongs to this queue, else the lead track.
@@ -71,7 +75,7 @@ export function NowPlayingPlayer({
             <GoldBadge variant="outline">
               <RadioIcon className="h-3.5 w-3.5" /> {station}
             </GoldBadge>
-            <StatusChip status="Live" />
+            <DemoBadge />
           </div>
 
           <h2 className="mt-4 font-display text-4xl font-semibold tracking-tight text-foreground sm:text-6xl">
@@ -80,7 +84,7 @@ export function NowPlayingPlayer({
           <p className="mt-2 text-lg text-muted-foreground">{display.artist}</p>
 
           <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-            <WaveBars active={live} /> {listeners} {t("radio.votesShaping")}
+            <WaveBars active={live} /> {live && status === "loading" ? l.loading : subtitle}
           </div>
 
           {/* Transport */}
@@ -88,24 +92,26 @@ export function NowPlayingPlayer({
             <button
               type="button"
               onClick={prev}
-              aria-label="Previous"
+              aria-label={homeTransport[lang].previous}
               className="grid h-10 w-10 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
-              <SkipBack className="h-5 w-5" />
+              <SkipBack className="h-5 w-5 rtl:-scale-x-100" />
             </button>
             <PlayButton track={display} queue={queue} size="xl" label={t("audio.play")} />
             <button
               type="button"
               onClick={next}
-              aria-label="Next"
+              aria-label={homeTransport[lang].next}
               className="grid h-10 w-10 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
-              <SkipForward className="h-5 w-5" />
+              <SkipForward className="h-5 w-5 rtl:-scale-x-100" />
             </button>
             <button
               type="button"
-              aria-label="Shuffle"
-              className="hidden h-10 w-10 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:grid"
+              aria-label={l.shuffle}
+              aria-pressed={shuffle}
+              onClick={toggleShuffle}
+              className={cn(shuffle && "text-gold", "hidden h-10 w-10 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:grid")}
             >
               <Shuffle className="h-4 w-4" />
             </button>
@@ -123,7 +129,6 @@ export function NowPlayingPlayer({
 
           {/* Secondary actions */}
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            <VoteButton initialVotes={3420} />
             <LikeButton trackId={display.id} />
             <ShareButton title={display.title} artist={display.artist} trackId={display.id} />
             <VolumeControl className="ml-auto hidden sm:flex" />
