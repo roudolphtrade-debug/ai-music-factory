@@ -9,35 +9,35 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AppRouteImport } from './routes/_app'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
-import { Route as AppAnalyticsRouteImport } from './routes/_app.analytics'
-import { Route as AppAvatarLabRouteImport } from './routes/_app.avatar-lab'
-import { Route as AppBattlesRouteImport } from './routes/_app.battles'
-import { Route as AppCommunityRouteImport } from './routes/_app.community'
-import { Route as AppCreditsRouteImport } from './routes/_app.credits'
-import { Route as AppHallOfFameRouteImport } from './routes/_app.hall-of-fame'
-import { Route as AppLabelsRouteImport } from './routes/_app.labels'
-import { Route as AppLibraryRouteImport } from './routes/_app.library'
-import { Route as AppRadioRouteImport } from './routes/_app.radio'
-import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppStudioRouteImport } from './routes/_app.studio'
-import { Route as AppArtistsIndexRouteImport } from './routes/_app.artists.index'
-import { Route as AppArtistsArtistIdRouteImport } from './routes/_app.artists.$artistId'
+import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppRadioRouteImport } from './routes/_app.radio'
+import { Route as AppLibraryRouteImport } from './routes/_app.library'
+import { Route as AppLabelsRouteImport } from './routes/_app.labels'
+import { Route as AppHallOfFameRouteImport } from './routes/_app.hall-of-fame'
+import { Route as AppCreditsRouteImport } from './routes/_app.credits'
+import { Route as AppCommunityRouteImport } from './routes/_app.community'
+import { Route as AppBattlesRouteImport } from './routes/_app.battles'
+import { Route as AppAvatarLabRouteImport } from './routes/_app.avatar-lab'
+import { Route as AppAnalyticsRouteImport } from './routes/_app.analytics'
 import { Route as AppLabelsIndexRouteImport } from './routes/_app.labels.index'
-import { Route as AppLabelsLabelIdRouteImport } from './routes/_app.labels.$labelId'
-import { Route as ApiStudioGenerateRouteImport } from './routes/api/studio/generate'
-import { Route as ApiVoiceSpeakRouteImport } from './routes/api/voice/speak'
+import { Route as AppArtistsIndexRouteImport } from './routes/_app.artists.index'
 import { Route as ApiVoiceTranscribeRouteImport } from './routes/api/voice/transcribe'
+import { Route as ApiVoiceSpeakRouteImport } from './routes/api/voice/speak'
+import { Route as ApiStudioGenerateRouteImport } from './routes/api/studio/generate'
+import { Route as AppLabelsLabelIdRouteImport } from './routes/_app.labels.$labelId'
+import { Route as AppArtistsArtistIdRouteImport } from './routes/_app.artists.$artistId'
 
-const AppRoute = AppRouteImport.update({
-  id: '/_app',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -45,49 +45,9 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppAnalyticsRoute = AppAnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppAvatarLabRoute = AppAvatarLabRouteImport.update({
-  id: '/avatar-lab',
-  path: '/avatar-lab',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppBattlesRoute = AppBattlesRouteImport.update({
-  id: '/battles',
-  path: '/battles',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppCommunityRoute = AppCommunityRouteImport.update({
-  id: '/community',
-  path: '/community',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppCreditsRoute = AppCreditsRouteImport.update({
-  id: '/credits',
-  path: '/credits',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppHallOfFameRoute = AppHallOfFameRouteImport.update({
-  id: '/hall-of-fame',
-  path: '/hall-of-fame',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppLabelsRoute = AppLabelsRouteImport.update({
-  id: '/labels',
-  path: '/labels',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppLibraryRoute = AppLibraryRouteImport.update({
-  id: '/library',
-  path: '/library',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppRadioRoute = AppRadioRouteImport.update({
-  id: '/radio',
-  path: '/radio',
+const AppStudioRoute = AppStudioRouteImport.update({
+  id: '/studio',
+  path: '/studio',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
@@ -95,19 +55,49 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
-const AppStudioRoute = AppStudioRouteImport.update({
-  id: '/studio',
-  path: '/studio',
+const AppRadioRoute = AppRadioRouteImport.update({
+  id: '/radio',
+  path: '/radio',
   getParentRoute: () => AppRoute,
 } as any)
-const AppArtistsIndexRoute = AppArtistsIndexRouteImport.update({
-  id: '/artists/',
-  path: '/artists/',
+const AppLibraryRoute = AppLibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
   getParentRoute: () => AppRoute,
 } as any)
-const AppArtistsArtistIdRoute = AppArtistsArtistIdRouteImport.update({
-  id: '/artists/$artistId',
-  path: '/artists/$artistId',
+const AppLabelsRoute = AppLabelsRouteImport.update({
+  id: '/labels',
+  path: '/labels',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppHallOfFameRoute = AppHallOfFameRouteImport.update({
+  id: '/hall-of-fame',
+  path: '/hall-of-fame',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCreditsRoute = AppCreditsRouteImport.update({
+  id: '/credits',
+  path: '/credits',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCommunityRoute = AppCommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBattlesRoute = AppBattlesRouteImport.update({
+  id: '/battles',
+  path: '/battles',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAvatarLabRoute = AppAvatarLabRouteImport.update({
+  id: '/avatar-lab',
+  path: '/avatar-lab',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAnalyticsRoute = AppAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
   getParentRoute: () => AppRoute,
 } as any)
 const AppLabelsIndexRoute = AppLabelsIndexRouteImport.update({
@@ -115,14 +105,14 @@ const AppLabelsIndexRoute = AppLabelsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppLabelsRoute,
 } as any)
-const AppLabelsLabelIdRoute = AppLabelsLabelIdRouteImport.update({
-  id: '/$labelId',
-  path: '/$labelId',
-  getParentRoute: () => AppLabelsRoute,
+const AppArtistsIndexRoute = AppArtistsIndexRouteImport.update({
+  id: '/artists/',
+  path: '/artists/',
+  getParentRoute: () => AppRoute,
 } as any)
-const ApiStudioGenerateRoute = ApiStudioGenerateRouteImport.update({
-  id: '/api/studio/generate',
-  path: '/api/studio/generate',
+const ApiVoiceTranscribeRoute = ApiVoiceTranscribeRouteImport.update({
+  id: '/api/voice/transcribe',
+  path: '/api/voice/transcribe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiVoiceSpeakRoute = ApiVoiceSpeakRouteImport.update({
@@ -130,10 +120,20 @@ const ApiVoiceSpeakRoute = ApiVoiceSpeakRouteImport.update({
   path: '/api/voice/speak',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiVoiceTranscribeRoute = ApiVoiceTranscribeRouteImport.update({
-  id: '/api/voice/transcribe',
-  path: '/api/voice/transcribe',
+const ApiStudioGenerateRoute = ApiStudioGenerateRouteImport.update({
+  id: '/api/studio/generate',
+  path: '/api/studio/generate',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppLabelsLabelIdRoute = AppLabelsLabelIdRouteImport.update({
+  id: '/$labelId',
+  path: '/$labelId',
+  getParentRoute: () => AppLabelsRoute,
+} as any)
+const AppArtistsArtistIdRoute = AppArtistsArtistIdRouteImport.update({
+  id: '/artists/$artistId',
+  path: '/artists/$artistId',
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -282,18 +282,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/_app': {
-      id: '/_app'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AppRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/': {
@@ -303,67 +303,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/analytics': {
-      id: '/_app/analytics'
-      path: '/analytics'
-      fullPath: '/analytics'
-      preLoaderRoute: typeof AppAnalyticsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/avatar-lab': {
-      id: '/_app/avatar-lab'
-      path: '/avatar-lab'
-      fullPath: '/avatar-lab'
-      preLoaderRoute: typeof AppAvatarLabRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/battles': {
-      id: '/_app/battles'
-      path: '/battles'
-      fullPath: '/battles'
-      preLoaderRoute: typeof AppBattlesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/community': {
-      id: '/_app/community'
-      path: '/community'
-      fullPath: '/community'
-      preLoaderRoute: typeof AppCommunityRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/credits': {
-      id: '/_app/credits'
-      path: '/credits'
-      fullPath: '/credits'
-      preLoaderRoute: typeof AppCreditsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/hall-of-fame': {
-      id: '/_app/hall-of-fame'
-      path: '/hall-of-fame'
-      fullPath: '/hall-of-fame'
-      preLoaderRoute: typeof AppHallOfFameRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/labels': {
-      id: '/_app/labels'
-      path: '/labels'
-      fullPath: '/labels'
-      preLoaderRoute: typeof AppLabelsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/library': {
-      id: '/_app/library'
-      path: '/library'
-      fullPath: '/library'
-      preLoaderRoute: typeof AppLibraryRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/radio': {
-      id: '/_app/radio'
-      path: '/radio'
-      fullPath: '/radio'
-      preLoaderRoute: typeof AppRadioRouteImport
+    '/_app/studio': {
+      id: '/_app/studio'
+      path: '/studio'
+      fullPath: '/studio'
+      preLoaderRoute: typeof AppStudioRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/settings': {
@@ -373,25 +317,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/studio': {
-      id: '/_app/studio'
-      path: '/studio'
-      fullPath: '/studio'
-      preLoaderRoute: typeof AppStudioRouteImport
+    '/_app/radio': {
+      id: '/_app/radio'
+      path: '/radio'
+      fullPath: '/radio'
+      preLoaderRoute: typeof AppRadioRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/artists/': {
-      id: '/_app/artists/'
-      path: '/artists'
-      fullPath: '/artists/'
-      preLoaderRoute: typeof AppArtistsIndexRouteImport
+    '/_app/library': {
+      id: '/_app/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof AppLibraryRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/artists/$artistId': {
-      id: '/_app/artists/$artistId'
-      path: '/artists/$artistId'
-      fullPath: '/artists/$artistId'
-      preLoaderRoute: typeof AppArtistsArtistIdRouteImport
+    '/_app/labels': {
+      id: '/_app/labels'
+      path: '/labels'
+      fullPath: '/labels'
+      preLoaderRoute: typeof AppLabelsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/hall-of-fame': {
+      id: '/_app/hall-of-fame'
+      path: '/hall-of-fame'
+      fullPath: '/hall-of-fame'
+      preLoaderRoute: typeof AppHallOfFameRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/credits': {
+      id: '/_app/credits'
+      path: '/credits'
+      fullPath: '/credits'
+      preLoaderRoute: typeof AppCreditsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/community': {
+      id: '/_app/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof AppCommunityRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/battles': {
+      id: '/_app/battles'
+      path: '/battles'
+      fullPath: '/battles'
+      preLoaderRoute: typeof AppBattlesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/avatar-lab': {
+      id: '/_app/avatar-lab'
+      path: '/avatar-lab'
+      fullPath: '/avatar-lab'
+      preLoaderRoute: typeof AppAvatarLabRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/analytics': {
+      id: '/_app/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AppAnalyticsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/labels/': {
@@ -401,18 +387,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLabelsIndexRouteImport
       parentRoute: typeof AppLabelsRoute
     }
-    '/_app/labels/$labelId': {
-      id: '/_app/labels/$labelId'
-      path: '/$labelId'
-      fullPath: '/labels/$labelId'
-      preLoaderRoute: typeof AppLabelsLabelIdRouteImport
-      parentRoute: typeof AppLabelsRoute
+    '/_app/artists/': {
+      id: '/_app/artists/'
+      path: '/artists'
+      fullPath: '/artists/'
+      preLoaderRoute: typeof AppArtistsIndexRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/api/studio/generate': {
-      id: '/api/studio/generate'
-      path: '/api/studio/generate'
-      fullPath: '/api/studio/generate'
-      preLoaderRoute: typeof ApiStudioGenerateRouteImport
+    '/api/voice/transcribe': {
+      id: '/api/voice/transcribe'
+      path: '/api/voice/transcribe'
+      fullPath: '/api/voice/transcribe'
+      preLoaderRoute: typeof ApiVoiceTranscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/voice/speak': {
@@ -422,12 +408,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiVoiceSpeakRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/voice/transcribe': {
-      id: '/api/voice/transcribe'
-      path: '/api/voice/transcribe'
-      fullPath: '/api/voice/transcribe'
-      preLoaderRoute: typeof ApiVoiceTranscribeRouteImport
+    '/api/studio/generate': {
+      id: '/api/studio/generate'
+      path: '/api/studio/generate'
+      fullPath: '/api/studio/generate'
+      preLoaderRoute: typeof ApiStudioGenerateRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/labels/$labelId': {
+      id: '/_app/labels/$labelId'
+      path: '/$labelId'
+      fullPath: '/labels/$labelId'
+      preLoaderRoute: typeof AppLabelsLabelIdRouteImport
+      parentRoute: typeof AppLabelsRoute
+    }
+    '/_app/artists/$artistId': {
+      id: '/_app/artists/$artistId'
+      path: '/artists/$artistId'
+      fullPath: '/artists/$artistId'
+      preLoaderRoute: typeof AppArtistsArtistIdRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }
