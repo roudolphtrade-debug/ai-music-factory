@@ -19,6 +19,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SectionHeading } from "@/components/premium/SectionHeading";
 import { homeLaureates } from "@/i18n/home-editorial";
+import labelMaisonNoir from "@/assets/label-maison-noir.webp";
+import stageImage from "@/assets/hero-stage.jpg";
 import { EditorialSelection, ArtistDiscovery, CreateAndConnect } from "@/components/premium/HomeEditorial";
 import { CinematicHero } from "@/components/premium/CinematicHero";
 import { PillarBand } from "@/components/premium/PillarBand";
@@ -168,23 +170,23 @@ function HomePage() {
             <SectionHeading title={t("home.charts.title")} description={t("editorial.selectionDesc")} action={<DemoBadge />} />
             <div className="flex flex-wrap gap-2">
               {chartRegions.map((r) => (
-                <button
+                <Button variant={region === r ? "gold" : "outline"} size="sm"
                   key={r}
                   onClick={() => setRegion(r)}
                   className={cn(
-                    "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+                    "h-9 rounded-full px-4 text-sm font-medium transition-colors",
                     region === r
                       ? "bg-gold-gradient text-primary-foreground"
                       : "border border-border text-muted-foreground hover:border-[color-mix(in_oklab,var(--gold)_40%,transparent)] hover:text-foreground",
                   )}
                 >
                   {t(`charts.regions.${r}`)}
-                </button>
+                </Button>
               ))}
             </div>
             <div
               key={region}
-              className="animate-list-fade overflow-hidden rounded-2xl border border-border surface-premium"
+              className="animate-list-fade overflow-hidden rounded-lg border border-border surface-premium"
             >
               {charts.map((c, i) => {
                 const track = chartQueue[i];
@@ -193,23 +195,23 @@ function HomePage() {
                   <div
                     key={`${c.rank}-${c.title}`}
                     className={cn(
-                      "group flex items-center gap-3 px-3 py-3 transition-colors hover:bg-secondary/40 sm:gap-4 sm:px-4",
+                      "group grid grid-cols-[1.25rem_2.5rem_minmax(0,1fr)_2.75rem_2.25rem] items-center gap-2 px-2 py-3 transition-colors hover:bg-secondary/40 sm:flex sm:gap-4 sm:px-4",
                       i !== charts.length - 1 && "border-b border-border/60",
                     )}
                   >
                     <span className="w-5 shrink-0 text-center font-display text-base font-semibold tabular-nums text-foreground sm:w-6 sm:text-lg">
                       {c.rank}
                     </span>
-                    <ChartChange change={c.change} isNew={c.isNew} newLabel={t("charts.new")} />
+                    <div className="hidden sm:block"><ChartChange change={c.change} isNew={c.isNew} newLabel={t("charts.new")} /></div>
                     {/* Cover doubles as the play control. On mobile (no hover) the
                         control stays visible so users know the row is tappable; on
                         desktop it's revealed on hover, and always shown when active. */}
-                    <div className="relative h-11 w-11 shrink-0">
+                    <div className="relative h-10 w-10 shrink-0 sm:h-11 sm:w-11">
                       <img
                         src={artistImages[c.artistId]}
                         alt={c.artist}
                         loading="lazy"
-                        className="h-11 w-11 rounded-lg object-cover ring-1 ring-border"
+                        className="h-10 w-10 rounded-md object-cover ring-1 ring-border sm:h-11 sm:w-11"
                       />
                       <div
                         className={cn(
@@ -225,12 +227,12 @@ function HomePage() {
                         />
                       </div>
                     </div>
-                    <div className="sm:hidden"><PlayButton track={track} queue={chartQueue} size="sm" label={t("charts.playTrack", { title: c.title, artist: c.artist })} /></div>
                     <div className="min-w-0 flex-1">
                       <Link
                         to="/artists/$artistId"
                         params={{ artistId: c.artistId }}
-                        className="block truncate font-medium text-foreground transition-colors hover:text-gold"
+                        className="block truncate text-sm font-medium text-foreground transition-colors hover:text-gold sm:text-base"
+                        title={c.title}
                       >
                         {c.title}
                       </Link>
@@ -242,6 +244,7 @@ function HomePage() {
                         {c.artist}
                       </Link>
                     </div>
+                    <div className="sm:hidden"><PlayButton track={track} queue={chartQueue} size="md" label={t("charts.playTrack", { title: c.title, artist: c.artist })} /></div>
                     <GoldBadge variant="outline" className="hidden sm:inline-flex">
                       {c.genre}
                     </GoldBadge>
@@ -343,8 +346,8 @@ function HomePage() {
       <OnboardingChecklist />
 
       {/* CURRENT BATTLES + CONTEST */}
-      <Reveal as="section" className="grid gap-6 lg:grid-cols-3">
-        <div className="min-w-0 rounded-2xl border border-border bg-card p-4 sm:p-6 lg:col-span-2">
+      <Reveal as="section" className="grid gap-6 border-y border-border py-8 lg:grid-cols-3">
+        <div className="min-w-0 lg:col-span-2">
           <SectionHeading
             eyebrow={t("home.arena.eyebrow")}
             title={t("home.arena.title")}
@@ -354,12 +357,12 @@ function HomePage() {
               </Button>
             }
           />
-          <div className="mt-5 rounded-2xl border border-border bg-noir-gradient p-5">
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">{roundLabel(liveBattle, t)} <DemoBadge /></span>
+          <div className="mt-5 border-t border-border pt-5">
+            <div className="mb-5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+              <span className="text-xs leading-relaxed text-muted-foreground">{roundLabel(liveBattle, t)} <DemoBadge /></span>
               <StatusChip status={liveBattle.status} />
             </div>
-            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-5">
               <BattleSide side={liveBattle.a} align="left" />
               <span className="font-display text-2xl font-semibold text-muted-foreground">
                 {t("common.vs")}
@@ -373,8 +376,9 @@ function HomePage() {
         </div>
 
         {/* Monthly contest */}
-        <div className="relative overflow-hidden rounded-2xl border border-[color-mix(in_oklab,var(--gold)_28%,transparent)] bg-card p-6">
-          
+        <div className="relative isolate min-w-0 overflow-hidden border-s border-border p-6">
+          <img src={stageImage} alt="" loading="lazy" className="absolute inset-0 -z-20 h-full w-full object-cover" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-t from-background via-background/90 to-background/50" />
           <div className="relative">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-gold" />
@@ -422,9 +426,10 @@ function HomePage() {
             <Link
               key={h.id}
               to="/hall-of-fame"
-              className="group relative overflow-hidden rounded-2xl border border-border bg-card p-5 card-hover"
+              className="group relative min-w-0 overflow-hidden rounded-lg border border-border bg-card shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
             >
-              <div className="flex items-center gap-2 text-gold">
+              <div className="relative aspect-[4/3] overflow-hidden"><img src={h.id === "hof-3" ? labelMaisonNoir : artistImages[h.artistId]} alt={h.winner} width={640} height={480} loading="lazy" className="h-full w-full object-cover object-[center_25%] transition-transform duration-500 motion-safe:group-hover:scale-105" /><div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" /><span className="absolute bottom-3 end-4 font-display text-4xl text-gold/70">{String(index + 1).padStart(2, "0")}</span></div>
+              <div className="p-4 pt-1"><div className="flex flex-wrap items-center gap-2 text-gold">
                 <Trophy className="h-4 w-4" /><DemoBadge />
                 <span className="eyebrow">{lang in homeLaureates ? homeLaureates[lang as keyof typeof homeLaureates][index]?.[1] : t(`hallOfFame.items.${h.id}.crown`)}</span>
               </div>
@@ -435,6 +440,7 @@ function HomePage() {
               <p className="mt-2 text-xs text-muted-foreground">
                 {lang in homeLaureates ? homeLaureates[lang as keyof typeof homeLaureates][index]?.[2] : t(`hallOfFame.items.${h.id}.note`)}
               </p>
+              </div>
             </Link>
           ))}
         </div>
@@ -525,22 +531,20 @@ function BattleSide({
   align: "left" | "right";
 }) {
   return (
-    <div
-      className={`flex flex-col items-center gap-3 text-center ${
-        align === "right" ? "sm:items-end sm:text-right" : "sm:items-start sm:text-left"
-      }`}
-    >
+    <div className="flex min-w-0 flex-col gap-3">
+      <Link to="/artists/$artistId" params={{artistId: side.artistId}} aria-label={side.name} className="group relative block aspect-[4/3] overflow-hidden rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold">
       <img
         src={artistImages[side.artistId]}
         alt={side.name}
         loading="lazy"
-        className="h-16 w-16 rounded-xl object-cover ring-1 ring-border"
+        className="h-full w-full object-cover object-[center_25%] transition-transform duration-500 motion-safe:group-hover:scale-105"
       />
-      <div>
-        <p className="text-sm font-semibold text-foreground">{side.name}</p>
+      </Link>
+      <div className={align === "right" ? "text-end" : "text-start"}>
+        <Link to="/artists/$artistId" params={{artistId: side.artistId}} className="block break-words font-display text-xl font-semibold text-foreground hover:text-gold">{side.name}</Link>
         <p className="text-xs text-muted-foreground">{side.track}</p>
       </div>
-      <VoteButton initialVotes={side.votes} size="sm" />
+      <div className={align === "right" ? "self-end" : "self-start"}><VoteButton initialVotes={side.votes} size="sm" /></div>
     </div>
   );
 }
