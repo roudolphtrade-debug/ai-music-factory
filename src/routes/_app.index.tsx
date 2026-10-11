@@ -19,7 +19,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SectionHeading } from "@/components/premium/SectionHeading";
-import { EditorialSelection, ArtistDiscovery, CreateAndConnect } from "@/components/premium/HomeEditorial";
 import { CinematicHero } from "@/components/premium/CinematicHero";
 import { PillarBand } from "@/components/premium/PillarBand";
 import { DemoBadge } from "@/components/premium/DemoBadge";
@@ -43,7 +42,6 @@ import {
   radioQueue,
   makePlayable,
   chartSourceAt,
-  chartTracks,
 } from "@/audio/tracks";
 import { useLibrary } from "@/library/LibraryProvider";
 import { cn } from "@/lib/utils";
@@ -64,11 +62,7 @@ import {
 export const Route = createFileRoute("/_app/")({
   head: () => ({
     meta: [
-      { title: "Discover music — AI Music Factory" },
-      { property: "og:title", content: "Discover music — AI Music Factory" },
-      { property: "og:description", content: "Explore editorial music selections, artists and creative possibilities at AI Music Factory." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
+      { title: "Home — Ai Music Factory" },
       {
         name: "description",
         content:
@@ -94,7 +88,17 @@ function HomePage() {
   const liveBattle = battles[0];
   const [region, setRegion] = useState<ChartRegion>("Global");
   const charts = globalCharts.filter((c) => c.regions.includes(region));
-  const chartQueue = charts.map((chart) => chartTracks.find((track) => track.id === `chart-${chart.rank}-${chart.title}`)).filter((track) => track !== undefined);
+  const chartQueue = charts.map((c) =>
+    makePlayable({
+      id: `chart-${c.rank}-${c.title}`,
+      title: c.title,
+      artist: c.artist,
+      artistId: c.artistId,
+      index: c.rank - 1,
+      src: chartSourceAt(c.rank),
+      duration: "0:30",
+    }),
+  );
 
   const historyTracks = history
     .map((h) => playableById[h.id])
@@ -108,7 +112,7 @@ function HomePage() {
   return (
     <div className="space-y-12">
       <CinematicHero featured={chartQueue[0]} queue={chartQueue} cover={artistImages[charts[0].artistId]} />
-      <EditorialSelection />
+      <OnboardingChecklist />
 
 
       {/* CONTINUE LISTENING */}
@@ -166,7 +170,7 @@ function HomePage() {
 
           {/* CHARTS */}
           <TabsContent value="charts" className="space-y-6">
-            <SectionHeading title={t("home.charts.title")} description={t("editorial.selectionDesc")} action={<DemoBadge />} />
+            <SectionHeading title={t("home.charts.title")} description={t("home.charts.desc")} action={<DemoBadge />} />
             <div className="flex flex-wrap gap-2">
               {chartRegions.map((r) => (
                 <button
@@ -214,7 +218,7 @@ function HomePage() {
                       />
                       <div
                         className={cn(
-                          "absolute inset-0 grid place-items-center rounded-lg bg-background/60 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100",
+                          "absolute inset-0 grid place-items-center rounded-lg bg-black/45 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100",
                           active && "opacity-100 sm:opacity-100",
                         )}
                       >
@@ -300,7 +304,7 @@ function HomePage() {
           {/* LEADERBOARD + ACTIVITY */}
           <TabsContent value="leaderboard" className="grid gap-6 lg:grid-cols-3">
             <div className="rounded-2xl border border-border bg-card p-6 lg:col-span-2">
-              <SectionHeading title={t("home.leaderboard.title")} action={<DemoBadge />} />
+              <SectionHeading title={t("home.leaderboard.title")} />
               <div className="mt-4 divide-y divide-border/60">
                 {topCreators.map((c) => (
                   <RankingRow
@@ -316,7 +320,7 @@ function HomePage() {
             </div>
 
             <div className="rounded-2xl border border-border bg-card p-6">
-              <SectionHeading title={t("home.activity.title")} action={<DemoBadge />} />
+              <SectionHeading title={t("home.activity.title")} />
               <ul className="mt-4 space-y-4">
                 {activityFeed.map((a) => (
                   <li key={a.id} className="flex gap-3">
@@ -338,10 +342,6 @@ function HomePage() {
         </Tabs>
       </Reveal>
 
-      <ArtistDiscovery />
-      <CreateAndConnect />
-      <OnboardingChecklist />
-
       {/* CURRENT BATTLES + CONTEST */}
       <Reveal as="section" className="grid gap-6 lg:grid-cols-3">
         <div className="rounded-2xl border border-border bg-card p-6 lg:col-span-2">
@@ -356,7 +356,7 @@ function HomePage() {
           />
           <div className="mt-5 rounded-2xl border border-border bg-noir-gradient p-5">
             <div className="mb-4 flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">{roundLabel(liveBattle, t)} <DemoBadge /></span>
+              <span className="text-xs text-muted-foreground">{roundLabel(liveBattle, t)}</span>
               <StatusChip status={liveBattle.status} />
             </div>
             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
@@ -378,7 +378,7 @@ function HomePage() {
           <div className="relative">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-gold" />
-              <span className="eyebrow text-gold">{t("home.contest.eyebrow")} <DemoBadge /></span>
+              <span className="eyebrow text-gold">{t("home.contest.eyebrow")}</span>
             </div>
             <h3 className="mt-3 font-display text-2xl font-semibold text-foreground">
               {t("home.contest.title")}
@@ -397,9 +397,9 @@ function HomePage() {
             <Button
               variant="gold"
               className="mt-5 w-full"
-              asChild
+              onClick={() => toast.success(t("home.contest.submitted"))}
             >
-              <Link to="/battles">{t("editorial.challenges")}</Link>
+              {t("home.contest.submit")}
             </Button>
           </div>
         </div>
@@ -425,7 +425,7 @@ function HomePage() {
               className="group relative overflow-hidden rounded-2xl border border-border bg-card p-5 card-hover"
             >
               <div className="flex items-center gap-2 text-gold">
-                <Trophy className="h-4 w-4" /><DemoBadge />
+                <Trophy className="h-4 w-4" />
                 <span className="eyebrow">{t(`hallOfFame.items.${h.id}.crown`)}</span>
               </div>
               <p className="mt-3 text-xs text-muted-foreground">

@@ -1,4 +1,4 @@
-import { tracks, globalCharts, artistImages, type ArtistId } from "@/data/mock";
+import { tracks, artistImages, type ArtistId } from "@/data/mock";
 import voice1 from "@/audio/sounds/voice-1.mp3.asset.json";
 import voice2 from "@/audio/sounds/voice-2.mp3.asset.json";
 import voice3 from "@/audio/sounds/voice-3.mp3.asset.json";
@@ -128,15 +128,8 @@ export const playableTracks: PlayableTrack[] = tracks.map((t, i) => ({
   duration: t.duration,
 }));
 
-/** Stable chart identifiers retain existing favorites and the numbered audio mapping. */
-export const chartTracks: PlayableTrack[] = globalCharts.map((chart) => ({
-  id: `chart-${chart.rank}-${chart.title}`,
-  title: chart.title, artist: chart.artist, artistId: chart.artistId,
-  src: chartSourceAt(chart.rank), cover: artistImages[chart.artistId], duration: "0:30",
-}));
-
 export const playableById: Record<string, PlayableTrack> = Object.fromEntries(
-  [...playableTracks, ...chartTracks].map((p) => [p.id, p]),
+  playableTracks.map((p) => [p.id, p]),
 );
 
 /** Full radio rotation queue. */

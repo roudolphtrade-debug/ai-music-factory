@@ -1,4 +1,3 @@
-import { homeEditorial } from "./home-editorial";
 export type Lang = "fr" | "en" | "es" | "zh" | "pt" | "ar";
 
 export const LANGS: { code: Lang; label: string; flag: string; dir?: "rtl" }[] = [
@@ -3295,9 +3294,6 @@ const ar: Dict = {
   },
 };
 
-for (const [code, dictionary] of Object.entries({ fr, en, es, zh, pt, ar })) {
-  dictionary.editorial = homeEditorial[code as Lang];
-}
 export const translations: Record<Lang, Dict> = { fr, en, es, zh, pt, ar };
 
 function resolve(dict: Dict, key: string): unknown {
