@@ -8,6 +8,8 @@ import { PlayButton } from '@/components/audio/PlayButton';
 import { LikeButton } from './LikeButton';
 import { SectionHeading } from './SectionHeading';
 import { DemoBadge } from './DemoBadge';
+import creationImage from '@/assets/home-creation.jpg';
+import stageImage from '@/assets/hero-stage.jpg';
 
 export function EditorialSelection() {
   const { t } = useI18n();
@@ -30,12 +32,16 @@ export function ArtistDiscovery() {
 }
 export function CreateAndConnect() {
   const { t } = useI18n();
-  const destinations=[{key:'radio',to:'/radio',icon:Radio},{key:'challenges',to:'/battles',icon:Swords},{key:'community',to:'/community',icon:Users}] as const;
+  const destinations=[{key:'radio',to:'/radio',icon:Radio,image:artistImages['art-3']},{key:'challenges',to:'/battles',icon:Swords,image:stageImage},{key:'community',to:'/community',icon:Users,image:artistImages['art-5']}] as const;
   return <>
-    <section className="grid items-center gap-6 border-y border-border py-10 md:grid-cols-[1fr_auto]">
-      <div><AudioWaveform className="mb-4 h-8 w-8 text-gold" /><h2 className="font-display text-4xl text-foreground">{t('editorial.create')}</h2><p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">{t('editorial.createDesc')}</p></div>
-      <Button asChild variant="gold" size="lg"><Link to="/studio">{t('home.hero.startCreating')}<ArrowUpRight className="h-4 w-4" /></Link></Button>
+    <section className="relative isolate overflow-hidden border-y border-border">
+      <img src={creationImage} alt="" width={1536} height={1024} loading="lazy" className="absolute inset-0 -z-20 h-full w-full object-cover object-center" />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-background via-background/80 to-background/20" />
+      <div className="max-w-xl px-6 py-10 sm:px-9 sm:py-14"><AudioWaveform className="mb-5 h-7 w-7 text-gold" /><h2 className="font-display text-4xl leading-tight text-foreground sm:text-5xl">{t('editorial.create')}</h2><p className="mt-4 max-w-md text-sm leading-relaxed text-foreground/85">{t('editorial.createDesc')}</p><Button asChild variant="gold" size="lg" className="mt-6 max-w-full whitespace-normal"><Link to="/studio">{t('home.hero.startCreating')}<ArrowUpRight className="h-4 w-4 shrink-0" /></Link></Button></div>
     </section>
-    <section className="grid gap-6 md:grid-cols-3">{destinations.map(({key,to,icon:Icon})=><div key={key} className="min-w-0 border-b border-border pb-6"><Icon className="mb-4 h-6 w-6 text-gold" /><h2 className="font-display text-3xl">{t(`editorial.${key}`)}</h2><p className="mb-5 mt-2 text-sm leading-relaxed text-muted-foreground">{t(`editorial.${key}Desc`)}</p><Button asChild variant="outline"><Link to={to}>{t('editorial.open')}<ArrowUpRight className="h-4 w-4" /></Link></Button>{key!=='radio'&&<DemoBadge className="ms-3" />}</div>)}</section>
+    <section className="grid gap-5 md:grid-cols-3">{destinations.map(({key,to,icon:Icon,image})=><article key={key} className="group min-w-0 overflow-hidden rounded-lg border border-border bg-card shadow-card">
+      <Link to={to} aria-label={t(`editorial.${key}`)} className="relative block aspect-[16/10] overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-inset"><img src={image} alt="" width={720} height={450} loading="lazy" className="h-full w-full object-cover object-[center_30%] transition-transform duration-500 motion-safe:group-hover:scale-105" /><div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" /><Icon className="absolute bottom-4 start-5 h-6 w-6 text-gold" /></Link>
+      <div className="px-5 pb-6"><div className="flex items-center gap-3"><h2 className="min-w-0 break-words font-display text-3xl">{t(`editorial.${key}`)}</h2>{key!=='radio'&&<DemoBadge className="shrink-0" />}</div><p className="mb-5 mt-3 min-h-12 text-sm leading-relaxed text-muted-foreground">{t(`editorial.${key}Desc`)}</p><Button asChild variant="outline"><Link to={to}>{t('editorial.open')}<ArrowUpRight className="h-4 w-4" /></Link></Button></div>
+    </article>)}</section>
   </>;
 }

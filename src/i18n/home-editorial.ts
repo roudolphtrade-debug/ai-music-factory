@@ -13,3 +13,12 @@ export const homeLaureates = {
  pt: [ ['Artista do ano','Artista do ano','3,2 milhões de ouvintes mensais · Campeão do desafio'], ['Criador de prompts','Mestre da criação','Prompt Platina · estilo mais reproduzido'], ['Selo do mês','Casa de honra','Selo mais bem avaliado · US$ 48,2 mil de receita mensal recorrente'], ['Coroa da descoberta','Revelação','Identidade com maior evolução na temporada'] ],
  ar: [ ['فنان العام','تاج العام','3.2 مليون مستمع شهري · بطل التحدي'], ['مبدع التوجيهات','إتقان الإبداع','توجيه بلاتيني · الأسلوب الأكثر تقليداً'], ['شركة الشهر','دار الشرف','الشركة الأعلى تقييماً · إيراد شهري متكرر 48.2 ألف دولار'], ['تاج الاكتشاف','موهبة صاعدة','الهوية الفنية الأسرع تقدماً هذا الموسم'] ],
 };
+
+export const homeTransport = {
+  fr: { previous: 'Titre précédent', next: 'Titre suivant' },
+  en: { previous: 'Previous track', next: 'Next track' },
+  es: { previous: 'Canción anterior', next: 'Siguiente canción' },
+  zh: { previous: '上一首', next: '下一首' },
+  pt: { previous: 'Faixa anterior', next: 'Próxima faixa' },
+  ar: { previous: 'المقطوعة السابقة', next: 'المقطوعة التالية' },
+};

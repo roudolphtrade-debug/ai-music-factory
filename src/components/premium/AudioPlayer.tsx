@@ -7,11 +7,15 @@ import { WaveBars } from "@/components/audio/WaveBars";
 import { Seekbar } from "@/components/audio/Seekbar";
 import { VolumeControl } from "@/components/audio/VolumeControl";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { useI18n } from "@/i18n/context";
+import { homeTransport } from "@/i18n/home-editorial";
 
 /**
  * Persistent global player bar. Reflects the single active audio track.
  */
-export function AudioPlayer() {
+export function AudioPlayer({ compact = false }: { compact?: boolean }) {
+  const { lang, t } = useI18n();
   const { current, isPlaying, prev, next, currentTime, duration } = usePlayer();
   const [liked, setLiked] = useState(false);
 
@@ -21,29 +25,30 @@ export function AudioPlayer() {
   const total = current && duration > 0 ? formatTime(duration) : track.duration;
 
   return (
-    <div className="border-t border-border bg-card/80 backdrop-blur-xl">
+    <div className={cn("border-t border-border backdrop-blur-xl", compact ? "home-mini-player bg-card" : "bg-card/80")}>
+      {compact && <span className="sr-only" role="timer">{elapsed} / {total}</span>}
       {/* Slim seek line (clickable) */}
       <div className="hidden px-4 pt-2 sm:block">
         <Seekbar showTimes={false} />
       </div>
 
-      <div className="flex items-center gap-4 px-4 py-3 sm:px-6">
+      <div className={cn("grid grid-cols-[minmax(0,1fr)_auto] items-center sm:flex sm:gap-4 sm:px-6 sm:py-3", compact ? "gap-1 px-3 py-2" : "gap-4 px-4 py-3")}>
         {/* Track meta */}
-        <div className="flex min-w-0 flex-1 items-center gap-3">
-          <div className="relative">
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+          <div className="relative shrink-0">
             <img
               loading="eager"
               src={track.cover}
               alt={track.artist}
               className={cn(
-                "h-12 w-12 rounded-lg object-cover ring-1 ring-border transition-shadow duration-[var(--duration-slow)]",
+                compact ? "h-9 w-9 rounded-md object-cover ring-1 ring-border sm:h-12 sm:w-12" : "h-12 w-12 rounded-lg object-cover ring-1 ring-border transition-shadow duration-[var(--duration-slow)]",
                 isPlaying &&
                   "ring-[color-mix(in_oklab,var(--gold)_45%,transparent)] animate-glow-breathe",
               )}
             />
           </div>
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-foreground">{track.title}</p>
+            <p className="truncate text-sm font-medium text-foreground" title={track.title}>{track.title}</p>
             <p className="truncate text-xs text-muted-foreground">{track.artist}</p>
           </div>
           <button
@@ -60,15 +65,15 @@ export function AudioPlayer() {
         </div>
 
         {/* Transport */}
-        <div className="flex items-center gap-1.5">
+        <div className={cn("flex shrink-0 items-center", compact ? "gap-0 sm:gap-1.5" : "gap-1.5")}>
           <PlayerIcon className="hidden md:inline-flex" aria-label="Shuffle">
             <Shuffle className="h-4 w-4" />
           </PlayerIcon>
-          <PlayerIcon onClick={prev} aria-label="Previous">
+          <PlayerIcon onClick={prev} aria-label={compact ? homeTransport[lang].previous : "Previous"}>
             <SkipBack className="h-4 w-4" />
           </PlayerIcon>
-          <PlayButton track={track} queue={radioQueue} size="md" />
-          <PlayerIcon onClick={next} aria-label="Next">
+          <PlayButton track={track} queue={radioQueue} size="md" label={compact ? t(isPlaying ? "audio.pause" : "audio.play") : undefined} />
+          <PlayerIcon onClick={next} aria-label={compact ? homeTransport[lang].next : "Next"}>
             <SkipForward className="h-4 w-4" />
           </PlayerIcon>
           <PlayerIcon className="hidden md:inline-flex" aria-label="Repeat">
@@ -101,7 +106,7 @@ function PlayerIcon({
   "aria-label"?: string;
 }) {
   return (
-    <button
+    <Button variant="ghost" size="icon"
       type="button"
       onClick={onClick}
       aria-label={ariaLabel}
@@ -111,6 +116,6 @@ function PlayerIcon({
       )}
     >
       {children}
-    </button>
+    </Button>
   );
 }

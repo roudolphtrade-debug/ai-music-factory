@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Home, Search, AudioWaveform, Library, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/context";
+import { Button } from "@/components/ui/button";
 
 /**
  * Mobile-first primary navigation. Replaces "hamburger as the only way to
@@ -12,7 +13,7 @@ import { useI18n } from "@/i18n/context";
  *
  * Hidden at `lg:` and up, where the persistent sidebar takes over.
  */
-export function MobileTabBar({ onMenu }: { onMenu: () => void }) {
+export function MobileTabBar({ onMenu, compact = false }: { onMenu: () => void; compact?: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { t } = useI18n();
 
@@ -29,22 +30,22 @@ export function MobileTabBar({ onMenu }: { onMenu: () => void }) {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/90 backdrop-blur-xl lg:hidden"
+      className={cn("fixed inset-x-0 bottom-0 z-40 border-t border-border backdrop-blur-xl lg:hidden", compact ? "bg-card" : "bg-card/90")}
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       aria-label={t("nav.menu")}
     >
-      <div className="grid grid-cols-5 items-center px-1">
+      <div className={cn("grid grid-cols-5 items-center px-1", compact && "h-14")}>
         {items.map((item) => (
           <TabLink key={item.to} {...item} active={isActive(item.to, item.exact)} />
         ))}
-        <button
+        <Button variant="ghost"
           type="button"
           onClick={() => window.dispatchEvent(new Event("afm:open-search"))}
-          className="flex flex-col items-center gap-1 py-2.5 text-muted-foreground transition-colors active:text-gold"
+          className="h-14 min-w-0 flex-col gap-1 rounded-none px-0 text-muted-foreground active:text-gold"
         >
           <Search className="h-5 w-5" />
           <span className="text-[0.65rem] font-medium">{t("nav.search")}</span>
-        </button>
+        </Button>
 
         {/* Raised center action — the core "create" flow gets visual priority */}
         <Link
@@ -54,7 +55,8 @@ export function MobileTabBar({ onMenu }: { onMenu: () => void }) {
         >
           <span
             className={cn(
-              "-mt-6 grid h-14 w-14 place-items-center rounded-full bg-gold-gradient text-primary-foreground shadow-[0_10px_28px_-10px_var(--gold)] transition-transform duration-[var(--duration-fast)] active:scale-90 motion-reduce:active:scale-100",
+              "grid place-items-center rounded-full bg-gold-gradient text-primary-foreground shadow-glow transition-transform duration-[var(--duration-fast)] active:scale-90 motion-reduce:active:scale-100",
+              compact ? "h-11 w-11" : "-mt-6 h-14 w-14",
               isActive("/studio") && "ring-2 ring-gold ring-offset-2 ring-offset-background",
             )}
           >
@@ -66,15 +68,15 @@ export function MobileTabBar({ onMenu }: { onMenu: () => void }) {
           <TabLink key={item.to} {...item} active={isActive(item.to)} />
         ))}
 
-        <button
+        <Button variant="ghost"
           type="button"
           onClick={onMenu}
-          className="flex flex-col items-center gap-1 py-2.5 text-muted-foreground transition-colors active:text-gold"
+          className="h-14 min-w-0 flex-col gap-1 rounded-none px-0 text-muted-foreground active:text-gold"
           aria-label={t("nav.menu")}
         >
           <Menu className="h-5 w-5" />
           <span className="text-[0.65rem] font-medium">{t("nav.menu")}</span>
-        </button>
+        </Button>
       </div>
     </nav>
   );
