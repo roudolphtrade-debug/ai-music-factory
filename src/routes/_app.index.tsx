@@ -105,7 +105,7 @@ function HomePage() {
     .slice(0, 4);
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8 sm:space-y-12">
       <CinematicHero featured={chartQueue[0]} queue={chartQueue} cover={artistImages[charts[0].artistId]} />
       <EditorialSelection />
 
