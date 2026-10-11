@@ -1,12 +1,11 @@
 import { Link } from '@tanstack/react-router';
 import { ArrowUpRight, AudioWaveform, Radio, Swords, Users } from 'lucide-react';
 import { chartTracks } from '@/audio/tracks';
-import { artists } from '@/data/mock';
+import { artists, artistImages } from '@/data/mock';
 import { useI18n } from '@/i18n/context';
 import { Button } from '@/components/ui/button';
 import { PlayButton } from '@/components/audio/PlayButton';
 import { LikeButton } from './LikeButton';
-import { ArtistCard } from './ArtistCard';
 import { SectionHeading } from './SectionHeading';
 import { DemoBadge } from './DemoBadge';
 
@@ -27,7 +26,7 @@ export function EditorialSelection() {
 }
 export function ArtistDiscovery() {
   const { t } = useI18n();
-  return <section className="space-y-5"><SectionHeading title={t('editorial.artists')} description={t('editorial.artistsDesc')} action={<Button asChild variant="ghost-gold" size="icon" aria-label={t('common.viewAll')}><Link to="/artists"><ArrowUpRight /></Link></Button>} /><p className="flex items-center gap-2 text-xs text-muted-foreground"><DemoBadge />{t('editorial.demoContext')}</p><div className="grid grid-cols-2 gap-4 md:grid-cols-4">{artists.slice(0,4).map(artist=><ArtistCard key={artist.id} artist={artist} />)}</div></section>;
+  return <section className="space-y-5"><SectionHeading title={t('editorial.artists')} description={t('editorial.artistsDesc')} action={<Button asChild variant="ghost-gold" size="icon" aria-label={t('common.viewAll')}><Link to="/artists"><ArrowUpRight /></Link></Button>} /><p className="flex items-center gap-2 text-xs text-muted-foreground"><DemoBadge />{t('editorial.demoContext')}</p><div className="grid grid-cols-2 gap-4 md:grid-cols-4">{artists.slice(0,4).map(artist=><Link key={artist.id} to="/artists/$artistId" params={{artistId:artist.id}} className="group min-w-0"><div className="relative aspect-[4/5] overflow-hidden rounded-lg"><img loading="lazy" src={artistImages[artist.id]} alt={artist.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" /></div><h3 className="mt-3 break-words font-display text-xl font-semibold">{artist.name}</h3><p className="mt-1 text-xs text-muted-foreground">{artist.genres[0]}</p></Link>)}</div></section>;
 }
 export function CreateAndConnect() {
   const { t } = useI18n();
