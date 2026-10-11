@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { ArrowUpRight, AudioWaveform, Radio, Swords, Users } from 'lucide-react';
 import { chartTracks } from '@/audio/tracks';
-import { artists, artistImages } from '@/data/mock';
+import { artists, artistImages, globalCharts } from '@/data/mock';
 import { useI18n } from '@/i18n/context';
 import { Button } from '@/components/ui/button';
 import { PlayButton } from '@/components/audio/PlayButton';
@@ -36,7 +36,8 @@ export function EditorialSelection() {
   </section>;
 }
 function globalGenre(id: string) {
-  return id === chartTracks[0]?.id ? 'Trap' : '';
+  const track = chartTracks.find(track => track.id === id);
+  return globalCharts.find(chart => chart.title === track?.title)?.genre ?? '';
 }
 export function DiscoveryCompanions() {
   const { t } = useI18n();

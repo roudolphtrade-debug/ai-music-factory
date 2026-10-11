@@ -199,12 +199,8 @@ function HomePage() {
                       i !== charts.length - 1 && "border-b border-border/60",
                     )}
                   >
-                    <span className="w-5 shrink-0 text-center font-display text-base font-semibold tabular-nums text-foreground sm:w-6 sm:text-lg">
-                      {c.rank}
-                    </span>
-                    {/* Cover doubles as the play control. On mobile (no hover) the
-                        control stays visible so users know the row is tappable; on
-                        desktop it's revealed on hover, and always shown when active. */}
+                    <div className="flex min-w-0 flex-col items-center gap-1"><span className="text-center font-display text-base font-semibold tabular-nums text-foreground sm:text-lg">{c.rank}</span><span className="hidden sm:block"><ChartChange change={c.change} isNew={c.isNew} newLabel={t("charts.new")} /></span></div>
+                    {/* Keep portraits unobstructed and playback visible beside the title. */}
                     <div className="relative h-10 w-10 shrink-0 sm:h-11 sm:w-11">
                       <img
                         src={artistImages[c.artistId]}
@@ -212,19 +208,6 @@ function HomePage() {
                         loading="lazy"
                         className="h-10 w-10 rounded-md object-cover ring-1 ring-border sm:h-11 sm:w-11"
                       />
-                      <div
-                        className={cn(
-                          "absolute inset-0 hidden place-items-center rounded-lg bg-background/60 opacity-100 transition-opacity",
-                          active && "opacity-100 sm:opacity-100",
-                        )}
-                      >
-                        <PlayButton
-                          track={track}
-                          queue={chartQueue}
-                          size="sm"
-                          label={t("charts.playTrack", { title: c.title, artist: c.artist })}
-                        />
-                      </div>
                     </div>
                     <div className="min-w-0 flex-1">
                       <Link
@@ -242,6 +225,7 @@ function HomePage() {
                       >
                         {c.artist}
                       </Link>
+                      <p className="hidden truncate text-[0.65rem] text-muted-foreground sm:block">{c.genre} · {c.plays}</p>
                     </div>
                     <PlayButton track={track} queue={chartQueue} size="md" label={t("charts.playTrack", { title: c.title, artist: c.artist })} />
                     <LikeButton trackId={track.id} size="md" className="h-11 w-11 sm:h-11 sm:w-11" />

@@ -136,7 +136,7 @@ const fr: Dict = {
       titleLead: "La musique entre dans",
       titleAccent: "une nouvelle ère.",
       subtitle:
-        "Créez, découvrez et partagez la musique à l'ère de l'intelligence artificielle — pour les artistes humains, hybrides et IA, les producteurs, les fans et les professionnels.",
+        "Créez, découvrez et partagez la musique à l'ère de l'intelligence artificielle : pour les artistes humains, hybrides et IA, les producteurs, les fans et les professionnels.",
       startCreating: "Commencer à créer",
       exploreArtists: "Explorer la musique",
     },
@@ -835,7 +835,7 @@ const en: Dict = {
       titleLead: "Music is entering",
       titleAccent: "a new era.",
       subtitle:
-        "Create, discover and share music in the age of artificial intelligence — for human, hybrid and AI artists, producers, fans and professionals.",
+        "Create, discover and share music in the age of artificial intelligence: for human, hybrid and AI artists, producers, fans and professionals.",
       startCreating: "Start creating",
       exploreArtists: "Explore music",
     },
@@ -855,7 +855,7 @@ const en: Dict = {
     charts: {
       eyebrow: "Charts",
       title: "Top charts",
-      desc: "What's dominating plays right now — by genre and by region.",
+      desc: "What's dominating plays right now, by genre and by region.",
     },
     genres: {
       eyebrow: "Categories",
@@ -1530,7 +1530,7 @@ const es: Dict = {
       titleLead: "La música entra en",
       titleAccent: "una nueva era.",
       subtitle:
-        "Crea, descubre y comparte música en la era de la inteligencia artificial — para artistas humanos, híbridos e IA, productores, fans y profesionales.",
+        "Crea, descubre y comparte música en la era de la inteligencia artificial: para artistas humanos, híbridos e IA, productores, fans y profesionales.",
       startCreating: "Empezar a crear",
       exploreArtists: "Explorar música",
     },
@@ -1550,7 +1550,7 @@ const es: Dict = {
     charts: {
       eyebrow: "Listas",
       title: "Top de listas",
-      desc: "Lo que domina las reproducciones ahora mismo — por género y por región.",
+      desc: "Lo que domina las reproducciones ahora mismo, por género y por región.",
     },
     genres: {
       eyebrow: "Categorías",
@@ -2214,7 +2214,7 @@ const zh: Dict = {
       titleLead: "音乐正在进入",
       titleAccent: "一个新时代。",
       subtitle:
-        "在人工智能时代创作、发现和分享音乐——面向人类、混合与 AI 艺人、制作人、乐迷和专业人士。",
+        "在人工智能时代创作、发现和分享音乐：面向人类、混合与 AI 艺人、制作人、乐迷和专业人士。",
       startCreating: "开始创作",
       exploreArtists: "探索音乐",
     },
@@ -2614,7 +2614,7 @@ const pt: Dict = {
       titleLead: "A música entra em",
       titleAccent: "uma nova era.",
       subtitle:
-        "Crie, descubra e compartilhe música na era da inteligência artificial — para artistas humanos, híbridos e IA, produtores, fãs e profissionais.",
+        "Crie, descubra e compartilhe música na era da inteligência artificial: para artistas humanos, híbridos e IA, produtores, fãs e profissionais.",
       startCreating: "Começar a criar",
       exploreArtists: "Explorar música",
     },
@@ -3018,7 +3018,7 @@ const ar: Dict = {
       titleLead: "الموسيقى تدخل",
       titleAccent: "عصرًا جديدًا.",
       subtitle:
-        "أنشئ واكتشف وشارك الموسيقى في عصر الذكاء الاصطناعي — للفنانين البشر والهجينين والذكاء الاصطناعي والمنتجين والمعجبين والمحترفين.",
+        "أنشئ واكتشف وشارك الموسيقى في عصر الذكاء الاصطناعي: للفنانين البشر والهجينين والذكاء الاصطناعي والمنتجين والمعجبين والمحترفين.",
       startCreating: "ابدأ الإنشاء",
       exploreArtists: "استكشف الموسيقى",
     },

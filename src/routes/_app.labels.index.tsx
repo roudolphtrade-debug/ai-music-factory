@@ -10,6 +10,14 @@ import { useLabels } from "@/library/LabelsProvider";
 import { useI18n } from "@/i18n/context";
 
 export const Route = createFileRoute("/_app/labels/")({
+  head: () => ({ meta: [
+    { title: "Music labels · AI Music Factory" },
+    { name: "description", content: "Explore music label identities and manage your demonstration roster at AI Music Factory." },
+    { property: "og:title", content: "Music labels · AI Music Factory" },
+    { property: "og:description", content: "Explore music label identities and manage your demonstration roster at AI Music Factory." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: LabelsPage,
 });
 
