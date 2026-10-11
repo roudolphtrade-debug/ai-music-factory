@@ -29,7 +29,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </Sheet>
 
       <div className="lg:ps-72">
-        <Topbar onMenu={() => setMobileOpen(true)} />
+        <Topbar onMenu={() => setMobileOpen(true)} compact={pathname === "/"} />
         <main className="mx-auto w-full max-w-7xl px-4 pb-52 pt-6 sm:px-6 lg:px-10 lg:pb-40 2xl:max-w-[100rem]">
           <div key={pathname} className="animate-route-in">
             {children}
@@ -39,11 +39,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Global mock player — stacked directly above the mobile tab bar,
           flush with the screen edge again once the sidebar takes over at lg: */}
-      <div className="fixed inset-x-0 z-30 bottom-[calc(4rem+env(safe-area-inset-bottom))] lg:bottom-0 lg:pb-[env(safe-area-inset-bottom)] lg:ps-72">
-        <AudioPlayer />
+      <div className={pathname === "/" ? "fixed inset-x-0 z-30 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] lg:bottom-0 lg:pb-[env(safe-area-inset-bottom)] lg:ps-72" : "fixed inset-x-0 z-30 bottom-[calc(4rem+env(safe-area-inset-bottom))] lg:bottom-0 lg:pb-[env(safe-area-inset-bottom)] lg:ps-72"}>
+        <AudioPlayer compact={pathname === "/"} />
       </div>
 
-      <MobileTabBar onMenu={() => setMobileOpen(true)} />
+      <MobileTabBar onMenu={() => setMobileOpen(true)} compact={pathname === "/"} />
     </div>
   );
 }

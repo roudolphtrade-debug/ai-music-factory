@@ -11,3 +11,4 @@
 
 - Keep chart tracks in the shared playback lookup under existing identifiers so favorites and history remain resolvable without migration.
 - Keep homepage editorial translations in a browser-safe six-language catalog so scoped additions stay isolated from unrelated screens.
+- Scope compact chrome through homepage presentation props; preserve audio state and other pages' layouts.

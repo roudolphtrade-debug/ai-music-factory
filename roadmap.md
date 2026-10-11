@@ -3,4 +3,7 @@
 - [x] Compact languages and repair RTL framing; preserve media and chart identifiers.
 - [x] Verify all six languages, mobile layouts, playback, favorites and navigation.
 - [x] Deliver homepage verification report.
+- [ ] Finalize homepage hero, illustrated destinations, Battles and Hall portraits.
+- [ ] Verify compact homepage chrome, six languages and before/after captures.
+- [ ] Deliver factual Lot 1 refinement report and stop for validation.
 - [ ] Start Radio only after homepage validation (blocked: user approval).

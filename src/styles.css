@@ -670,7 +670,13 @@
 
 /* Keep the next musical selection visible above persistent controls. */
 .home-opening { min-height: 0; }
-section.home-opening > .home-opening { min-height: min(500px, calc(100svh - 280px)); }
+section.home-opening > .home-opening { min-height: 0; }
 @media (min-width: 640px) {
-  section.home-opening > .home-opening { min-height: min(500px, calc(100svh - 245px)); }
+  section.home-opening > .home-opening { min-height: min(520px, calc(100svh - 220px)); }
+}
+
+/* Homepage-only compact chrome; transport targets stay 44px. */
+@media (max-width: 639px) {
+  .home-mini-player p { font-size: 0.75rem; }
+  .home-mini-player p + p { font-size: 0.625rem; }
 }

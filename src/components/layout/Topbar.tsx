@@ -10,7 +10,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuRad
 import { LANGS } from "@/i18n/translations";
 import { cn } from "@/lib/utils";
 
-export function Topbar({ onMenu }: { onMenu: () => void }) {
+export function Topbar({ onMenu, compact = false }: { onMenu: () => void; compact?: boolean }) {
   const { t, lang, setLang } = useI18n();
   const activeLanguage = LANGS.find((item) => item.code === lang) ?? LANGS[0];
   const [searchOpen, setSearchOpen] = useState(false);
@@ -22,27 +22,27 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-xl">
-      <div className="flex h-16 min-w-0 items-center gap-2 px-3 sm:gap-3 sm:px-6">
-        <button
+      <div className={cn("grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-3 sm:flex sm:gap-3 sm:px-6", compact ? "h-14 sm:h-16" : "h-16")}>
+        <Button variant="ghost" size="icon"
           type="button"
           onClick={onMenu}
-          className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:h-9 sm:w-9 lg:hidden"
+          className="h-11 w-11 shrink-0 text-muted-foreground lg:hidden"
           aria-label={t("nav.menu")}
         >
           <Menu className="h-5 w-5" />
-        </button>
+        </Button>
 
-        <button
+        <Button variant="outline"
           type="button"
           onClick={() => setSearchOpen(true)}
-          className="relative flex h-9 min-w-0 flex-1 items-center gap-2 rounded-lg border border-input bg-secondary/30 px-3 text-left text-sm text-muted-foreground/70 outline-none transition-colors hover:border-[color-mix(in_oklab,var(--gold)_28%,transparent)] sm:max-w-md sm:px-3.5"
+          className="relative h-11 min-w-0 flex-1 justify-start gap-2 border-input bg-secondary/30 px-2 text-start text-sm text-muted-foreground sm:h-9 sm:max-w-md sm:px-3.5"
         >
           <Search className="h-4 w-4 shrink-0" />
           <span className="min-w-0 flex-1 truncate">{t("topbar.searchPlaceholder")}</span>
           <kbd className="hidden shrink-0 items-center gap-0.5 rounded border border-border bg-secondary/60 px-1.5 py-0.5 text-[0.65rem] font-medium text-muted-foreground/80 sm:inline-flex">
             ⌘K
           </kbd>
-        </button>
+        </Button>
 
         <SearchPalette open={searchOpen} onOpenChange={setSearchOpen} />
 
@@ -50,7 +50,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
           <div className="xl:hidden">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-10 gap-1.5 px-2" aria-label={t("language.label")}>
+                <Button variant="outline" size="sm" className="h-11 gap-1.5 px-2 sm:h-10" aria-label={t("language.label")}>
                   <CircularFlag lang={lang} className="h-5 w-5" />
                   <span className="text-xs">{activeLanguage.label}</span><ChevronDown className="h-3 w-3" />
                 </Button>
