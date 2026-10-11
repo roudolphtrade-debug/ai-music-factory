@@ -413,6 +413,7 @@ function HomePage() {
       <Reveal as="section" className="space-y-6">
         <SectionHeading
           eyebrow={t("home.fame.eyebrow")}
+          className="grid grid-cols-1 items-start sm:flex sm:items-end"
           title={t("home.fame.title")}
           description={t("home.fame.desc")}
           action={

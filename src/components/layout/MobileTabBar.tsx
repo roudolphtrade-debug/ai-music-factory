@@ -30,7 +30,7 @@ export function MobileTabBar({ onMenu, compact = false }: { onMenu: () => void; 
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/90 backdrop-blur-xl lg:hidden"
+      className={cn("fixed inset-x-0 bottom-0 z-40 border-t border-border backdrop-blur-xl lg:hidden", compact ? "bg-card" : "bg-card/90")}
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       aria-label={t("nav.menu")}
     >

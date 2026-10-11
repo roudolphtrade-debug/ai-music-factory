@@ -8,11 +8,14 @@ import { Seekbar } from "@/components/audio/Seekbar";
 import { VolumeControl } from "@/components/audio/VolumeControl";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/i18n/context";
+import { homeTransport } from "@/i18n/home-editorial";
 
 /**
  * Persistent global player bar. Reflects the single active audio track.
  */
 export function AudioPlayer({ compact = false }: { compact?: boolean }) {
+  const { lang, t } = useI18n();
   const { current, isPlaying, prev, next, currentTime, duration } = usePlayer();
   const [liked, setLiked] = useState(false);
 
@@ -22,7 +25,8 @@ export function AudioPlayer({ compact = false }: { compact?: boolean }) {
   const total = current && duration > 0 ? formatTime(duration) : track.duration;
 
   return (
-    <div className={cn("border-t border-border bg-card/80 backdrop-blur-xl", compact && "home-mini-player")}>
+    <div className={cn("border-t border-border backdrop-blur-xl", compact ? "home-mini-player bg-card" : "bg-card/80")}>
+      {compact && <span className="sr-only" role="timer">{elapsed} / {total}</span>}
       {/* Slim seek line (clickable) */}
       <div className="hidden px-4 pt-2 sm:block">
         <Seekbar showTimes={false} />
@@ -65,11 +69,11 @@ export function AudioPlayer({ compact = false }: { compact?: boolean }) {
           <PlayerIcon className="hidden md:inline-flex" aria-label="Shuffle">
             <Shuffle className="h-4 w-4" />
           </PlayerIcon>
-          <PlayerIcon onClick={prev} aria-label="Previous">
+          <PlayerIcon onClick={prev} aria-label={compact ? homeTransport[lang].previous : "Previous"}>
             <SkipBack className="h-4 w-4" />
           </PlayerIcon>
-          <PlayButton track={track} queue={radioQueue} size="md" />
-          <PlayerIcon onClick={next} aria-label="Next">
+          <PlayButton track={track} queue={radioQueue} size="md" label={compact ? t(isPlaying ? "common.pause" : "common.play") : undefined} />
+          <PlayerIcon onClick={next} aria-label={compact ? homeTransport[lang].next : "Next"}>
             <SkipForward className="h-4 w-4" />
           </PlayerIcon>
           <PlayerIcon className="hidden md:inline-flex" aria-label="Repeat">
