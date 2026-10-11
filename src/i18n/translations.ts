@@ -1,3 +1,4 @@
+import { homeEditorial } from "./home-editorial";
 export type Lang = "fr" | "en" | "es" | "zh" | "pt" | "ar";
 
 export const LANGS: { code: Lang; label: string; flag: string; dir?: "rtl" }[] = [
@@ -16,7 +17,7 @@ type Dict = Record<string, unknown>;
 const fr: Dict = {
   language: { label: "Langue" },
   nav: {
-    sections: { studio: "Studio", discover: "Découvrir", you: "Vous" , create: "Create", identity: "Identity", connect: "Connect", grow: "Grow" },
+    sections: { studio: "Studio", discover: "Découvrir", you: "Vous" , create: "Créer", identity: "Identité", connect: "Connecter", grow: "Progresser" },
     search: "Rechercher",
     demo: "Démo",
     challenges: "Défis créatifs",
@@ -1410,7 +1411,7 @@ const en: Dict = {
 const es: Dict = {
   language: { label: "Idioma" },
   nav: {
-    sections: { studio: "Studio", discover: "Descubrir", you: "Tú" , create: "Create", identity: "Identity", connect: "Connect", grow: "Grow" },
+    sections: { studio: "Studio", discover: "Descubrir", you: "Tú" , create: "Crear", identity: "Identidad", connect: "Conectar", grow: "Crecer" },
     search: "Buscar",
     demo: "Demo",
     challenges: "Retos creativos",
@@ -2094,7 +2095,7 @@ const es: Dict = {
 const zh: Dict = {
   language: { label: "语言" },
   nav: {
-    sections: { studio: "工作室", discover: "发现", you: "我的" , create: "Create", identity: "Identity", connect: "Connect", grow: "Grow" },
+    sections: { studio: "工作室", discover: "发现", you: "我的" , create: "创作", identity: "身份", connect: "连接", grow: "成长" },
     search: "搜索",
     demo: "演示",
     challenges: "创意挑战",
@@ -2494,7 +2495,7 @@ const zh: Dict = {
 const pt: Dict = {
   language: { label: "Idioma" },
   nav: {
-    sections: { studio: "Estúdio", discover: "Descobrir", you: "Você" , create: "Create", identity: "Identity", connect: "Connect", grow: "Grow" },
+    sections: { studio: "Estúdio", discover: "Descobrir", you: "Você" , create: "Criar", identity: "Identidade", connect: "Conectar", grow: "Crescer" },
     search: "Buscar",
     demo: "Demo",
     challenges: "Desafios criativos",
@@ -2898,7 +2899,7 @@ const pt: Dict = {
 const ar: Dict = {
   language: { label: "اللغة" },
   nav: {
-    sections: { studio: "الاستوديو", discover: "اكتشف", you: "أنت" , create: "Create", identity: "Identity", connect: "Connect", grow: "Grow" },
+    sections: { studio: "الاستوديو", discover: "اكتشف", you: "أنت" , create: "إنشاء", identity: "الهوية", connect: "تواصل", grow: "نمو" },
     search: "بحث",
     demo: "تجريبي",
     challenges: "تحديات إبداعية",
@@ -3294,6 +3295,9 @@ const ar: Dict = {
   },
 };
 
+for (const [code, dictionary] of Object.entries({ fr, en, es, zh, pt, ar })) {
+  dictionary.editorial = homeEditorial[code as Lang];
+}
 export const translations: Record<Lang, Dict> = { fr, en, es, zh, pt, ar };
 
 function resolve(dict: Dict, key: string): unknown {
