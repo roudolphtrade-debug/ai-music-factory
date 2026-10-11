@@ -119,6 +119,7 @@
   --color-sidebar-ring: var(--sidebar-ring);
 
   --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-home-functional: Calibri, "Carlito", "Segoe UI", "Manrope", "Noto Sans", "Noto Sans Arabic", "Noto Sans SC", Arial, sans-serif;
   --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
 
   /* Motion foundations — one spring curve, three speeds, used everywhere
@@ -670,6 +671,30 @@
 
 /* Keep the next musical selection visible above persistent controls. */
 .home-opening { min-height: 0; }
+.home-presentation {
+  --font-sans: var(--font-home-functional);
+  font-family: var(--font-home-functional);
+}
+.home-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.home-selection-lead { grid-column: 1 / -1; aspect-ratio: 4 / 3; }
+.home-selection-secondary { min-height: 224px; }
+.home-selection-secondary:last-child { grid-column: 1 / -1; min-height: 200px; }
+.home-discovery-tabs [role="tablist"] { border-radius: var(--radius); margin-bottom: 18px; }
+.home-discovery-tabs [role="tab"] { min-height: 44px; white-space: normal; }
+.home-presentation .font-display { letter-spacing: 0; }
+@media (min-width: 640px) {
+  .home-selection-grid { grid-template-columns: minmax(0, 1.3fr) repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, 180px); }
+  .home-selection-lead { grid-column: 1; grid-row: 1 / 3; aspect-ratio: auto; }
+  .home-selection-secondary { min-height: 0; }
+  .home-selection-secondary:last-child { grid-column: 2 / 4; min-height: 0; }
+}
+@media (min-width: 1280px) {
+  .home-selection-grid { grid-template-columns: minmax(0, 1.6fr) repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, 200px); gap: 16px; }
+}
 section.home-opening > .home-opening { min-height: 0; }
 @media (min-width: 640px) {
   section.home-opening > .home-opening { min-height: min(520px, calc(100svh - 220px)); }

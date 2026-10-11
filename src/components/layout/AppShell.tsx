@@ -14,7 +14,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
-    <div className="min-h-screen w-full bg-background">
+    <div className={pathname === "/" ? "home-presentation min-h-screen w-full bg-background" : "min-h-screen w-full bg-background"}>
       <IntroOverlay />
       {/* Desktop sidebar — fixed */}
       <aside className="fixed inset-y-0 start-0 z-40 hidden w-72 border-e border-sidebar-border lg:block">
