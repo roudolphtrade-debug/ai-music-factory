@@ -112,46 +112,6 @@ function HomePage() {
       <EditorialSelection />
 
 
-      {/* CONTINUE LISTENING */}
-      {historyTracks.length > 0 && (
-        <Reveal as="section" className="space-y-6">
-          <SectionHeading
-            eyebrow={t("library.eyebrow")}
-            title={t("library.continueListening")}
-            action={
-              <Button asChild variant="ghost-gold" size="sm">
-                <Link to="/library">{t("library.seeLibrary")}</Link>
-              </Button>
-            }
-          />
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {historyTracks.map((track) => (
-              <PersonalTrackCard key={track.id} track={track} queue={playableTracks} />
-            ))}
-          </div>
-        </Reveal>
-      )}
-
-      {/* YOUR FAVORITES */}
-      {favTracks.length > 0 && (
-        <Reveal as="section" className="space-y-6">
-          <SectionHeading
-            eyebrow={t("library.favorites")}
-            title={t("library.yourFavorites")}
-            action={
-              <Button asChild variant="ghost-gold" size="sm">
-                <Link to="/library">{t("library.seeLibrary")}</Link>
-              </Button>
-            }
-          />
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {favTracks.map((track) => (
-              <PersonalTrackCard key={track.id} track={track} queue={favTracks} />
-            ))}
-          </div>
-        </Reveal>
-      )}
-
       {/* DISCOVER — Charts, Genres, Trending Artists and Leaderboard/Activity
           used to be four separate stacked full-width sections back to back.
           Same content, same routes, same features — grouped under one set of
@@ -197,6 +157,7 @@ function HomePage() {
                     className={cn(
                       "group grid grid-cols-[1.25rem_2.5rem_minmax(0,1fr)_2.75rem_2.75rem] items-center gap-1.5 px-2 py-2 transition-colors hover:bg-secondary/40 sm:gap-2 sm:px-3",
                       i !== charts.length - 1 && "border-b border-border/60",
+                      active && "bg-secondary/60",
                     )}
                   >
                     <div className="flex min-w-0 flex-col items-center gap-1"><span className="text-center font-display text-base font-semibold tabular-nums text-foreground sm:text-lg">{c.rank}</span><span className="hidden sm:block"><ChartChange change={c.change} isNew={c.isNew} newLabel={t("charts.new")} /></span></div>
@@ -318,6 +279,46 @@ function HomePage() {
         </Tabs>
         <DiscoveryCompanions />
       </Reveal>
+
+      {/* CONTINUE LISTENING */}
+      {historyTracks.length > 0 && (
+        <Reveal as="section" className="space-y-6">
+          <SectionHeading
+            eyebrow={t("library.eyebrow")}
+            title={t("library.continueListening")}
+            action={
+              <Button asChild variant="ghost-gold" size="sm">
+                <Link to="/library">{t("library.seeLibrary")}</Link>
+              </Button>
+            }
+          />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {historyTracks.map((track) => (
+              <PersonalTrackCard key={track.id} track={track} queue={playableTracks} />
+            ))}
+          </div>
+        </Reveal>
+      )}
+
+      {/* YOUR FAVORITES */}
+      {favTracks.length > 0 && (
+        <Reveal as="section" className="space-y-6">
+          <SectionHeading
+            eyebrow={t("library.favorites")}
+            title={t("library.yourFavorites")}
+            action={
+              <Button asChild variant="ghost-gold" size="sm">
+                <Link to="/library">{t("library.seeLibrary")}</Link>
+              </Button>
+            }
+          />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {favTracks.map((track) => (
+              <PersonalTrackCard key={track.id} track={track} queue={favTracks} />
+            ))}
+          </div>
+        </Reveal>
+      )}
 
       <ArtistDiscovery />
       <CreateAndConnect />
