@@ -13,3 +13,5 @@
 - Keep homepage editorial translations in a browser-safe six-language catalog so scoped additions stay isolated from unrelated screens.
 - Scope compact chrome through homepage presentation props; preserve audio state and other pages' layouts.
 - Keep the discovery Bento and functional font experiment scoped to homepage presentation; reuse shared playback and destination controls to avoid changing other screens or persistence.
+- Keep queue ordering, shuffle and repeat rules in pure helpers (src/audio/queue.ts) used by the player, so they stay unit-tested independently of audio events.
+- Keep player, Radio and Library strings in a separate browser-safe six-language listening catalog so these screens evolve without touching the main dictionary.

@@ -40,7 +40,15 @@ export function Seekbar({
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(ratio * 100)}
+        aria-valuetext={`${formatTime(currentTime)} / ${formatTime(duration)}`}
         tabIndex={0}
+        onKeyDown={(e) => {
+          if (!duration) return;
+          const step = 5 / duration;
+          if (e.key === "ArrowRight" || e.key === "ArrowUp") { e.preventDefault(); seekRatio(ratio + step); }
+          if (e.key === "ArrowLeft" || e.key === "ArrowDown") { e.preventDefault(); seekRatio(ratio - step); }
+          if (e.key === "Home") { e.preventDefault(); seekRatio(0); }
+        }}
         onPointerDown={(e) => {
           (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
           handleSeek(e.clientX);
@@ -48,7 +56,7 @@ export function Seekbar({
         onPointerMove={(e) => {
           if (e.buttons === 1) handleSeek(e.clientX);
         }}
-        className="group relative h-1.5 flex-1 cursor-pointer rounded-full bg-secondary"
+        className="group relative h-1.5 flex-1 cursor-pointer rounded-full bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground"
       >
         <div
           className="absolute inset-y-0 left-0 rounded-full bg-gold-gradient"

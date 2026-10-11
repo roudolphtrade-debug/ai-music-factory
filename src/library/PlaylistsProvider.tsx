@@ -25,6 +25,7 @@ interface PlaylistsValue {
   addToPlaylist: (id: string, trackId: string) => boolean;
   removeFromPlaylist: (id: string, trackId: string) => void;
   isInPlaylist: (id: string, trackId: string) => boolean;
+  moveInPlaylist: (id: string, from: number, to: number) => void;
 }
 
 const PlaylistsContext = createContext<PlaylistsValue | null>(null);
@@ -128,6 +129,23 @@ export function PlaylistsProvider({ children }: { children: ReactNode }) {
     [persist],
   );
 
+  const moveInPlaylist = useCallback(
+    (id: string, from: number, to: number) => {
+      setPlaylists((prev) => {
+        const next = prev.map((p) => {
+          if (p.id !== id || to < 0 || to >= p.trackIds.length) return p;
+          const ids = [...p.trackIds];
+          const [m] = ids.splice(from, 1);
+          ids.splice(to, 0, m);
+          return { ...p, trackIds: ids };
+        });
+        persist(next);
+        return next;
+      });
+    },
+    [persist],
+  );
+
   const value = useMemo<PlaylistsValue>(
     () => ({
       playlists,
@@ -138,8 +156,9 @@ export function PlaylistsProvider({ children }: { children: ReactNode }) {
       removeFromPlaylist,
       isInPlaylist: (id: string, trackId: string) =>
         playlists.find((p) => p.id === id)?.trackIds.includes(trackId) ?? false,
+      moveInPlaylist,
     }),
-    [playlists, createPlaylist, deletePlaylist, renamePlaylist, addToPlaylist, removeFromPlaylist],
+    [playlists, createPlaylist, deletePlaylist, renamePlaylist, addToPlaylist, removeFromPlaylist, moveInPlaylist],
   );
 
   return <PlaylistsContext.Provider value={value}>{children}</PlaylistsContext.Provider>;
