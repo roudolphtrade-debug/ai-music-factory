@@ -705,3 +705,8 @@ section.home-opening > .home-opening { min-height: 0; }
   .home-mini-player p { font-size: 0.75rem; }
   .home-mini-player p + p { font-size: 0.625rem; }
 }
+
+/* Keep focused/scrolled-to content clear of the fixed mobile player + tab bar. */
+@media (max-width: 1023px) {
+  html { scroll-padding-bottom: calc(9rem + env(safe-area-inset-bottom)); }
+}
