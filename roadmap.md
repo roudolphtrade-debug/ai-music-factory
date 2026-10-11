@@ -6,4 +6,7 @@
 - [x] Finalize homepage hero, illustrated destinations, Battles and Hall portraits.
 - [x] Verify compact homepage chrome, six languages and before/after captures.
 - [x] Deliver factual Lot 1 refinement report and stop for validation.
-- [ ] Start Radio only after homepage validation (blocked: user approval).
+- [ ] Lot 1.1: recompose discovery as an editorial Bento and test scoped Calibri typography.
+- [ ] Lot 1.1: harmonize homepage punctuation in six languages and verify mobile/desktop interactions.
+- [ ] Lot 1.1: deliver captures and factual Muify comparison.
+- [ ] Start Radio only after Lot 1.1 validation (blocked: user approval).
