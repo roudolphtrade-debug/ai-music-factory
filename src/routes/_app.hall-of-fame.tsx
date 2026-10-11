@@ -9,11 +9,15 @@ import { useI18n } from "@/i18n/context";
 export const Route = createFileRoute("/_app/hall-of-fame")({
   head: () => ({
     meta: [
-      { title: "Hall of Fame — Ai Music Factory" },
+      { property: "og:title", content: "Hall of Fame · Ai Music Factory" },
+      { property: "og:description", content: "The most decorated artists, prompts and labels: celebrated with prestige and honour." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { title: "Hall of Fame · Ai Music Factory" },
       {
         name: "description",
         content:
-          "The most decorated artists, prompts and labels — celebrated with prestige and honour.",
+          "The most decorated artists, prompts and labels: celebrated with prestige and honour.",
       },
     ],
   }),

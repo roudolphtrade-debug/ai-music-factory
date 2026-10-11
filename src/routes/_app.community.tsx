@@ -10,7 +10,11 @@ import { useI18n } from "@/i18n/context";
 export const Route = createFileRoute("/_app/community")({
   head: () => ({
     meta: [
-      { title: "Community — Ai Music Factory" },
+      { property: "og:title", content: "Community · Ai Music Factory" },
+      { property: "og:description", content: "Fan circles, channels and live conversation around artists of every kind." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { title: "Community · Ai Music Factory" },
       {
         name: "description",
         content: "Fan circles, channels and live conversation around artists of every kind.",

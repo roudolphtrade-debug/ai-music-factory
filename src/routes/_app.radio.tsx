@@ -16,7 +16,11 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_app/radio")({
   head: () => ({
     meta: [
-      { title: "AI Radio — Ai Music Factory" },
+      { property: "og:title", content: "AI Radio · Ai Music Factory" },
+      { property: "og:description", content: "Community-curated AI radio: live stations, moods, votes and top rotation." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { title: "AI Radio · Ai Music Factory" },
       { name: "description", content: "Community-curated AI radio: live stations, moods, votes and top rotation." },
     ],
   }),

@@ -11,7 +11,11 @@ import { useTheme } from "@/theme/context";
 export const Route = createFileRoute("/_app/settings")({
   head: () => ({
     meta: [
-      { title: "Settings — Ai Music Factory" },
+      { property: "og:title", content: "Settings · Ai Music Factory" },
+      { property: "og:description", content: "Manage your studio profile, identity and platform preferences." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { title: "Settings · Ai Music Factory" },
       {
         name: "description",
         content: "Manage your studio profile, identity and platform preferences.",

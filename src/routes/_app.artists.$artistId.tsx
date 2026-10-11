@@ -17,7 +17,12 @@ import { ArtistNotFound } from "@/components/premium/ArtistNotFound";
 
 export const Route = createFileRoute("/_app/artists/$artistId")({
   head: () => ({
-    meta: [{ title: "Artist — Ai Music Factory" }],
+    meta: [
+      { name: "description", content: "Explore the artist profile and playable catalogue at AI Music Factory." },
+      { property: "og:title", content: "Artist · Ai Music Factory" },
+      { property: "og:description", content: "Explore the artist profile and playable catalogue at AI Music Factory." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },{ title: "Artist · Ai Music Factory" }],
   }),
   component: ArtistProfilePage,
   notFoundComponent: ArtistNotFound,

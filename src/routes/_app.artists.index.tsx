@@ -9,7 +9,11 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_app/artists/")({
   head: () => ({
     meta: [
-      { title: "Virtual Artists — Ai Music Factory" },
+      { property: "og:title", content: "Virtual Artists · Ai Music Factory" },
+      { property: "og:description", content: "Discover and follow human, hybrid and AI artists across every genre." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { title: "Virtual Artists · Ai Music Factory" },
       { name: "description", content: "Discover and follow human, hybrid and AI artists across every genre." },
     ],
   }),

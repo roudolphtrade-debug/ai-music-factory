@@ -16,7 +16,11 @@ const PROJECT_COVERS: ArtistId[] = ["art-1", "art-2", "art-5", "art-4"];
 export const Route = createFileRoute("/_app/studio")({
   head: () => ({
     meta: [
-      { title: "Creator Studio — Ai Music Factory" },
+      { property: "og:title", content: "Creator Studio · Ai Music Factory" },
+      { property: "og:description", content: "Compose, prompt, version and publish AI tracks in a premium creative studio." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { title: "Creator Studio · Ai Music Factory" },
       {
         name: "description",
         content: "Compose, prompt, version and publish AI tracks in a premium creative studio.",
