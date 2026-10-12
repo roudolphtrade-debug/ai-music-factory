@@ -39,7 +39,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Global mock player — stacked directly above the mobile tab bar,
           flush with the screen edge again once the sidebar takes over at lg: */}
-      <div className={pathname === "/" ? "fixed inset-x-0 z-30 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] lg:bottom-0 lg:pb-[env(safe-area-inset-bottom)] lg:ps-72" : "fixed inset-x-0 z-30 bottom-[calc(4rem+env(safe-area-inset-bottom))] lg:bottom-0 lg:pb-[env(safe-area-inset-bottom)] lg:ps-72"}>
+      <div className={pathname === "/" ? "fixed inset-x-0 z-30 bottom-[calc(3.5rem+1px+env(safe-area-inset-bottom))] lg:bottom-0 lg:pb-[env(safe-area-inset-bottom)] lg:ps-72" : "fixed inset-x-0 z-30 bottom-[calc(4rem+env(safe-area-inset-bottom))] lg:bottom-0 lg:pb-[env(safe-area-inset-bottom)] lg:ps-72"}>
         <AudioPlayer compact={pathname === "/"} />
       </div>
 

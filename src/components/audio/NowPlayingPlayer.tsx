@@ -111,7 +111,7 @@ export function NowPlayingPlayer({
               aria-label={l.shuffle}
               aria-pressed={shuffle}
               onClick={toggleShuffle}
-              className={cn(shuffle && "text-gold", "hidden h-10 w-10 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:grid")}
+              className={cn(shuffle && "text-gold", "grid h-10 w-10 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground")}
             >
               <Shuffle className="h-4 w-4" />
             </button>
