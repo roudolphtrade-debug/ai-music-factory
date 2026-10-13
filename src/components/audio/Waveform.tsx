@@ -49,12 +49,9 @@ export function Waveform({
   return (
     <div
       ref={trackRef}
-      role={active ? "slider" : undefined}
-      aria-label={active ? "Seek" : undefined}
-      aria-valuemin={active ? 0 : undefined}
-      aria-valuemax={active ? 100 : undefined}
-      aria-valuenow={active ? Math.round(ratio * 100) : undefined}
-      tabIndex={active ? 0 : undefined}
+      // Decorative for assistive technology and the keyboard: the adjacent Seekbar is the
+      // accessible seek control. Pointer seeking is kept.
+      aria-hidden
       onPointerDown={
         active
           ? (e) => {
@@ -69,7 +66,6 @@ export function Waveform({
         active && "cursor-pointer",
         className,
       )}
-      aria-hidden={!active}
     >
       {heights.map((h, i) => {
         const played = active && i < playedIndex;

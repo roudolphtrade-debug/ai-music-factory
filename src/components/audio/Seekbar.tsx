@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { cn } from "@/lib/utils";
 import { usePlayer, formatTime } from "@/audio/PlayerProvider";
+import { useListening } from "@/i18n/listening";
 
 /**
  * Seekable progress bar bound to the global player. Shows elapsed / total time.
@@ -16,6 +17,7 @@ export function Seekbar({
   fallbackDuration?: string;
 }) {
   const { currentTime, duration, seekRatio } = usePlayer();
+  const { l } = useListening();
   const trackRef = useRef<HTMLDivElement>(null);
   const ratio = duration > 0 ? currentTime / duration : 0;
 
@@ -36,7 +38,7 @@ export function Seekbar({
       <div
         ref={trackRef}
         role="slider"
-        aria-label="Seek"
+        aria-label={l.seek}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(ratio * 100)}

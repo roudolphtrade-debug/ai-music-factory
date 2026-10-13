@@ -2,6 +2,7 @@ import { Play, Pause } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePlayer } from "@/audio/PlayerProvider";
 import { useLibrary } from "@/library/LibraryProvider";
+import { useI18n } from "@/i18n/context";
 import type { PlayableTrack } from "@/audio/tracks";
 
 type Size = "sm" | "md" | "lg" | "xl";
@@ -44,6 +45,11 @@ export function PlayButton({
   const { recordPlay } = useLibrary();
   const active = isActive(track.id);
   const playing = isTrackPlaying(track.id);
+  const { t } = useI18n();
+  // Contextual, translated accessible name; callers may still pass their own `label`.
+  const defaultLabel = playing
+    ? `${t("audio.pause")} · ${track.title}`
+    : t("charts.playTrack", { title: track.title, artist: track.artist });
 
   const onClick = () => {
     if (!playing) recordPlay(track.id);
@@ -71,7 +77,7 @@ export function PlayButton({
     <button
       type="button"
       onClick={onClick}
-      aria-label={label ?? (playing ? "Pause" : "Play")}
+      aria-label={label ?? defaultLabel}
       className={cn(
         "relative grid shrink-0 place-items-center rounded-full transition-all duration-300",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background",
