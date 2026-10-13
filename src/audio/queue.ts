@@ -33,4 +33,35 @@ export function moveItem<T>(items: T[], from: number, to: number): T[] {
   return next;
 }
 
+/**
+ * Queue and start index for playing `track` out of `queue`.
+ * A track that is not part of the supplied queue is placed first, so that
+ * `queue[index]` is always the track that is actually played.
+ */
+export function resolvePlayQueue<T extends { id: string }>(
+  track: T,
+  queue?: T[],
+): { queue: T[]; index: number } {
+  const base = queue && queue.length ? queue : [track];
+  const found = base.findIndex((t) => t.id === track.id);
+  return found === -1 ? { queue: [track, ...base], index: 0 } : { queue: base, index: found };
+}
+
+/** Removes the first item with the given id. Returns `items` itself when absent. */
+export function removeById<T extends { id: string }>(items: T[], id: string): T[] {
+  const at = items.findIndex((t) => t.id === id);
+  return at === -1 ? items : items.filter((_, i) => i !== at);
+}
+
+/**
+ * Index of the item that sat at `current` once `moveItem(items, from, to)` was applied.
+ * Position-based, so it stays correct when several items share the same id.
+ */
+export function indexAfterMove(current: number, from: number, to: number): number {
+  if (current === from) return to;
+  if (from < current && to >= current) return current - 1;
+  if (from > current && to <= current) return current + 1;
+  return current;
+}
+
 export const REPEAT_CYCLE: Record<RepeatMode, RepeatMode> = { all: "one", one: "off", off: "all" };
