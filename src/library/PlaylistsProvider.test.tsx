@@ -169,10 +169,6 @@ describe("tracks", () => {
     expect(byId(id)).toEqual(["t-1", "t-2", "t-3"]);
     expect(byId(other)).toEqual(["t-9", "t-8"]);
   });
-
-  it.todo(
-    "R11: the Library UI must move the right track when a playlist holds ids missing from the catalog",
-  );
 });
 
 describe("persistence", () => {
