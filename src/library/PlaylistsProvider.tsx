@@ -134,6 +134,7 @@ export function PlaylistsProvider({ children }: { children: ReactNode }) {
       setPlaylists((prev) => {
         const next = prev.map((p) => {
           if (p.id !== id || to < 0 || to >= p.trackIds.length) return p;
+          if (!Number.isInteger(from) || from < 0 || from >= p.trackIds.length) return p;
           const ids = [...p.trackIds];
           const [m] = ids.splice(from, 1);
           ids.splice(to, 0, m);

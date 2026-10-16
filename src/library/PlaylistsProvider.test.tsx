@@ -120,9 +120,56 @@ describe("tracks", () => {
     expect(result.current.playlists[0].trackIds).toEqual(["t-1", "t-2", "t-3"]);
   });
 
-  it.todo(
-    "R11: moveInPlaylist must ignore a source index outside the list (today it inserts undefined)",
-  );
+  it("ignores a source index outside the list and never inserts a hole", () => {
+    const { result } = setup();
+    const id = create(result, "Mix", ["t-1", "t-2", "t-3"]);
+    const untouched = ["t-1", "t-2", "t-3"];
+    for (const from of [3, 7, -1, -3]) {
+      act(() => result.current.moveInPlaylist(id, from, 0));
+      act(() => result.current.moveInPlaylist(id, from, 2));
+      expect(result.current.playlists[0].trackIds, `from=${from}`).toEqual(untouched);
+    }
+  });
+
+  it("ignores a non-integer or non-finite source index", () => {
+    const { result } = setup();
+    const id = create(result, "Mix", ["t-1", "t-2", "t-3"]);
+    for (const from of [0.5, 1.2, Number.NaN, Number.POSITIVE_INFINITY]) {
+      act(() => result.current.moveInPlaylist(id, from, 2));
+      expect(result.current.playlists[0].trackIds, `from=${from}`).toEqual(["t-1", "t-2", "t-3"]);
+    }
+  });
+
+  it("leaves the persisted list free of null after an invalid move", () => {
+    const { result } = setup();
+    const id = create(result, "Mix", ["t-1", "t-2", "t-3"]);
+    act(() => result.current.moveInPlaylist(id, 5, 0));
+    act(() => result.current.moveInPlaylist(id, -1, 0));
+    const saved = stored()?.[0].trackIds;
+    expect(saved).toEqual(["t-1", "t-2", "t-3"]);
+    expect(saved?.every((t) => typeof t === "string")).toBe(true);
+    // a valid move still persists normally afterwards
+    act(() => result.current.moveInPlaylist(id, 2, 0));
+    expect(stored()?.[0].trackIds).toEqual(["t-3", "t-1", "t-2"]);
+  });
+
+  it("keeps the other playlists and the boundary moves intact", () => {
+    const { result } = setup();
+    const other = create(result, "Other", ["t-9", "t-8"]);
+    const id = create(result, "Mix", ["t-1", "t-2", "t-3"]);
+    act(() => result.current.moveInPlaylist(id, 9, 1));
+    act(() => result.current.moveInPlaylist(id, 0, 0)); // same slot: no change
+    act(() => result.current.moveInPlaylist(id, 2, 2));
+    const byId = (p: string) => result.current.playlists.find((x) => x.id === p)!.trackIds;
+    expect(byId(id)).toEqual(["t-1", "t-2", "t-3"]);
+    expect(byId(other)).toEqual(["t-9", "t-8"]);
+    act(() => result.current.moveInPlaylist(id, 2, 0)); // last to first
+    expect(byId(id)).toEqual(["t-3", "t-1", "t-2"]);
+    act(() => result.current.moveInPlaylist(id, 0, 2)); // first to last
+    expect(byId(id)).toEqual(["t-1", "t-2", "t-3"]);
+    expect(byId(other)).toEqual(["t-9", "t-8"]);
+  });
+
   it.todo(
     "R11: the Library UI must move the right track when a playlist holds ids missing from the catalog",
   );
