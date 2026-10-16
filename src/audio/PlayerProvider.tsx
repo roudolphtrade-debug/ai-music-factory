@@ -57,6 +57,8 @@ interface PlayerContextValue {
 
 const PlayerContext = createContext<PlayerContextValue | null>(null);
 
+const DEFAULT_VOLUME = 0.8;
+
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -70,7 +72,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [repeat, setRepeat] = useState<RepeatMode>("all");
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [volume, setVolumeState] = useState(0.8);
+  const [volume, setVolumeState] = useState(DEFAULT_VOLUME);
   const [muted, setMuted] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
 
@@ -81,6 +83,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const shuffleRef = useRef(false);
   const repeatRef = useRef<RepeatMode>("all");
   const endedRef = useRef<() => void>(() => {});
+  // Last non-zero level, so that unmuting from zero does not stay silent.
+  const lastAudibleRef = useRef(DEFAULT_VOLUME);
   queueRef.current = queue;
   shuffleRef.current = shuffle;
   repeatRef.current = repeat;
@@ -279,6 +283,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     const audio = audioRef.current;
     const clamped = Math.min(Math.max(v, 0), 1);
     setVolumeState(clamped);
+    if (clamped > 0) lastAudibleRef.current = clamped;
     if (audio) {
       audio.volume = clamped;
       audio.muted = clamped === 0;
@@ -290,6 +295,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     const audio = audioRef.current;
     if (!audio) return;
     const nextMuted = !audio.muted;
+    if (!nextMuted && audio.volume === 0) {
+      audio.volume = lastAudibleRef.current;
+      setVolumeState(lastAudibleRef.current);
+    }
     audio.muted = nextMuted;
     setMuted(nextMuted);
   }, []);

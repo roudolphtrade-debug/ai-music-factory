@@ -447,7 +447,93 @@ describe("source change, position and volume", () => {
     expect(result.current.muted).toBe(false);
   });
 
-  it.todo(
-    "R10: unmuting after setVolume(0) must leave an audible level (today muted=false with volume 0)",
-  );
+  describe("unmuting from a zero level", () => {
+    /** The element and the React state must always describe the same sound. */
+    const expectSynced = (result: ReturnType<typeof setup>["result"]) => {
+      expect(audio().volume).toBe(result.current.volume);
+      expect(audio().muted).toBe(result.current.muted);
+    };
+
+    it("restores the last audible level instead of staying silent", () => {
+      const { result } = setup();
+      act(() => result.current.setVolume(0.4));
+      act(() => result.current.setVolume(0));
+      expect(result.current.muted).toBe(true);
+      expectSynced(result);
+      act(() => result.current.toggleMute());
+      expect(result.current.muted).toBe(false);
+      expect(result.current.volume).toBe(0.4);
+      expect(audio().volume).toBe(0.4);
+      expect(audio().muted).toBe(false);
+      expectSynced(result);
+    });
+
+    it("falls back to the default level when no other level was ever set", () => {
+      const { result } = setup();
+      expect(result.current.volume).toBe(0.8);
+      act(() => result.current.setVolume(0));
+      act(() => result.current.toggleMute());
+      expect(result.current.muted).toBe(false);
+      expect(result.current.volume).toBe(0.8);
+      expectSynced(result);
+    });
+
+    it("remembers the latest positive level across successive changes", () => {
+      const { result } = setup();
+      act(() => result.current.setVolume(0.6));
+      act(() => result.current.setVolume(0.2));
+      act(() => result.current.setVolume(0));
+      act(() => result.current.toggleMute());
+      expect(result.current.volume).toBe(0.2);
+      expectSynced(result);
+      // mute, unmute again: the restored level is kept, nothing drifts
+      act(() => result.current.toggleMute());
+      expect(result.current.muted).toBe(true);
+      expect(result.current.volume).toBe(0.2);
+      expectSynced(result);
+      act(() => result.current.toggleMute());
+      expect(result.current.muted).toBe(false);
+      expect(result.current.volume).toBe(0.2);
+      expectSynced(result);
+    });
+
+    it("is not confused by a zero reached after a manual mute", () => {
+      const { result } = setup();
+      act(() => result.current.setVolume(0.5));
+      act(() => result.current.toggleMute()); // muted at 0.5
+      act(() => result.current.setVolume(0)); // slider dragged to zero while muted
+      expect(result.current.muted).toBe(true);
+      act(() => result.current.toggleMute());
+      expect(result.current.muted).toBe(false);
+      expect(result.current.volume).toBe(0.5);
+      expectSynced(result);
+    });
+
+    it("leaves the level alone when muting and unmuting above zero", () => {
+      const { result } = setup();
+      act(() => result.current.setVolume(0.3));
+      act(() => result.current.toggleMute());
+      expect(result.current.muted).toBe(true);
+      expect(result.current.volume).toBe(0.3);
+      expect(audio().volume).toBe(0.3);
+      act(() => result.current.toggleMute());
+      expect(result.current.muted).toBe(false);
+      expect(result.current.volume).toBe(0.3);
+      expectSynced(result);
+    });
+
+    it("does not touch the current track, the queue or the playback", () => {
+      const { result } = setup();
+      act(() => result.current.play(A, [A, B]));
+      const src = audio().src;
+      act(() => result.current.setVolume(0));
+      act(() => result.current.toggleMute());
+      expect(result.current.current?.id).toBe(A.id);
+      expect(result.current.queue.map((t) => t.id)).toEqual([A.id, B.id]);
+      expect(result.current.index).toBe(0);
+      expect(audio().src).toBe(src);
+      expect(result.current.isPlaying).toBe(true);
+      expect(result.current.volume).toBe(0.8);
+    });
+  });
 });
