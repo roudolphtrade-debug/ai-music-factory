@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { parseHistory, parseIdList } from "./storage";
 
 const FAV_KEY = "afm-favorites";
 const HIST_KEY = "afm-history";
@@ -48,8 +49,9 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
 
   // Hydrate from localStorage after mount (SSR-safe).
   useEffect(() => {
-    setFavorites(readJSON<string[]>(FAV_KEY, []));
-    setHistory(readJSON<HistoryEntry[]>(HIST_KEY, []));
+    // Stored values are untrusted: keep only what has the expected shape (nothing is rewritten here).
+    setFavorites(parseIdList(readJSON<unknown>(FAV_KEY, [])));
+    setHistory(parseHistory<HistoryEntry>(readJSON<unknown>(HIST_KEY, []), HISTORY_LIMIT));
     setOnboardingDismissed(
       typeof window !== "undefined" && window.localStorage.getItem(ONBOARD_KEY) === "1",
     );
