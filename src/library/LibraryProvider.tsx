@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -46,11 +47,16 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+  // Synchronous copy of the favorites: toggleFavorite reads it to know what it did, whatever
+  // React's timing. Only hydration and toggleFavorite change the favorites, and both write it.
+  const favoritesRef = useRef<string[]>([]);
 
   // Hydrate from localStorage after mount (SSR-safe).
   useEffect(() => {
     // Stored values are untrusted: keep only what has the expected shape (nothing is rewritten here).
-    setFavorites(parseIdList(readJSON<unknown>(FAV_KEY, [])));
+    const loadedFavorites = parseIdList(readJSON<unknown>(FAV_KEY, []));
+    favoritesRef.current = loadedFavorites;
+    setFavorites(loadedFavorites);
     setHistory(parseHistory<HistoryEntry>(readJSON<unknown>(HIST_KEY, []), HISTORY_LIMIT));
     setOnboardingDismissed(
       typeof window !== "undefined" && window.localStorage.getItem(ONBOARD_KEY) === "1",
@@ -67,15 +73,13 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
 
   const toggleFavorite = useCallback(
     (id: string) => {
-      let added = false;
-      setFavorites((prev) => {
-        const exists = prev.includes(id);
-        added = !exists;
-        const next = exists ? prev.filter((x) => x !== id) : [id, ...prev];
-        persist(FAV_KEY, next);
-        return next;
-      });
-      return added;
+      const prev = favoritesRef.current;
+      const exists = prev.includes(id);
+      const next = exists ? prev.filter((x) => x !== id) : [id, ...prev];
+      favoritesRef.current = next;
+      setFavorites(next);
+      persist(FAV_KEY, next);
+      return !exists;
     },
     [persist],
   );

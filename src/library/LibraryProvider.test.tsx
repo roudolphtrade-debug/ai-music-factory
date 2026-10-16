@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, renderHook } from "@testing-library/react";
-import type { ReactNode } from "react";
+import { StrictMode, type ReactNode } from "react";
 import { LibraryProvider, useLibrary, type HistoryEntry } from "./LibraryProvider";
 import { parseHistory, parseIdList } from "./storage";
 
@@ -153,13 +153,104 @@ describe("favorites", () => {
       write.mockRestore();
     }
   });
+});
 
-  it.todo(
-    "R13: toggleFavorite must return true when it adds and false when it removes, whatever " +
-      "React's timing: the boolean is set inside the state updater and read right after, so it " +
-      "is false under act() and when updates are batched (a single browser click works today " +
-      "because React runs the updater eagerly)",
-  );
+describe("toggleFavorite return value", () => {
+  /** Calls toggleFavorite for each id inside one act() and returns what each call answered. */
+  const toggleAll = (result: ReturnType<typeof setup>["result"], ids: string[]) => {
+    const answers: boolean[] = [];
+    act(() => {
+      for (const id of ids) answers.push(result.current.toggleFavorite(id));
+    });
+    return answers;
+  };
+
+  it("returns true when it adds and false when it removes", () => {
+    const { result } = setup();
+    expect(toggleAll(result, ["t-1"])).toEqual([true]);
+    expect(result.current.favorites).toEqual(["t-1"]);
+    expect(toggleAll(result, ["t-1"])).toEqual([false]);
+    expect(result.current.favorites).toEqual([]);
+  });
+
+  it("answers correctly for a favorite loaded from storage", () => {
+    window.localStorage.setItem("afm-favorites", JSON.stringify(["t-1", "t-2"]));
+    const { result } = setup();
+    expect(toggleAll(result, ["t-1"])).toEqual([false]);
+    expect(toggleAll(result, ["t-1"])).toEqual([true]);
+    expect(result.current.favorites).toEqual(["t-1", "t-2"]);
+  });
+
+  it("stays coherent when it is called several times in the same act", () => {
+    const { result } = setup();
+    expect(toggleAll(result, ["t-1", "t-1"])).toEqual([true, false]);
+    expect(result.current.favorites).toEqual([]);
+    expect(toggleAll(result, ["t-1", "t-1", "t-1"])).toEqual([true, false, true]);
+    expect(result.current.favorites).toEqual(["t-1"]);
+    expect(stored<string[]>("afm-favorites")).toEqual(["t-1"]);
+  });
+
+  it("handles different tracks in the same act", () => {
+    const { result } = setup();
+    expect(toggleAll(result, ["t-1", "t-2", "t-1", "t-3"])).toEqual([true, true, false, true]);
+    expect(result.current.favorites).toEqual(["t-3", "t-2"]);
+    expect(stored<string[]>("afm-favorites")).toEqual(["t-3", "t-2"]);
+  });
+
+  it("keeps the answer, the state and the storage in agreement over a long series", () => {
+    const { result } = setup();
+    const ids = ["t-1", "t-2", "t-1", "t-3", "t-2", "t-2", "t-1", "t-3"];
+    const model: string[] = [];
+    for (const id of ids) {
+      const wasFavorite = model.includes(id);
+      if (wasFavorite) model.splice(model.indexOf(id), 1);
+      else model.unshift(id);
+      expect(toggleAll(result, [id]), id).toEqual([!wasFavorite]);
+      expect(result.current.favorites).toEqual(model);
+      expect(stored<string[]>("afm-favorites")).toEqual(model);
+    }
+  });
+
+  it("works for generated tracks that are not in the catalog", () => {
+    const { result } = setup();
+    expect(toggleAll(result, ["gen-draft-1f3a"])).toEqual([true]);
+    expect(result.current.isFavorite("gen-draft-1f3a")).toBe(true);
+    expect(stored<string[]>("afm-favorites")).toEqual(["gen-draft-1f3a"]);
+    expect(toggleAll(result, ["gen-draft-1f3a"])).toEqual([false]);
+    expect(stored<string[]>("afm-favorites")).toEqual([]);
+  });
+
+  it("writes the favorites once per call, even when React runs updaters twice", () => {
+    // StrictMode runs state updaters twice: a write made inside one would be repeated.
+    const strict = ({ children }: { children: ReactNode }) => (
+      <StrictMode>
+        <LibraryProvider>{children}</LibraryProvider>
+      </StrictMode>
+    );
+    const { result } = renderHook(() => useLibrary(), { wrapper: strict });
+    const write = vi.spyOn(Storage.prototype, "setItem");
+    try {
+      expect(toggleAll(result, ["t-1"])).toEqual([true]);
+      expect(toggleAll(result, ["t-1"])).toEqual([false]);
+      const favoriteWrites = write.mock.calls.filter(([key]) => key === "afm-favorites");
+      expect(favoriteWrites).toHaveLength(2);
+    } finally {
+      write.mockRestore();
+    }
+  });
+
+  it("keeps the other behaviors: history and a second mount are unaffected", () => {
+    const first = setup();
+    toggleAll(first.result, ["t-1", "t-2"]);
+    act(() => {
+      first.result.current.recordPlay("t-9");
+    });
+    first.unmount();
+    const second = setup();
+    expect(second.result.current.favorites).toEqual(["t-2", "t-1"]);
+    expect(second.result.current.history.map((h) => h.id)).toEqual(["t-9"]);
+    expect(toggleAll(second.result, ["t-2"])).toEqual([false]);
+  });
 });
 
 describe("history", () => {
