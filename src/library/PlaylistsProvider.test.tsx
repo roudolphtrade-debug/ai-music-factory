@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, renderHook } from "@testing-library/react";
-import type { ReactNode } from "react";
+import { StrictMode, type ReactNode } from "react";
 import { PlaylistsProvider, usePlaylists, type Playlist } from "./PlaylistsProvider";
 import { parsePlaylists } from "./storage";
 
@@ -22,6 +22,15 @@ function create(result: ReturnType<typeof setup>["result"], name: string, trackI
     id = result.current.createPlaylist(name, trackIds).id;
   });
   return id;
+}
+
+/** Calls addToPlaylist once per track inside one act() and returns what each call answered. */
+function addAll(result: ReturnType<typeof setup>["result"], id: string, trackIds: string[]) {
+  const answers: boolean[] = [];
+  act(() => {
+    for (const trackId of trackIds) answers.push(result.current.addToPlaylist(id, trackId));
+  });
+  return answers;
 }
 
 describe("create, rename, delete", () => {
@@ -94,11 +103,95 @@ describe("tracks", () => {
     expect(result.current.isInPlaylist(id, "t-1")).toBe(false);
   });
 
-  it.todo(
-    "R13: addToPlaylist must return true when the track was added, whatever React's timing " +
-      "(same pattern as toggleFavorite: the boolean is set inside the state updater, so it is " +
-      "false under act() and when updates are batched)",
-  );
+  it("returns true when it adds a track that was not in the playlist, at the end", () => {
+    const { result } = setup();
+    const id = create(result, "Mix", ["t-1"]);
+    expect(addAll(result, id, ["t-2"])).toEqual([true]);
+    expect(result.current.playlists[0].trackIds).toEqual(["t-1", "t-2"]);
+    expect(stored()?.[0].trackIds).toEqual(["t-1", "t-2"]);
+    expect(result.current.isInPlaylist(id, "t-2")).toBe(true);
+  });
+
+  it("returns false for a track already in the playlist and writes nothing", () => {
+    const { result } = setup();
+    const id = create(result, "Mix", ["t-1", "t-2"]);
+    const write = vi.spyOn(Storage.prototype, "setItem");
+    try {
+      expect(addAll(result, id, ["t-1"])).toEqual([false]);
+      expect(write).not.toHaveBeenCalled();
+    } finally {
+      write.mockRestore();
+    }
+    expect(result.current.playlists[0].trackIds).toEqual(["t-1", "t-2"]);
+    expect(stored()?.[0].trackIds).toEqual(["t-1", "t-2"]);
+  });
+
+  it("returns false for a playlist that does not exist and changes nothing", () => {
+    const { result } = setup();
+    const id = create(result, "Mix", ["t-1"]);
+    const write = vi.spyOn(Storage.prototype, "setItem");
+    try {
+      expect(addAll(result, "pl-unknown", ["t-2"])).toEqual([false]);
+      expect(write).not.toHaveBeenCalled();
+    } finally {
+      write.mockRestore();
+    }
+    expect(result.current.playlists.map((p) => p.trackIds)).toEqual([["t-1"]]);
+    expect(result.current.isInPlaylist(id, "t-2")).toBe(false);
+  });
+
+  it("returns false on an empty library and after the playlist was deleted", () => {
+    const { result } = setup();
+    expect(addAll(result, "pl-none", ["t-1"])).toEqual([false]);
+    const id = create(result, "Mix");
+    act(() => result.current.deletePlaylist(id));
+    expect(addAll(result, id, ["t-1"])).toEqual([false]);
+    expect(result.current.playlists).toEqual([]);
+  });
+
+  it("answers [true, false] for the same track added twice in one act", () => {
+    const { result } = setup();
+    const id = create(result, "Mix");
+    expect(addAll(result, id, ["t-1", "t-1"])).toEqual([true, false]);
+    expect(result.current.playlists[0].trackIds).toEqual(["t-1"]);
+    expect(stored()?.[0].trackIds).toEqual(["t-1"]);
+  });
+
+  it("adds different tracks in one act, in call order", () => {
+    const { result } = setup();
+    const id = create(result, "Mix", ["t-0"]);
+    expect(addAll(result, id, ["t-3", "t-1", "t-3", "t-2", "t-0"])).toEqual([
+      true,
+      true,
+      false,
+      true,
+      false,
+    ]);
+    expect(result.current.playlists[0].trackIds).toEqual(["t-0", "t-3", "t-1", "t-2"]);
+    expect(stored()?.[0].trackIds).toEqual(["t-0", "t-3", "t-1", "t-2"]);
+  });
+
+  it("keeps ids that are not in the music catalog, such as generated tracks", () => {
+    const { result } = setup();
+    const id = create(result, "Mix");
+    expect(addAll(result, id, ["gen-draft-1f3a", "studio-result-9"])).toEqual([true, true]);
+    expect(addAll(result, id, ["gen-draft-1f3a"])).toEqual([false]);
+    expect(stored()?.[0].trackIds).toEqual(["gen-draft-1f3a", "studio-result-9"]);
+  });
+
+  it("answers correctly for a playlist loaded from storage, even a repaired one", () => {
+    window.localStorage.setItem(
+      "afm-playlists",
+      JSON.stringify([
+        { id: "pl-a", name: "Saved", trackIds: ["t-5"], createdAt: 1 },
+        { id: "pl-b", name: "No tracks field" },
+      ]),
+    );
+    const { result } = setup();
+    expect(addAll(result, "pl-a", ["t-5", "t-6"])).toEqual([false, true]);
+    expect(addAll(result, "pl-b", ["t-5", "t-5"])).toEqual([true, false]);
+    expect(stored()?.map((p) => p.trackIds)).toEqual([["t-5", "t-6"], ["t-5"]]);
+  });
 
   it("removes a track and tolerates one that is not there", () => {
     const { result } = setup();
@@ -169,6 +262,110 @@ describe("tracks", () => {
     act(() => result.current.moveInPlaylist(id, 0, 2)); // first to last
     expect(byId(id)).toEqual(["t-1", "t-2", "t-3"]);
     expect(byId(other)).toEqual(["t-9", "t-8"]);
+  });
+});
+
+describe("several mutations in a row", () => {
+  it("lets each call see the result of the previous ones inside one act", () => {
+    const { result } = setup();
+    const answers: boolean[] = [];
+    let first = "";
+    let second = "";
+    act(() => {
+      const a = result.current.createPlaylist("Mix", ["t-1"]);
+      const b = result.current.createPlaylist("Other");
+      first = a.id;
+      second = b.id;
+      answers.push(result.current.addToPlaylist(first, "t-2"));
+      answers.push(result.current.addToPlaylist(first, "t-1"));
+      answers.push(result.current.addToPlaylist(second, "t-1"));
+      result.current.moveInPlaylist(first, 0, 1);
+      result.current.removeFromPlaylist(first, "t-1");
+      result.current.renamePlaylist(second, "Renamed");
+      result.current.deletePlaylist(first);
+      answers.push(result.current.addToPlaylist(first, "t-3"));
+    });
+    expect(answers).toEqual([true, false, true, false]);
+    expect(result.current.playlists.map((p) => [p.id, p.name, p.trackIds])).toEqual([
+      [second, "Renamed", ["t-1"]],
+    ]);
+    expect(stored()?.map((p) => [p.id, p.name, p.trackIds])).toEqual([
+      [second, "Renamed", ["t-1"]],
+    ]);
+  });
+
+  it("does not lose a rename, a move or a removal made in the same act as an add", () => {
+    const { result } = setup();
+    const id = create(result, "Old", ["t-1", "t-2", "t-3"]);
+    act(() => {
+      result.current.renamePlaylist(id, "New");
+      result.current.addToPlaylist(id, "t-4");
+      result.current.moveInPlaylist(id, 3, 0);
+      result.current.removeFromPlaylist(id, "t-2");
+    });
+    const [p] = result.current.playlists;
+    expect(p.name).toBe("New");
+    expect(p.trackIds).toEqual(["t-4", "t-1", "t-3"]);
+    expect(stored()).toEqual(result.current.playlists);
+  });
+
+  it("keeps the answer, the state and the storage in agreement over a long series", () => {
+    const { result } = setup();
+    const id = create(result, "Mix");
+    const model: string[] = [];
+    const series = ["t-1", "t-2", "t-1", "t-3", "t-2", "t-4", "t-4", "t-1"];
+    for (const trackId of series) {
+      const expected = !model.includes(trackId);
+      if (expected) model.push(trackId);
+      expect(addAll(result, id, [trackId]), trackId).toEqual([expected]);
+      expect(result.current.playlists[0].trackIds).toEqual(model);
+      expect(stored()?.[0].trackIds).toEqual(model);
+    }
+  });
+
+  it("writes the playlists once per mutation that changes something, even under StrictMode", () => {
+    // StrictMode runs state updaters twice: a write made inside one would be repeated.
+    const strict = ({ children }: { children: ReactNode }) => (
+      <StrictMode>
+        <PlaylistsProvider>{children}</PlaylistsProvider>
+      </StrictMode>
+    );
+    const { result } = renderHook(() => usePlaylists(), { wrapper: strict });
+    const write = vi.spyOn(Storage.prototype, "setItem");
+    const writes = () => write.mock.calls.filter(([key]) => key === "afm-playlists").length;
+    try {
+      let id = "";
+      act(() => {
+        id = result.current.createPlaylist("Mix", ["t-1"]).id;
+      });
+      expect(writes()).toBe(1);
+      expect(addAll(result, id, ["t-2"])).toEqual([true]);
+      expect(writes()).toBe(2);
+      expect(addAll(result, id, ["t-2"])).toEqual([false]);
+      expect(writes()).toBe(2); // refused: nothing to write
+      act(() => result.current.moveInPlaylist(id, 0, 1));
+      expect(writes()).toBe(3);
+      act(() => result.current.removeFromPlaylist(id, "t-1"));
+      expect(writes()).toBe(4);
+      act(() => result.current.renamePlaylist(id, "Renamed"));
+      expect(writes()).toBe(5);
+      act(() => result.current.deletePlaylist(id));
+      expect(writes()).toBe(6);
+    } finally {
+      write.mockRestore();
+    }
+    expect(stored()).toEqual([]);
+  });
+
+  it("rebuilds from storage after a remount without carrying anything over", () => {
+    const first = setup();
+    const id = create(first.result, "Mix");
+    expect(addAll(first.result, id, ["t-1", "t-2"])).toEqual([true, true]);
+    first.unmount();
+    const second = setup();
+    expect(second.result.current.playlists[0].trackIds).toEqual(["t-1", "t-2"]);
+    expect(addAll(second.result, id, ["t-2", "t-3"])).toEqual([false, true]);
+    expect(stored()?.[0].trackIds).toEqual(["t-1", "t-2", "t-3"]);
   });
 });
 

@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -47,10 +48,16 @@ function makeId() {
 
 export function PlaylistsProvider({ children }: { children: ReactNode }) {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  // The playlists, always up to date: every change goes through `commit`, which writes it before
+  // anything else. Mutations read it instead of waiting for React to apply state updates, so
+  // that several calls in a row see each other's result and each can report what it did.
+  const playlistsRef = useRef<Playlist[]>([]);
 
   useEffect(() => {
     // Stored values are untrusted: keep only what has the expected shape (nothing is rewritten here).
-    setPlaylists(parsePlaylists<Playlist>(readJSON<unknown>(PLAYLISTS_KEY, [])));
+    const loaded = parsePlaylists<Playlist>(readJSON<unknown>(PLAYLISTS_KEY, []));
+    playlistsRef.current = loaded;
+    setPlaylists(loaded);
   }, []);
 
   const persist = useCallback((value: Playlist[]) => {
@@ -61,6 +68,15 @@ export function PlaylistsProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const commit = useCallback(
+    (next: Playlist[]) => {
+      playlistsRef.current = next;
+      setPlaylists(next);
+      persist(next);
+    },
+    [persist],
+  );
+
   const createPlaylist = useCallback(
     (name: string, trackIds: string[] = []) => {
       const playlist: Playlist = {
@@ -69,84 +85,64 @@ export function PlaylistsProvider({ children }: { children: ReactNode }) {
         trackIds: [...new Set(trackIds)],
         createdAt: Date.now(),
       };
-      setPlaylists((prev) => {
-        const next = [playlist, ...prev];
-        persist(next);
-        return next;
-      });
+      commit([playlist, ...playlistsRef.current]);
       return playlist;
     },
-    [persist],
+    [commit],
   );
 
   const deletePlaylist = useCallback(
     (id: string) => {
-      setPlaylists((prev) => {
-        const next = prev.filter((p) => p.id !== id);
-        persist(next);
-        return next;
-      });
+      commit(playlistsRef.current.filter((p) => p.id !== id));
     },
-    [persist],
+    [commit],
   );
 
   const renamePlaylist = useCallback(
     (id: string, name: string) => {
-      setPlaylists((prev) => {
-        const next = prev.map((p) => (p.id === id ? { ...p, name: name.trim() || p.name } : p));
-        persist(next);
-        return next;
-      });
+      commit(
+        playlistsRef.current.map((p) => (p.id === id ? { ...p, name: name.trim() || p.name } : p)),
+      );
     },
-    [persist],
+    [commit],
   );
 
   const addToPlaylist = useCallback(
     (id: string, trackId: string) => {
-      let added = false;
-      setPlaylists((prev) => {
-        const next = prev.map((p) => {
-          if (p.id !== id || p.trackIds.includes(trackId)) return p;
-          added = true;
-          return { ...p, trackIds: [...p.trackIds, trackId] };
-        });
-        if (added) persist(next);
-        return next;
-      });
-      return added;
+      const prev = playlistsRef.current;
+      const target = prev.find((p) => p.id === id);
+      if (!target || target.trackIds.includes(trackId)) return false;
+      commit(prev.map((p) => (p === target ? { ...p, trackIds: [...p.trackIds, trackId] } : p)));
+      return true;
     },
-    [persist],
+    [commit],
   );
 
   const removeFromPlaylist = useCallback(
     (id: string, trackId: string) => {
-      setPlaylists((prev) => {
-        const next = prev.map((p) =>
+      commit(
+        playlistsRef.current.map((p) =>
           p.id === id ? { ...p, trackIds: p.trackIds.filter((t) => t !== trackId) } : p,
-        );
-        persist(next);
-        return next;
-      });
+        ),
+      );
     },
-    [persist],
+    [commit],
   );
 
   const moveInPlaylist = useCallback(
     (id: string, from: number, to: number) => {
-      setPlaylists((prev) => {
-        const next = prev.map((p) => {
+      commit(
+        playlistsRef.current.map((p) => {
           if (p.id !== id || to < 0 || to >= p.trackIds.length) return p;
           if (!Number.isInteger(from) || from < 0 || from >= p.trackIds.length) return p;
           const ids = [...p.trackIds];
           const [m] = ids.splice(from, 1);
           ids.splice(to, 0, m);
           return { ...p, trackIds: ids };
-        });
-        persist(next);
-        return next;
-      });
+        }),
+      );
     },
-    [persist],
+    [commit],
   );
 
   const value = useMemo<PlaylistsValue>(
