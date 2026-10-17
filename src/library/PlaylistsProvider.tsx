@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { parsePlaylists } from "./storage";
 
 const PLAYLISTS_KEY = "afm-playlists";
 
@@ -48,7 +49,8 @@ export function PlaylistsProvider({ children }: { children: ReactNode }) {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
 
   useEffect(() => {
-    setPlaylists(readJSON<Playlist[]>(PLAYLISTS_KEY, []));
+    // Stored values are untrusted: keep only what has the expected shape (nothing is rewritten here).
+    setPlaylists(parsePlaylists<Playlist>(readJSON<unknown>(PLAYLISTS_KEY, [])));
   }, []);
 
   const persist = useCallback((value: Playlist[]) => {

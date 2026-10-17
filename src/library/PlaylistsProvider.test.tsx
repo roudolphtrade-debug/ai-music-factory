@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { PlaylistsProvider, usePlaylists, type Playlist } from "./PlaylistsProvider";
+import { parsePlaylists } from "./storage";
 
 const wrapper = ({ children }: { children: ReactNode }) => (
   <PlaylistsProvider>{children}</PlaylistsProvider>
@@ -200,5 +201,199 @@ describe("persistence", () => {
     window.localStorage.setItem("afm-playlists", "{broken");
     const { result } = setup();
     expect(result.current.playlists).toEqual([]);
+  });
+});
+
+describe("stored playlists that are not what the app expects", () => {
+  const playlist = (extra: Record<string, unknown> = {}) => ({
+    id: "pl-1",
+    name: "Mix",
+    trackIds: ["t-1", "t-2"],
+    createdAt: 100,
+    ...extra,
+  });
+  const load = (value: unknown) => {
+    window.localStorage.setItem("afm-playlists", JSON.stringify(value));
+    return setup().result.current.playlists;
+  };
+
+  it("falls back to no playlist, without throwing, when the stored value is not a list", () => {
+    for (const value of [{}, { id: "pl-1", name: "Mix" }, 5, 0, "abc", null, true, false]) {
+      cleanup();
+      expect(load(value), JSON.stringify(value)).toEqual([]);
+    }
+  });
+
+  it("drops entries that are null, primitive, a list or incomplete, and keeps the others", () => {
+    const kept = playlist({ id: "pl-ok" });
+    const lists = load([
+      null,
+      5,
+      "pl-1",
+      true,
+      [],
+      {},
+      { name: "no id" },
+      { id: "pl-2" },
+      kept,
+      { id: "pl-3", trackIds: ["t-1"] },
+    ]);
+    expect(lists).toEqual([kept]);
+  });
+
+  it("requires a non-empty string id and keeps the first playlist when an id repeats", () => {
+    const first = playlist({ id: "pl-1", name: "First" });
+    const second = playlist({ id: "pl-2", name: "Second" });
+    const lists = load([
+      playlist({ id: "" }),
+      playlist({ id: 7 }),
+      playlist({ id: null }),
+      first,
+      playlist({ id: "pl-1", name: "Repeated id" }),
+      second,
+    ]);
+    expect(lists).toEqual([first, second]);
+  });
+
+  it("requires the name to be a string", () => {
+    const lists = load([
+      playlist({ id: "a", name: 12 }),
+      playlist({ id: "b", name: null }),
+      playlist({ id: "c", name: { text: "Mix" } }),
+      playlist({ id: "d", name: ["Mix"] }),
+      playlist({ id: "e", name: "Real name" }),
+    ]);
+    expect(lists.map((p) => p.id)).toEqual(["e"]);
+    expect(lists[0].name).toBe("Real name");
+  });
+
+  it("keeps a playlist that has no usable trackIds, with an empty list", () => {
+    const missing = { id: "a", name: "No tracks field", createdAt: 1 };
+    const lists = load([
+      missing,
+      playlist({ id: "b", trackIds: null }),
+      playlist({ id: "c", trackIds: "t-1" }),
+      playlist({ id: "d", trackIds: { 0: "t-1" } }),
+    ]);
+    expect(lists.map((p) => p.id)).toEqual(["a", "b", "c", "d"]);
+    for (const p of lists) expect(p.trackIds, p.id).toEqual([]);
+  });
+
+  it("keeps only non-empty strings in trackIds, in order", () => {
+    const [p] = load([
+      playlist({ trackIds: ["t-3", 4, "", null, "t-1", { id: "t-9" }, ["t-8"], "t-2", false] }),
+    ]);
+    expect(p.trackIds).toEqual(["t-3", "t-1", "t-2"]);
+  });
+
+  it("keeps ids that are not in the catalog, such as generated tracks", () => {
+    const ids = ["gen-draft-1f3a", "studio-result-9", "t-1", "chart-1-Not In Catalog"];
+    const [p] = load([playlist({ trackIds: ids })]);
+    expect(p.trackIds).toEqual(ids);
+  });
+
+  it("does not remove repeated track ids: a stored list is read back as it is", () => {
+    const [p] = load([playlist({ trackIds: ["t-1", "t-2", "t-1"] })]);
+    expect(p.trackIds).toEqual(["t-1", "t-2", "t-1"]);
+  });
+
+  it("gives an invalid createdAt the fallback 0 and keeps a valid one", () => {
+    const lists = load([
+      playlist({ id: "a", createdAt: undefined }),
+      playlist({ id: "b", createdAt: "yesterday" }),
+      playlist({ id: "c", createdAt: null }),
+      playlist({ id: "d", createdAt: { at: 1 } }),
+      playlist({ id: "e", createdAt: 1700000000000 }),
+      playlist({ id: "f", createdAt: 0 }),
+    ]);
+    expect(lists.map((p) => p.createdAt)).toEqual([0, 0, 0, 0, 1700000000000, 0]);
+    expect(lists.every((p) => typeof p.createdAt === "number")).toBe(true);
+  });
+
+  it("reads valid playlists back unchanged, extra fields included, in their order", () => {
+    const valid = [
+      playlist({ id: "pl-2", name: "Second", trackIds: ["t-9"], cover: "x.jpg" }),
+      playlist({ id: "pl-1", name: "First", trackIds: [] }),
+    ];
+    expect(load(valid)).toEqual(valid);
+  });
+
+  it("does not rewrite the stored value when it loads", () => {
+    const raw = JSON.stringify([{ id: "pl-1", name: "Broken" }, null, 5]);
+    window.localStorage.setItem("afm-playlists", raw);
+    const write = vi.spyOn(Storage.prototype, "setItem");
+    try {
+      const { result } = setup();
+      expect(result.current.playlists).toHaveLength(1);
+      expect(write).not.toHaveBeenCalled();
+      expect(window.localStorage.getItem("afm-playlists")).toBe(raw);
+    } finally {
+      write.mockRestore();
+    }
+  });
+
+  it("lets every operation work on a playlist recovered from a bad stored value", () => {
+    window.localStorage.setItem(
+      "afm-playlists",
+      JSON.stringify([{ id: "pl-1", name: "Broken" }, "junk", { id: "pl-1", name: "Twin" }]),
+    );
+    const { result } = setup();
+    expect(result.current.playlists.map((p) => p.name)).toEqual(["Broken"]);
+
+    act(() => {
+      result.current.addToPlaylist("pl-1", "t-1");
+    });
+    act(() => {
+      result.current.addToPlaylist("pl-1", "t-2");
+    });
+    expect(result.current.isInPlaylist("pl-1", "t-1")).toBe(true);
+    expect(result.current.playlists[0].trackIds).toEqual(["t-1", "t-2"]);
+
+    act(() => result.current.moveInPlaylist("pl-1", 0, 1));
+    expect(result.current.playlists[0].trackIds).toEqual(["t-2", "t-1"]);
+    act(() => result.current.removeFromPlaylist("pl-1", "t-2"));
+    expect(result.current.playlists[0].trackIds).toEqual(["t-1"]);
+    act(() => result.current.renamePlaylist("pl-1", "Fixed"));
+    expect(result.current.playlists[0].name).toBe("Fixed");
+
+    const id = create(result, "Another", ["t-5"]);
+    expect(stored()?.map((p) => p.name)).toEqual(["Another", "Fixed"]);
+    act(() => result.current.deletePlaylist(id));
+    act(() => result.current.deletePlaylist("pl-1"));
+    expect(result.current.playlists).toEqual([]);
+    expect(stored()).toEqual([]);
+  });
+
+  it("validates the shape of every playlist it returns", () => {
+    const lists = load([
+      { id: "a", name: "A" },
+      { id: "b", name: "B", trackIds: [1, 2], createdAt: "x" },
+      { id: "c", name: "C", trackIds: ["t-1"], createdAt: 5 },
+    ]);
+    for (const p of lists) {
+      expect(typeof p.id).toBe("string");
+      expect(typeof p.name).toBe("string");
+      expect(Array.isArray(p.trackIds)).toBe(true);
+      expect(p.trackIds.every((t) => typeof t === "string" && t !== "")).toBe(true);
+      expect(Number.isFinite(p.createdAt)).toBe(true);
+    }
+  });
+});
+
+describe("parsePlaylists", () => {
+  it("rejects a createdAt that JSON cannot carry (NaN and infinities)", () => {
+    const input = [
+      { id: "a", name: "A", trackIds: [], createdAt: Number.NaN },
+      { id: "b", name: "B", trackIds: [], createdAt: Number.POSITIVE_INFINITY },
+      { id: "c", name: "C", trackIds: [], createdAt: Number.NEGATIVE_INFINITY },
+    ];
+    expect(parsePlaylists<Playlist>(input).map((p) => p.createdAt)).toEqual([0, 0, 0]);
+  });
+
+  it("never mutates its input", () => {
+    const input = [{ id: "a", name: "A", trackIds: ["t-1", 2, ""], createdAt: "x" }, null];
+    const copy = JSON.stringify(input);
+    parsePlaylists<Playlist>(input);
+    expect(JSON.stringify(input)).toBe(copy);
   });
 });
