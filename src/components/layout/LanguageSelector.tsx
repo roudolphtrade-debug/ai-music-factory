@@ -1,5 +1,5 @@
 import { useId } from "react";
-import { Check, ChevronDown, Languages } from "lucide-react";
+import { Check, ChevronDown, Globe, Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CircularFlag } from "@/components/premium/CircularFlag";
 import {
@@ -35,7 +35,7 @@ export function LanguageSelector() {
           aria-label={`${titles[lang]} · ${names[lang]}`}
           className="group h-11 shrink-0 gap-1.5 border-border bg-secondary px-2.5 text-foreground hover:border-gold/30 hover:bg-accent focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background data-[state=open]:border-gold/30 motion-reduce:transition-none sm:gap-2 sm:px-3"
         >
-          <Languages aria-hidden="true" className="text-gold" />
+          <Globe aria-hidden="true" className="text-gold" />
           <bdi className="min-w-5 text-center text-xs font-semibold">{lang.toUpperCase()}</bdi>
           <ChevronDown aria-hidden="true" className="size-3 text-muted-foreground transition-transform duration-150 group-data-[state=open]:rotate-180 motion-reduce:transform-none motion-reduce:transition-none" />
         </Button>
