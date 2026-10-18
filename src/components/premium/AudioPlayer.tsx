@@ -69,9 +69,14 @@ export function AudioPlayer({ compact = false }: { compact?: boolean }) {
         </div>
       )}
 
-      <div className={cn("grid grid-cols-[minmax(0,1fr)_auto] items-center sm:flex sm:gap-4 sm:px-6 sm:py-3", compact ? "gap-1 px-3 py-2" : "gap-4 px-4 py-3")}>
+      <div className={cn("grid grid-cols-[minmax(0,1fr)_auto] items-center sm:flex sm:gap-4 sm:px-6 sm:py-3", compact ? "gap-1 px-3 py-2 max-[360px]:gap-0 max-[360px]:px-2" : "gap-4 px-4 py-3")}>
         {/* Track meta */}
-        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+        <div
+          className={cn(
+            "flex min-w-0 flex-1 items-center gap-2 sm:gap-3",
+            compact && "max-[360px]:gap-1.5",
+          )}
+        >
           <div className="relative shrink-0">
             <img
               loading="eager"
@@ -109,7 +114,7 @@ export function AudioPlayer({ compact = false }: { compact?: boolean }) {
 
         {/* Transport */}
         <div className={cn("flex shrink-0 items-center", compact ? "gap-0 sm:gap-1.5" : "gap-1.5")}>
-          <PlayerIcon className="hidden md:inline-flex" aria-label={l.shuffle} pressed={shuffle} onClick={toggleShuffle}>
+          <PlayerIcon className="hidden sm:inline-flex" aria-label={l.shuffle} pressed={shuffle} onClick={toggleShuffle}>
             <Shuffle className="h-4 w-4" />
           </PlayerIcon>
           <PlayerIcon onClick={prev} aria-label={homeTransport[lang].previous}>
@@ -119,11 +124,11 @@ export function AudioPlayer({ compact = false }: { compact?: boolean }) {
           <PlayerIcon onClick={next} aria-label={homeTransport[lang].next}>
             <SkipForward className="h-4 w-4 rtl:-scale-x-100" />
           </PlayerIcon>
-          <PlayerIcon className="hidden md:inline-flex" aria-label={repeatLabel} pressed={repeat !== "off"} onClick={cycleRepeat}>
+          <PlayerIcon className="hidden sm:inline-flex" aria-label={repeatLabel} pressed={repeat !== "off"} onClick={cycleRepeat}>
             <RepeatIcon className="h-4 w-4" />
           </PlayerIcon>
           {!compact && <QueuePanel />}
-          {compact && <QueuePanel className="hidden sm:grid" />}
+          {compact && <QueuePanel />}
         </div>
 
         {/* Right: time + volume + equalizer */}

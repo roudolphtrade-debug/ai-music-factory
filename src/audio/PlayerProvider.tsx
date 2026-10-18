@@ -9,7 +9,16 @@ import {
   type ReactNode,
 } from "react";
 import type { PlayableTrack } from "./tracks";
-import { moveItem, nextIndex, shuffleKeepingFirst, REPEAT_CYCLE, type RepeatMode } from "./queue";
+import {
+  indexAfterMove,
+  moveItem,
+  nextIndex,
+  removeById,
+  resolvePlayQueue,
+  shuffleKeepingFirst,
+  REPEAT_CYCLE,
+  type RepeatMode,
+} from "./queue";
 
 export type PlayerStatus = "idle" | "loading" | "playing" | "paused" | "error";
 
@@ -48,6 +57,8 @@ interface PlayerContextValue {
 
 const PlayerContext = createContext<PlayerContextValue | null>(null);
 
+const DEFAULT_VOLUME = 0.8;
+
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -61,7 +72,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [repeat, setRepeat] = useState<RepeatMode>("all");
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [volume, setVolumeState] = useState(0.8);
+  const [volume, setVolumeState] = useState(DEFAULT_VOLUME);
   const [muted, setMuted] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
 
@@ -72,6 +83,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const shuffleRef = useRef(false);
   const repeatRef = useRef<RepeatMode>("all");
   const endedRef = useRef<() => void>(() => {});
+  // Last non-zero level, so that unmuting from zero does not stay silent.
+  const lastAudibleRef = useRef(DEFAULT_VOLUME);
   queueRef.current = queue;
   shuffleRef.current = shuffle;
   repeatRef.current = repeat;
@@ -150,8 +163,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const play = useCallback(
     (track: PlayableTrack, q?: PlayableTrack[]) => {
-      const base = q && q.length ? q : [track];
-      const idx = Math.max(0, base.findIndex((t) => t.id === track.id));
+      // A track outside the supplied queue is placed first: queue[index] === track.
+      const { queue: base, index: idx } = resolvePlayQueue(track, q);
       originalRef.current = base;
       if (shuffleRef.current) setPos(shuffleKeepingFirst(base, idx), 0);
       else setPos(base, idx);
@@ -222,13 +235,15 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     const q = queueRef.current;
     const moved = moveItem(q, from, to);
     if (moved === q) return;
-    const curId = q[indexRef.current]?.id;
-    setPos(moved, Math.max(0, moved.findIndex((t) => t.id === curId)));
+    // Position-based: stays correct even when two queue items share the same id.
+    setPos(moved, indexAfterMove(indexRef.current, from, to));
   }, []);
 
   const removeFromQueue = useCallback((i: number) => {
     const q = queueRef.current;
     if (i === indexRef.current || !q[i]) return; // never remove the playing track
+    // Keep the pre-shuffle order in sync, otherwise the track returns when shuffle is turned off.
+    originalRef.current = removeById(originalRef.current, q[i].id);
     const nq = q.filter((_, k) => k !== i);
     setPos(nq, i < indexRef.current ? indexRef.current - 1 : indexRef.current);
   }, []);
@@ -268,6 +283,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     const audio = audioRef.current;
     const clamped = Math.min(Math.max(v, 0), 1);
     setVolumeState(clamped);
+    if (clamped > 0) lastAudibleRef.current = clamped;
     if (audio) {
       audio.volume = clamped;
       audio.muted = clamped === 0;
@@ -279,6 +295,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     const audio = audioRef.current;
     if (!audio) return;
     const nextMuted = !audio.muted;
+    if (!nextMuted && audio.volume === 0) {
+      audio.volume = lastAudibleRef.current;
+      setVolumeState(lastAudibleRef.current);
+    }
     audio.muted = nextMuted;
     setMuted(nextMuted);
   }, []);

@@ -5,6 +5,8 @@ import type { Lang } from "./translations";
 const fr = {
   radioIntro: "Explorez le catalogue par genre, ambiance ou station thématique. Programmation démo, titres réellement jouables.",
   shuffle: "Lecture aléatoire", repeatAll: "Répéter tout", repeatOne: "Répéter le titre", repeatOff: "Répétition désactivée",
+  playbackOptions: "Options de lecture",
+  seek: "Position de lecture",
   queue: "File d'attente", nowPlaying: "En cours", upNext: "À suivre", emptyQueue: "La file est vide. Lancez un titre pour la remplir.",
   moveUp: "Monter", moveDown: "Descendre", remove: "Retirer", playTrack: "Lire", like: "Ajouter aux favoris", unlike: "Retirer des favoris",
   loading: "Chargement", error: "Lecture impossible : ce titre n'a pas pu être chargé.", retry: "Réessayer", skip: "Titre suivant",
@@ -23,6 +25,8 @@ type Dict = typeof fr;
 const en: Dict = {
   radioIntro: "Explore the catalog by genre, mood or themed station. Demo programming, genuinely playable tracks.",
   shuffle: "Shuffle", repeatAll: "Repeat all", repeatOne: "Repeat track", repeatOff: "Repeat off",
+  playbackOptions: "Playback options",
+  seek: "Playback position",
   queue: "Queue", nowPlaying: "Now playing", upNext: "Up next", emptyQueue: "The queue is empty. Play a track to fill it.",
   moveUp: "Move up", moveDown: "Move down", remove: "Remove", playTrack: "Play", like: "Add to favorites", unlike: "Remove from favorites",
   loading: "Loading", error: "Playback failed: this track could not be loaded.", retry: "Retry", skip: "Next track",
@@ -39,6 +43,8 @@ const en: Dict = {
 const es: Dict = {
   radioIntro: "Explora el catálogo por género, ambiente o estación temática. Programación demo, canciones realmente reproducibles.",
   shuffle: "Aleatorio", repeatAll: "Repetir todo", repeatOne: "Repetir canción", repeatOff: "Repetición desactivada",
+  playbackOptions: "Opciones de reproducción",
+  seek: "Posición de reproducción",
   queue: "Cola", nowPlaying: "Sonando", upNext: "A continuación", emptyQueue: "La cola está vacía. Reproduce una canción para llenarla.",
   moveUp: "Subir", moveDown: "Bajar", remove: "Quitar", playTrack: "Reproducir", like: "Añadir a favoritos", unlike: "Quitar de favoritos",
   loading: "Cargando", error: "No se pudo reproducir: la canción no se cargó.", retry: "Reintentar", skip: "Siguiente canción",
@@ -55,6 +61,8 @@ const es: Dict = {
 const zh: Dict = {
   radioIntro: "按曲风、氛围或主题电台探索曲库。示范节目，曲目均可真实播放。",
   shuffle: "随机播放", repeatAll: "全部循环", repeatOne: "单曲循环", repeatOff: "关闭循环",
+  playbackOptions: "播放选项",
+  seek: "播放进度",
   queue: "播放队列", nowPlaying: "正在播放", upNext: "即将播放", emptyQueue: "队列为空。播放一首歌曲即可填充。",
   moveUp: "上移", moveDown: "下移", remove: "移除", playTrack: "播放", like: "加入收藏", unlike: "取消收藏",
   loading: "加载中", error: "无法播放：该曲目加载失败。", retry: "重试", skip: "下一首",
@@ -71,6 +79,8 @@ const zh: Dict = {
 const pt: Dict = {
   radioIntro: "Explore o catálogo por gênero, clima ou estação temática. Programação demo, faixas realmente tocáveis.",
   shuffle: "Aleatório", repeatAll: "Repetir tudo", repeatOne: "Repetir faixa", repeatOff: "Repetição desativada",
+  playbackOptions: "Opções de reprodução",
+  seek: "Posição de reprodução",
   queue: "Fila", nowPlaying: "Tocando agora", upNext: "A seguir", emptyQueue: "A fila está vazia. Toque uma faixa para preenchê-la.",
   moveUp: "Subir", moveDown: "Descer", remove: "Remover", playTrack: "Tocar", like: "Adicionar aos favoritos", unlike: "Remover dos favoritos",
   loading: "Carregando", error: "Não foi possível tocar: a faixa não carregou.", retry: "Tentar novamente", skip: "Próxima faixa",
@@ -87,6 +97,8 @@ const pt: Dict = {
 const ar: Dict = {
   radioIntro: "استكشف الكتالوج حسب النوع أو الأجواء أو المحطة الموضوعية. برمجة توضيحية ومقطوعات قابلة للتشغيل فعلياً.",
   shuffle: "تشغيل عشوائي", repeatAll: "تكرار الكل", repeatOne: "تكرار المقطوعة", repeatOff: "إيقاف التكرار",
+  playbackOptions: "خيارات التشغيل",
+  seek: "موضع التشغيل",
   queue: "قائمة الانتظار", nowPlaying: "قيد التشغيل", upNext: "التالي", emptyQueue: "القائمة فارغة. شغّل مقطوعة لملئها.",
   moveUp: "تحريك للأعلى", moveDown: "تحريك للأسفل", remove: "إزالة", playTrack: "تشغيل", like: "إضافة إلى المفضلة", unlike: "إزالة من المفضلة",
   loading: "جارٍ التحميل", error: "تعذّر التشغيل: لم يتم تحميل هذه المقطوعة.", retry: "إعادة المحاولة", skip: "المقطوعة التالية",

@@ -32,13 +32,13 @@ export function Playlist({ tracks, subtitleFor, trailing, className }: PlaylistP
             )}
           >
             {/* Rank / play toggle */}
-            <div className="relative grid h-9 w-9 shrink-0 place-items-center">
+            <div className="group/play relative grid h-9 w-9 shrink-0 place-items-center">
               {playing ? (
                 <WaveBars active className="h-4" />
               ) : (
                 <span
                   className={cn(
-                    "font-display text-base font-semibold tabular-nums transition-opacity group-hover:opacity-0",
+                    "font-display text-base font-semibold tabular-nums transition-opacity group-hover:opacity-0 group-focus-within/play:opacity-0",
                     active ? "text-gold" : "text-muted-foreground",
                   )}
                 >
@@ -46,7 +46,7 @@ export function Playlist({ tracks, subtitleFor, trailing, className }: PlaylistP
                 </span>
               )}
               {!playing && (
-                <div className="absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
                   <PlayButton track={track} queue={tracks} size="sm" variant="ghost" />
                 </div>
               )}
