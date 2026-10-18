@@ -45,7 +45,7 @@ export function LanguageSelector() {
         sideOffset={8}
         collisionPadding={12}
         aria-labelledby={titleId}
-        className="w-64 max-w-[calc(100vw-1.5rem)] rounded-lg border-border bg-popover p-1.5 text-popover-foreground shadow-lg motion-reduce:animate-none"
+        className="w-64 max-w-[calc(100vw-1.5rem)] rounded-lg border-border bg-popover p-1.5 text-popover-foreground shadow-lg motion-reduce:data-[state=open]:animate-none motion-reduce:data-[state=closed]:animate-none"
       >
         <DropdownMenuLabel id={titleId} className="border-b border-border px-3 py-3 text-sm font-medium">
           {titles[lang]}
