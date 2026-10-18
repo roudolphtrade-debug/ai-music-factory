@@ -1,39 +1,57 @@
-# Lot 2.2 · Radio Signature Immersive — cadrage VALIDÉ (référence)
+# Micro-lot UX · Sélecteur de langues
 
-Statut : validé sur le principe par Roudolph le 2026-10-11. Autorisation d'exécution en attente.
-Verrou préalable : le Lot 2.1-A est finalisé par Claude Code sur une branche Git distincte. Aucune modification du Lot 2.2 tant que le Lot 2.1-A n'est pas intégré et synchronisé. Ne pas toucher à l'état Git (branche gérée en interne).
+## 1. Stratégie Git : préalable bloquant
 
-## Précisions de validation (contractuelles)
-1. La platine est une véritable pièce maîtresse visuelle : vinyle détaillé (sillons, label central), bras de lecture, profondeur, reflets métalliques et accents champagne maîtrisés. Pas une simple pochette circulaire.
-2. Le spectre audio est spectaculaire, expressif et dominant dans la partie inférieure de la scène musicale. À terme, réaction réelle aux fréquences lorsque la source le permet, sans simulation trompeuse : en attendant l'analyse réelle (2.2-B), le spectre reste explicitement décoratif, jamais présenté comme réactif.
-3. La file d'attente desktop reste secondaire et rétractable. Elle ne réduit pas excessivement la platine ni ne compromet l'immersion (repliable, hors de la scène principale au repos).
+- Le Lot 2.1 est fusionné dans `main` et validé, selon votre confirmation.
+- Branche locale observée : `edit/edt-00650ebd-89d2-424d-b87f-aa8781407bd9`. Il s’agit de la branche de travail interne ; elle ne prouve pas quelle branche est synchronisée avec Lovable. Aucune modification locale en attente au moment du contrôle.
+- Je ne peux ni consulter le statut de synchronisation Git de Lovable, ni changer sa branche synchronisée depuis le chat. **La branche réellement synchronisée reste donc à confirmer dans Paramètres du projet → Git.**
+- Branche dédiée proposée : **`ux/language-selector-premium`**, créée depuis le `main` intégrant le Lot 2.1, puis choisie comme branche synchronisée dans Lovable via le sélecteur de branches.
+- Avant de coder : vous validez cette stratégie, puis confirmez dans les paramètres Git que la branche dédiée est sélectionnée et que le Lot 2.1 y est présent et synchronisé.
+- **L’implémentation ne sera pas effectuée directement sur `main`.** Aucun changement du sélecteur tant que la branche dédiée et sa synchronisation ne sont pas confirmées. Les modifications resteront sur cette branche jusqu’à votre validation ; fusion vers `main` uniquement sur décision explicite de votre part.
+- Aucun commit manuel, changement de branche par commande Git ou publication. Les futures modifications seront enregistrées par le mécanisme habituel de Lovable sur la branche sélectionnée.
 
-## Invariants préservés
-Identité AI Music Factory, navigation et chrome global validés, lecteur audio global et continuité de lecture, stations/filtres/playlists/favoris, six langues + RTL arabe, mention « Programmation démo », aucun faux indicateur Live/auditeurs, accessibilité et préférence reduced-motion, performances, Studio/accueil/paiements/données enregistrées intacts.
+## 2. Résultat UX/UI
 
-## 2.2-A · Composition UX/UI et spectre statique
-- Scène musicale principale : platine vinyle maîtresse (disque détaillé avec sillons et reflets, pochette intégrée au label central, bras de lecture posé/relevé selon l'état lecture/pause, rotation continue en lecture, arrêt en pause), habillage noir profond/argent/blanc, accents or champagne, spotlight et fumée discrets.
-- Spectre monumental pleine largeur en partie basse de la scène : barres dorées, rendu statique expressif (variante de Waveform), animation douce d'ambiance uniquement en lecture, `prefers-reduced-motion` respecté.
-- Métadonnées (titre, artiste · genre · ambiance) et commandes reprises du lecteur existant : play/pause, précédent/suivant, aléatoire, répétition, progression (Seekbar), volume, favori, partage.
-- Desktop : file d'attente en panneau latéral rétractable (état fermé par défaut), ouverture sans dégrader la platine ; mobile : file via QueuePanel existant en feuille basse.
-- Stations thématiques, filtres genre/ambiance et playlist conservés tels quels sous la scène.
-- Composants réutilisés : NowPlayingPlayer (refondu), Waveform/WaveBars, Seekbar, VolumeControl, PlayButton, LikeButton, ShareButton, DemoBadge, QueuePanel, stations.ts, PlayerProvider (aucun changement du moteur audio).
+Un seul sélecteur à toutes les tailles d’écran : globe, langue active et chevron, sans drapeau dans le bouton.
 
-## 2.2-B · Analyse audio réelle et animations synchronisées
-- Faisabilité établie : Web Audio API (AnalyserNode) sur l'élément audio existant. Condition : la source doit êtresame-origin ou servir des en-têtes CORS (`crossOrigin="anonymous"` sur l'élément + CORS sur le CDN des assets). Si l'autorisation échoue, repli gracieux sur le spectre d'ambiance de 2.2-A, sans jamais afficher une fausse réactivité.
-- Synchronisations : spectre par bandes de fréquences, rotation de la platine calée sur l'état de lecture, bras de lecture animé, pulsations discrètes.
-- Aucune nouvelle dépendance lourde ; canvas/DOM pur.
+- Surface sombre et bordure neutre très discrète, texte clair, accent champagne limité à la sélection et à l’ouverture. Utilisation des couleurs et composants existants, sans modification des styles globaux.
+- Bouton compact, non dominant, avec cible tactile de 44 px sans agrandir l’en-tête.
+- Nom natif sur desktop ; code compact lorsque l’espace est contraint : FR, EN, ES, ZH, PT-BR, AR. Le nom complet reste annoncé aux lecteurs d’écran.
+- Menu : **Français, English, Español, 中文, Português (Brasil), العربية**, dans cet ordre. Choix actif identifié par une coche et un accent discret, pas uniquement par la couleur.
+- Menu positionné pour rester dans l’écran, y compris en arabe ; noms multilingues isolés pour éviter les inversions de lecture.
+- Survol discret, focus visible, état ouvert clairement identifiable ; transitions non essentielles supprimées lorsque la réduction des animations est demandée.
 
-## 2.2-C · Recette responsive, accessibilité et performances
-- Six langues × 320/390/768/1280/1527 px sans débordement ; RTL arabe (icônes skip inversées).
-- Clavier et lecteur d'écran : libellés traduits, focus visible, rôles slider conservés.
-- Non-régression : continuité de lecture entre pages, favoris, file, aléatoire/répétition, stations et filtres, Bibliothèque, accueil Bento inchangé.
-- Performances : animations GPU-composited, pas de reflow en boucle, charge visuelle mesurée.
+## 3. Périmètre exact
 
-## Risques
-- CORS des assets audio peut empêcher l'AnalyserNode → repli décoratif assumé, annoncé honnêtement.
-- Refonte du NowPlayingPlayer : toucher la page Radio uniquement, le lecteur global et les autres écrans restent intacts.
-- Rotation/perf du vinyle sur mobile modeste → tailles et FPS limités, reduced-motion.
+### Fichiers d’implémentation autorisés
+- `Topbar.tsx` : remplacer les deux présentations actuelles par le sélecteur unique ; ajuster uniquement l’espace nécessaire à son insertion.
+- Nouveau `LanguageSelector.tsx` : isoler l’affichage et les six noms natifs ; réutiliser `Button`, `DropdownMenu` et le groupe de sélection unique existants.
+- Tests ciblés suivant les conventions du projet.
 
-## Tests prévus (seuls les tests exécutés seront déclarés)
-Playwright : lecture/pause, suivant/précédent, spectre présent et animé en lecture, file desktop rétractable, stations et filtres fonctionnels, favoris après rechargement, continuité de lecture, six langues et RTL, cinq largeurs, erreurs console. Vitest uniquement si de la logique pure est ajoutée.
+### Préservation stricte
+Dictionnaires, codes de langue, fournisseur de traductions, stockage et restauration de langue inchangés. RTL arabe conservé. Aucune suppression du composant de drapeaux, aucune modification des composants partagés ou des styles globaux.
+
+Recherche, notifications, bouton Créer, navigation, audio et continuité de lecture, favoris, playlists, données du Lot 2.1, accueil, Radio et Studio restent inchangés. Lot 2.2 non commencé.
+
+## 4. Risques et réponses
+
+- **Largeur des libellés** : nom complet sur desktop, code compact aux tailles contraintes, menu assez large mais borné par l’écran.
+- **En-tête chargé** : contrôler recherche, notifications et Créer dans chaque langue ; conserver leurs comportements et visibilité actuels.
+- **RTL et noms latins** : transmettre la direction au menu et isoler chaque libellé natif.
+- **Accessibilité** : conserver sélection unique, flèches, Entrée, Espace, Échap, fermeture extérieure et restitution du focus au bouton. Annoncer langue active, ouverture et sélection.
+- **Persistance** : utiliser exclusivement le mécanisme existant, sans nouvelle lecture du stockage au rendu initial.
+- **Git** : aucune implémentation avant confirmation de la branche dédiée synchronisée.
+
+## 5. Recette et critères d’acceptation
+
+- Six langues à **320, 390, 768, 1093, 1280 et 1527 px** : un seul bouton, noms complets dans le menu, aucun débordement ni conflit avec les autres commandes.
+- Sélectionner chaque langue ; naviguer puis recharger : langue conservée, RTL actif uniquement pour l’arabe.
+- Clavier : Tab, Entrée, Espace, flèches et Échap ; focus visible, sélection unique et retour du focus vérifiés.
+- Vérifier les noms accessibles et états exposés ; contrôle visuel des contrastes et du mode réduction des animations. Les annonces d’un lecteur d’écran réel seront distinguées des vérifications automatisées.
+- Lancer un morceau, ouvrir le menu, changer de langue et naviguer : lecture maintenue. Vérifier recherche, notifications, accès Créer et un favori déjà enregistré sans changer leurs données.
+- Exécuter les tests concernés ; contrôler la compilation automatique et les erreurs de la console.
+- Fournir des captures ciblées desktop/mobile et un compte rendu factuel : réalisé, préservé, testé et limites de vérification.
+
+## 6. Autorisation attendue
+
+**Valider ce plan et la branche proposée, puis confirmer la branche réellement synchronisée dans les paramètres Git. Aucun code ne sera modifié avant cette confirmation. Aucune publication.**
