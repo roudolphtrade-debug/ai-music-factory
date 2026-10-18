@@ -16,5 +16,6 @@
 - [ ] Lot 2.2-C: responsive/a11y/performance recipe across six languages (blocked: 2.2-B done).
 - [ ] Lot 3: start only after Lot 2 validation (blocked: user approval).
 - [x] Language selector micro-lot: replace both header presentations with one accessible premium dropdown, preserve language storage and RTL.
+- [x] Language selector micro-lot: swap the closed-button pictogram for a discreet gold globe icon; verify six languages, persistence, RTL, keyboard and six viewports.
 
 - [x] Language selector micro-lot: verify six languages, reload persistence, keyboard and desktop/tablet/mobile; no publication.
