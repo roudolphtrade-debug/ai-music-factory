@@ -15,3 +15,5 @@
 - Keep the discovery Bento and functional font experiment scoped to homepage presentation; reuse shared playback and destination controls to avoid changing other screens or persistence.
 - Keep queue ordering, shuffle and repeat rules in pure helpers (src/audio/queue.ts) used by the player, so they stay unit-tested independently of audio events.
 - Keep player, Radio and Library strings in a separate browser-safe six-language listening catalog so these screens evolve without touching the main dictionary.
+
+- Keep global language selector presentation in its dedicated layout component using the existing I18n provider and Radix radio menu; this isolates header styling from translations, persistence and other global controls.
