@@ -3,26 +3,40 @@ import { Check, ChevronDown, Globe, Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CircularFlag } from "@/components/premium/CircularFlag";
 import {
-  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
-  DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import { useI18n } from "@/i18n/context";
 import { LANGS, RTL_LANGS, type Lang } from "@/i18n/translations";
 
 // Presentation only: language identifiers, selection and storage stay with I18n.
 const names: Record<Lang, string> = {
-  fr: "Français", en: "English", es: "Español", zh: "中文",
-  pt: "Português (Brasil)", ar: "العربية",
+  fr: "Français",
+  en: "English",
+  es: "Español",
+  zh: "中文",
+  pt: "Português (Brasil)",
+  ar: "العربية",
 };
 const titles: Record<Lang, string> = {
-  fr: "Choisir une langue", en: "Choose a language", es: "Elegir un idioma",
-  zh: "选择语言", pt: "Escolher um idioma", ar: "اختر لغة",
+  fr: "Choisir une langue",
+  en: "Choose a language",
+  es: "Elegir un idioma",
+  zh: "选择语言",
+  pt: "Escolher um idioma",
+  ar: "اختر لغة",
 };
 
 export function LanguageSelector() {
   const { lang, setLang } = useI18n();
   const titleId = useId();
   const dir = RTL_LANGS.includes(lang) ? "rtl" : "ltr";
+  // Shown on the button and repeated first in its accessible name (WCAG 2.5.3, voice control).
+  const code = lang.toUpperCase();
 
   return (
     <DropdownMenu dir={dir}>
@@ -32,12 +46,15 @@ export function LanguageSelector() {
           variant="outline"
           size="sm"
           data-testid="language-selector"
-          aria-label={`${titles[lang]} · ${names[lang]}`}
+          aria-label={`${code} · ${titles[lang]} · ${names[lang]}`}
           className="group h-11 shrink-0 gap-1.5 border-border bg-secondary px-2.5 text-foreground hover:border-gold/30 hover:bg-accent focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background data-[state=open]:border-gold/30 motion-reduce:transition-none sm:gap-2 sm:px-3"
         >
           <Globe aria-hidden="true" className="text-gold" />
-          <bdi className="min-w-5 text-center text-xs font-semibold">{lang.toUpperCase()}</bdi>
-          <ChevronDown aria-hidden="true" className="size-3 text-muted-foreground transition-transform duration-150 group-data-[state=open]:rotate-180 motion-reduce:transform-none motion-reduce:transition-none" />
+          <bdi className="min-w-5 text-center text-xs font-semibold">{code}</bdi>
+          <ChevronDown
+            aria-hidden="true"
+            className="size-3 text-muted-foreground transition-transform duration-150 group-data-[state=open]:rotate-180 motion-reduce:transform-none motion-reduce:transition-none"
+          />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -47,7 +64,10 @@ export function LanguageSelector() {
         aria-labelledby={titleId}
         className="w-64 max-w-[calc(100vw-1.5rem)] rounded-lg border-border bg-popover p-1.5 text-popover-foreground shadow-lg motion-reduce:data-[state=open]:animate-none motion-reduce:data-[state=closed]:animate-none"
       >
-        <DropdownMenuLabel id={titleId} className="border-b border-border px-3 py-3 text-sm font-medium">
+        <DropdownMenuLabel
+          id={titleId}
+          className="border-b border-border px-3 py-3 text-sm font-medium"
+        >
           {titles[lang]}
         </DropdownMenuLabel>
         <DropdownMenuRadioGroup
@@ -69,8 +89,12 @@ export function LanguageSelector() {
               ) : (
                 <CircularFlag lang={item.code} className="size-5 shrink-0" />
               )}
-              <bdi lang={item.code === "pt" ? "pt-BR" : item.code} className="text-sm">{names[item.code]}</bdi>
-              {lang === item.code && <Check aria-hidden="true" className="absolute end-3 size-4 text-gold" />}
+              <bdi lang={item.code === "pt" ? "pt-BR" : item.code} className="text-sm">
+                {names[item.code]}
+              </bdi>
+              {lang === item.code && (
+                <Check aria-hidden="true" className="absolute end-3 size-4 text-gold" />
+              )}
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>
