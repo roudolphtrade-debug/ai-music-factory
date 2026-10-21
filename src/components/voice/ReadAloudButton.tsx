@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Volume2, Loader2, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/context";
+import { AI_LIMITS, aiErrorKey } from "@/lib/ai-limits";
 import { cn } from "@/lib/utils";
 
 type State = "idle" | "loading" | "playing";
@@ -60,12 +61,9 @@ export function ReadAloudButton({
       const res = await fetch("/api/voice/speak", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, voice }),
+        body: JSON.stringify({ text: text.slice(0, AI_LIMITS.speechChars), voice }),
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.error ?? "Speech failed.");
-      }
+      if (!res.ok) throw new Error(t(aiErrorKey(res.status)));
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       urlRef.current = url;
@@ -78,7 +76,7 @@ export function ReadAloudButton({
     } catch (e) {
       cleanup();
       setState("idle");
-      setError(e instanceof Error ? e.message : "Speech failed.");
+      setError(e instanceof Error ? e.message : t("aiErrors.generic"));
     }
   };
 

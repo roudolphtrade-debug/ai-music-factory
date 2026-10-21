@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { guardAiRequest } from "@/lib/api-guard";
+import { AI_LIMITS, guardAiRequest, readJsonLimited, textField } from "@/lib/api-guard";
 
 /**
  * Text-to-speech endpoint.
@@ -12,7 +12,7 @@ export const Route = createFileRoute("/api/voice/speak")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const blocked = guardAiRequest(request);
+        const blocked = guardAiRequest(request, "speak");
         if (blocked) return blocked;
 
         const apiKey = process.env.LOVABLE_API_KEY;
@@ -20,19 +20,16 @@ export const Route = createFileRoute("/api/voice/speak")({
           return Response.json({ error: "Voice AI is not configured." }, { status: 500 });
         }
 
-        let body: { text?: string; voice?: string } | null = null;
-        try {
-          body = await request.json();
-        } catch {
-          return Response.json({ error: "Invalid JSON body." }, { status: 400 });
-        }
+        const parsed = await readJsonLimited(request);
+        if (!parsed.ok) return parsed.response;
+        const body = (parsed.body ?? {}) as Record<string, unknown>;
 
-        const text = (body?.text ?? "").trim();
-        if (!text) {
+        const input = textField(body.text, AI_LIMITS.speechChars);
+        if (!input) {
           return Response.json({ error: "No text provided." }, { status: 400 });
         }
-        const input = text.slice(0, 2400);
-        const voice = body?.voice && VOICES.includes(body.voice) ? body.voice : "sage";
+        const voice =
+          typeof body.voice === "string" && VOICES.includes(body.voice) ? body.voice : "sage";
 
         const res = await fetch("https://ai.gateway.lovable.dev/v1/audio/speech", {
           method: "POST",

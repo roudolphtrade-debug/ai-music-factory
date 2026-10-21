@@ -77,6 +77,14 @@ const fr: Dict = {
     micDenied: "Accès au micro refusé.",
     unsupported: "Enregistrement audio non pris en charge ici.",
     tooShort: "Enregistrement trop court — réessayez.",
+    maxDuration: "Enregistrement arrêté après deux minutes. Transcription en cours.",
+  },
+  aiErrors: {
+    paused: "Les fonctions IA sont momentanément en pause. Réessayez plus tard.",
+    rate: "Trop de requêtes. Réessayez dans un instant.",
+    credits: "Les crédits IA du service sont épuisés. Réessayez plus tard.",
+    tooLarge: "Contenu trop volumineux. Raccourcissez le texte ou l'enregistrement.",
+    generic: "L'opération a échoué. Réessayez.",
   },
   common: {
     viewAll: "Tout voir",
@@ -776,6 +784,14 @@ const en: Dict = {
     micDenied: "Microphone access denied.",
     unsupported: "Audio recording isn't supported here.",
     tooShort: "Recording too short — try again.",
+    maxDuration: "Recording stopped after two minutes. Transcribing.",
+  },
+  aiErrors: {
+    paused: "AI features are temporarily paused. Please try again later.",
+    rate: "Too many requests. Try again in a moment.",
+    credits: "The service's AI credits are used up. Please try again later.",
+    tooLarge: "Content too large. Shorten the text or the recording.",
+    generic: "The operation failed. Please try again.",
   },
   common: {
     viewAll: "View all",
@@ -1471,6 +1487,14 @@ const es: Dict = {
     micDenied: "Acceso al micrófono denegado.",
     unsupported: "La grabación de audio no es compatible aquí.",
     tooShort: "Grabación demasiado corta — inténtalo de nuevo.",
+    maxDuration: "Grabación detenida tras dos minutos. Transcribiendo.",
+  },
+  aiErrors: {
+    paused: "Las funciones de IA están en pausa temporalmente. Inténtalo más tarde.",
+    rate: "Demasiadas solicitudes. Inténtalo en un momento.",
+    credits: "Los créditos de IA del servicio se han agotado. Inténtalo más tarde.",
+    tooLarge: "Contenido demasiado grande. Acorta el texto o la grabación.",
+    generic: "La operación falló. Inténtalo de nuevo.",
   },
   common: {
     viewAll: "Ver todo",
@@ -2155,6 +2179,14 @@ const zh: Dict = {
     micDenied: "麦克风访问被拒绝。",
     unsupported: "此处不支持录音。",
     tooShort: "录音太短 —— 请重试。",
+    maxDuration: "录音已在两分钟后自动停止，正在转写。",
+  },
+  aiErrors: {
+    paused: "AI 功能暂时暂停，请稍后再试。",
+    rate: "请求过多，请稍后再试。",
+    credits: "服务的 AI 额度已用完，请稍后再试。",
+    tooLarge: "内容过大，请缩短文本或录音。",
+    generic: "操作失败，请重试。",
   },
   common: {
     viewAll: "查看全部",
@@ -2555,6 +2587,14 @@ const pt: Dict = {
     micDenied: "Acesso ao microfone negado.",
     unsupported: "Gravação de áudio não suportada aqui.",
     tooShort: "Gravação muito curta — tente novamente.",
+    maxDuration: "Gravação interrompida após dois minutos. Transcrevendo.",
+  },
+  aiErrors: {
+    paused: "Os recursos de IA estão temporariamente em pausa. Tente novamente mais tarde.",
+    rate: "Muitas solicitações. Tente novamente em instantes.",
+    credits: "Os créditos de IA do serviço acabaram. Tente novamente mais tarde.",
+    tooLarge: "Conteúdo muito grande. Reduza o texto ou a gravação.",
+    generic: "A operação falhou. Tente novamente.",
   },
   common: {
     viewAll: "Ver tudo",
@@ -2959,6 +2999,14 @@ const ar: Dict = {
     micDenied: "تم رفض الوصول إلى الميكروفون.",
     unsupported: "تسجيل الصوت غير مدعوم هنا.",
     tooShort: "التسجيل قصير جدًا — أعد المحاولة.",
+    maxDuration: "توقف التسجيل بعد دقيقتين. جارٍ النسخ.",
+  },
+  aiErrors: {
+    paused: "ميزات الذكاء الاصطناعي متوقفة مؤقتًا. حاول مرة أخرى لاحقًا.",
+    rate: "طلبات كثيرة جدًا. حاول مرة أخرى بعد قليل.",
+    credits: "نفدت أرصدة الذكاء الاصطناعي الخاصة بالخدمة. حاول مرة أخرى لاحقًا.",
+    tooLarge: "المحتوى كبير جدًا. اختصر النص أو التسجيل.",
+    generic: "فشلت العملية. أعد المحاولة.",
   },
   common: {
     viewAll: "عرض الكل",
