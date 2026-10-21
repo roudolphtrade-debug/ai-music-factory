@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { ShieldCheck, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/premium/SectionHeading";
-import { GoldBadge } from "@/components/premium/Chips";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/context";
 import { useTheme } from "@/theme/context";
@@ -118,21 +117,8 @@ function SettingsPage() {
             </span>
             <p className="mt-4 font-display text-lg font-semibold text-foreground">Studio A</p>
             <p className="text-xs text-muted-foreground">@studio-a</p>
-            <GoldBadge className="mt-3">
-              <ShieldCheck className="h-3.5 w-3.5" /> {t("settings.platinumTier")}
-            </GoldBadge>
             <Button variant="ghost-gold" className="mt-5 w-full">
               {t("settings.changeAvatar")}
-            </Button>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-card p-6">
-            <h3 className="font-display text-base font-semibold text-foreground">
-              {t("settings.plan")}
-            </h3>
-            <p className="mt-1 text-sm text-muted-foreground">{t("settings.planDesc")}</p>
-            <Button variant="gold" className="mt-4 w-full">
-              {t("settings.managePlan")}
             </Button>
           </div>
         </div>
