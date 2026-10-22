@@ -3,6 +3,7 @@ import { Mic, Square, Loader2, Sparkles, Trash2, Copy, Check } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { WaveBars } from "@/components/audio/WaveBars";
 import { useI18n } from "@/i18n/context";
+import { DICTATION_MAX_SECONDS, aiErrorKey } from "@/lib/ai-limits";
 import { cn } from "@/lib/utils";
 
 type Phase = "idle" | "recording" | "transcribing";
@@ -22,6 +23,7 @@ export function VoicePrompt({
   const [phase, setPhase] = useState<Phase>("idle");
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [seconds, setSeconds] = useState(0);
   const [copied, setCopied] = useState(false);
 
@@ -29,11 +31,16 @@ export function VoicePrompt({
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const limitRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const stopTimer = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
+    }
+    if (limitRef.current) {
+      clearTimeout(limitRef.current);
+      limitRef.current = null;
     }
   };
 
@@ -52,6 +59,7 @@ export function VoicePrompt({
 
   const start = async () => {
     setError(null);
+    setNotice(null);
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -76,6 +84,11 @@ export function VoicePrompt({
     setPhase("recording");
     setSeconds(0);
     timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
+    // The recording is kept and transcribed; it only ends here instead of at the user's click.
+    limitRef.current = setTimeout(() => {
+      setNotice(t("voice.maxDuration"));
+      stop();
+    }, DICTATION_MAX_SECONDS * 1000);
   };
 
   const stop = () => {
@@ -96,16 +109,13 @@ export function VoicePrompt({
       const form = new FormData();
       form.append("audio", blob, "recording");
       const res = await fetch("/api/voice/transcribe", { method: "POST", body: form });
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.error ?? "Transcription failed.");
-      }
+      if (!res.ok) throw new Error(t(aiErrorKey(res.status)));
       const data = (await res.json()) as { text?: string };
       const text = (data.text ?? "").trim();
       setTranscript((prev) => (prev ? `${prev} ${text}` : text));
       onTranscript?.(text);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Transcription failed.");
+      setError(e instanceof Error ? e.message : t("aiErrors.generic"));
     } finally {
       setPhase("idle");
     }
@@ -114,6 +124,7 @@ export function VoicePrompt({
   const reset = () => {
     setTranscript("");
     setError(null);
+    setNotice(null);
   };
 
   const copy = async () => {
@@ -191,6 +202,11 @@ export function VoicePrompt({
         />
       </div>
 
+      {notice && (
+        <p role="status" className="mt-2 text-sm text-muted-foreground">
+          {notice}
+        </p>
+      )}
       {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
     </section>
   );

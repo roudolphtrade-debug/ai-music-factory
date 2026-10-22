@@ -13,6 +13,7 @@ import { COSTS } from "@/library/credits";
 import { artistImages, moods, type ArtistId } from "@/data/mock";
 import { composeFinalTrack } from "@/audio/mixTrack";
 import { useI18n } from "@/i18n/context";
+import { aiErrorKey } from "@/lib/ai-limits";
 
 const genres = [
   "Hip-Hop",
@@ -108,6 +109,7 @@ export function StudioComposer() {
         let key = "studio.gen.errorGeneric";
         if (res.status === 402) key = "studio.gen.errorCredits";
         else if (res.status === 429) key = "studio.gen.errorRate";
+        else if (res.status === 503 || res.status === 413) key = aiErrorKey(res.status);
         toast.error(t(key));
         setPhase(result ? "done" : "idle");
         return;

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { guardAiRequest } from "@/lib/api-guard";
+import { AI_LIMITS, guardAiRequest, readFormLimited, tooLargeResponse } from "@/lib/api-guard";
 
 /**
  * Speech-to-text endpoint.
@@ -10,7 +10,7 @@ export const Route = createFileRoute("/api/voice/transcribe")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const blocked = guardAiRequest(request);
+        const blocked = guardAiRequest(request, "transcribe");
         if (blocked) return blocked;
 
         const apiKey = process.env.LOVABLE_API_KEY;
@@ -18,19 +18,15 @@ export const Route = createFileRoute("/api/voice/transcribe")({
           return Response.json({ error: "Voice AI is not configured." }, { status: 500 });
         }
 
-        let form: FormData;
-        try {
-          form = await request.formData();
-        } catch {
-          return Response.json({ error: "Expected multipart/form-data." }, { status: 400 });
-        }
+        const parsed = await readFormLimited(request);
+        if (!parsed.ok) return parsed.response;
 
-        const audio = form.get("audio");
+        const audio = parsed.form.get("audio");
         if (!(audio instanceof File) || audio.size < 512) {
           return Response.json({ error: "No audio provided." }, { status: 400 });
         }
-        if (audio.size > 24 * 1024 * 1024) {
-          return Response.json({ error: "Recording too large." }, { status: 413 });
+        if (audio.size > AI_LIMITS.audioBytes) {
+          return tooLargeResponse("Recording too large.");
         }
 
         const type = audio.type.split(";")[0];

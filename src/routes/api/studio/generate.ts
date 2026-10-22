@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { guardAiRequest } from "@/lib/api-guard";
+import { AI_LIMITS, guardAiRequest, readJsonLimited, textField } from "@/lib/api-guard";
 
 /**
  * Studio track generator.
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/api/studio/generate")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const blocked = guardAiRequest(request);
+        const blocked = guardAiRequest(request, "generate");
         if (blocked) return blocked;
 
         const apiKey = process.env.LOVABLE_API_KEY;
@@ -30,20 +30,21 @@ export const Route = createFileRoute("/api/studio/generate")({
           return Response.json({ error: "Generator is not configured." }, { status: 500 });
         }
 
-        let body: { prompt?: string; genre?: string; mood?: string; voice?: string } | null = null;
-        try {
-          body = await request.json();
-        } catch {
-          return Response.json({ error: "Invalid JSON body." }, { status: 400 });
-        }
+        const parsed = await readJsonLimited(request);
+        if (!parsed.ok) return parsed.response;
+        const body = (parsed.body ?? {}) as Record<string, unknown>;
 
-        const prompt = (body?.prompt ?? "").trim().slice(0, 600);
+        const prompt = textField(body.prompt, 600);
         if (!prompt) {
           return Response.json({ error: "No prompt provided." }, { status: 400 });
         }
-        const genre = (body?.genre ?? "Pop").slice(0, 60);
-        const mood = (body?.mood ?? "warm").slice(0, 60);
-        const voice = VOICE_MAP[body?.voice ?? ""] ?? "sage";
+        const genre = textField(body.genre, 60, "Pop");
+        const mood = textField(body.mood, 60, "warm");
+        const voice =
+          typeof body.voice === "string" &&
+          Object.prototype.hasOwnProperty.call(VOICE_MAP, body.voice)
+            ? VOICE_MAP[body.voice]
+            : "sage";
 
         const fail = (status: number, fallback: string, detail?: string) => {
           if (detail) console.error(`[studio/generate] upstream ${status}: ${detail}`);
@@ -64,6 +65,7 @@ export const Route = createFileRoute("/api/studio/generate")({
             headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
             body: JSON.stringify({
               model: "google/gemini-3-flash-preview",
+              max_tokens: AI_LIMITS.chatMaxTokens,
               messages: [
                 {
                   role: "system",
@@ -89,7 +91,8 @@ export const Route = createFileRoute("/api/studio/generate")({
         } catch (e) {
           return fail(502, "Lyric generation failed.", e instanceof Error ? e.message : "");
         }
-        if (!lyrics) lyrics = prompt;
+        // The same cut feeds the voice and the `X-Lyrics` header, so the client shows what is sung.
+        lyrics = (lyrics || prompt).slice(0, AI_LIMITS.lyricsChars);
 
         // 2) Perform the lyrics with the speech gateway.
         const speech = await fetch(`${GATEWAY}/audio/speech`, {
@@ -97,7 +100,7 @@ export const Route = createFileRoute("/api/studio/generate")({
           headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
           body: JSON.stringify({
             model: "openai/gpt-4o-mini-tts",
-            input: lyrics.slice(0, 1200),
+            input: lyrics,
             voice,
             instructions: `Perform these lyrics like a ${mood} ${genre} vocalist. Use a musical, rhythmic, melodic delivery with expressive phrasing and gentle vibrato — not a flat narration.`,
             stream_format: "audio",

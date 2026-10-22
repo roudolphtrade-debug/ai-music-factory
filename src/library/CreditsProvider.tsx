@@ -10,14 +10,11 @@ import {
 import {
   COSTS,
   PACKS,
+  applyMonthlyGrant,
   initialState,
   makeEntry,
-  planById,
-  currentMonth,
   type ActionKind,
-  type CreditPack,
   type CreditsState,
-  type PlanId,
 } from "./credits";
 
 const CREDITS_KEY = "afm-credits";
@@ -25,8 +22,6 @@ const CREDITS_KEY = "afm-credits";
 interface CreditsValue extends CreditsState {
   canAfford: (kind: ActionKind) => boolean;
   spend: (kind: ActionKind) => boolean;
-  subscribe: (plan: PlanId) => void;
-  buyPack: (pack: CreditPack) => void;
 }
 
 const CreditsContext = createContext<CreditsValue | null>(null);
@@ -44,23 +39,11 @@ function readState(): CreditsState {
   }
 }
 
-/** Apply the monthly credit grant if a new calendar month has started. */
-function applyMonthlyGrant(state: CreditsState): CreditsState {
-  const month = currentMonth();
-  if (state.lastGrant === month) return state;
-  const plan = planById(state.plan);
-  return {
-    ...state,
-    balance: state.balance + plan.monthlyCredits,
-    lastGrant: month,
-    ledger: [makeEntry(plan.monthlyCredits, "credits.ledger.monthly"), ...state.ledger].slice(0, 50),
-  };
-}
-
 export function CreditsProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<CreditsState>(initialState);
 
   useEffect(() => {
+    // Every month brings the free allowance, whatever plan an old wallet still records.
     setState(applyMonthlyGrant(readState()));
   }, []);
 
@@ -98,36 +81,9 @@ export function CreditsProvider({ children }: { children: ReactNode }) {
     [state, persist],
   );
 
-  const subscribe = useCallback(
-    (plan: PlanId) => {
-      if (plan === state.plan) return;
-      const p = planById(plan);
-      persist({
-        ...state,
-        plan,
-        balance: state.balance + p.monthlyCredits,
-        lastGrant: currentMonth(),
-        ledger: [makeEntry(p.monthlyCredits, "credits.ledger.subscribed"), ...state.ledger].slice(0, 50),
-      });
-    },
-    [state, persist],
-  );
-
-  const buyPack = useCallback(
-    (pack: CreditPack) => {
-      const total = pack.credits + (pack.bonus ?? 0);
-      persist({
-        ...state,
-        balance: state.balance + total,
-        ledger: [makeEntry(total, "credits.ledger.pack"), ...state.ledger].slice(0, 50),
-      });
-    },
-    [state, persist],
-  );
-
   const value = useMemo<CreditsValue>(
-    () => ({ ...state, canAfford, spend, subscribe, buyPack }),
-    [state, canAfford, spend, subscribe, buyPack],
+    () => ({ ...state, canAfford, spend }),
+    [state, canAfford, spend],
   );
 
   return <CreditsContext.Provider value={value}>{children}</CreditsContext.Provider>;
