@@ -233,3 +233,48 @@ describe("Credits page · six languages and right-to-left", () => {
     }
   });
 });
+
+describe("Credits page · layout fixes found at the local recette", () => {
+  it("lets the heading wrap under 640 px so the balance box never pushes the page wider", () => {
+    const { container } = mount("es");
+    // The balance box is the heading's action; its row may wrap on narrow screens.
+    const row = container.querySelector("h2")?.closest("div.flex");
+    expect(row?.className).toContain("max-sm:flex-wrap");
+    expect(row?.className).toContain("justify-between");
+  });
+
+  it.each(langs)("%s: signed amounts are isolated left to right", (lang) => {
+    localStorage.setItem(
+      "afm-credits",
+      JSON.stringify({
+        balance: 50,
+        plan: "free",
+        lastGrant: "2026-10",
+        ledger: [
+          makeEntry(20, "credits.ledger.monthly"),
+          makeEntry(-5, "credits.ledger.spentTrack"),
+        ],
+      }),
+    );
+    const { container } = mount(lang);
+    const signed = [...container.querySelectorAll("span.font-mono")].filter((el) =>
+      /^[+-]\d/.test(el.textContent ?? ""),
+    );
+    expect(signed.map((el) => el.textContent)).toEqual(["+20", "-5"]);
+    for (const el of signed) expect(el.getAttribute("dir"), lang).toBe("ltr");
+    // The pack bonuses (+20, +120) are isolated too, inside a span that keeps the page direction
+    // so that its margin stays on the side facing the figure.
+    const bonuses = [...container.querySelectorAll("span.ms-2 > bdi")];
+    expect(bonuses.map((el) => el.textContent)).toEqual(["+20", "+120"]);
+    for (const el of bonuses) {
+      expect(el.getAttribute("dir"), lang).toBe("ltr");
+      expect(el.parentElement?.getAttribute("dir")).toBeNull();
+    }
+  });
+
+  it("does not turn the page itself left to right: only the amounts are isolated", () => {
+    const { container } = mount("ar");
+    expect(document.documentElement.dir).toBe("rtl");
+    expect(container.firstElementChild?.getAttribute("dir")).toBeNull();
+  });
+});

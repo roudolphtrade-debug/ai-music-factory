@@ -110,3 +110,23 @@ describe("Settings page · the plan card and the tier badge are gone", () => {
     expect(localStorage.getItem("afm-credits")).toBeNull();
   });
 });
+
+describe("Settings page · handle in right-to-left pages", () => {
+  it.each(langs)("%s: the handle is isolated left to right", (lang) => {
+    const { container } = mount(lang);
+    const isolated = [...container.querySelectorAll("bdi[dir=ltr]")].map((el) => el.textContent);
+    expect(isolated).toContain("@studio-a");
+    const field = [...container.querySelectorAll("input")].find(
+      (i) => i.defaultValue === "@studio-a",
+    );
+    expect(field?.getAttribute("dir"), lang).toBe("ltr");
+    // The field stays aligned with the page in Arabic (right) and is not forced elsewhere.
+    expect(field?.className).toContain("rtl:text-right");
+    // The other fields follow the page direction.
+    const others = [...container.querySelectorAll("input")].filter(
+      (i) => i.defaultValue !== "@studio-a",
+    );
+    for (const input of others) expect(input.getAttribute("dir")).toBeNull();
+    expect(document.documentElement.dir).toBe(lang === "ar" ? "rtl" : "ltr");
+  });
+});

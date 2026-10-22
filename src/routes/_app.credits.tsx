@@ -42,6 +42,7 @@ function CreditsPage() {
   return (
     <div className="space-y-10">
       <SectionHeading
+        className="max-sm:flex-wrap"
         eyebrow={t("credits.eyebrow")}
         title={t("credits.title")}
         description={t("credits.desc")}
@@ -168,7 +169,9 @@ function CreditsPage() {
                 <p className="mt-4 font-mono text-2xl font-semibold tabular-nums text-foreground">
                   {formatNumber(pack.credits)}
                   {pack.bonus ? (
-                    <span className="ml-2 text-sm font-medium text-gold">+{pack.bonus}</span>
+                    <span className="ms-2 text-sm font-medium text-gold">
+                      <bdi dir="ltr">+{pack.bonus}</bdi>
+                    </span>
                   ) : null}
                 </p>
                 <p className="text-xs text-muted-foreground">{t("credits.creditsUnit")}</p>
@@ -205,6 +208,7 @@ function CreditsPage() {
             >
               <span className="flex-1 text-sm text-foreground">{t(e.reasonKey)}</span>
               <span
+                dir="ltr"
                 className={cn(
                   "font-mono text-sm font-semibold tabular-nums",
                   e.amount >= 0 ? "text-gold" : "text-muted-foreground",

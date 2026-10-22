@@ -54,7 +54,7 @@ function SettingsPage() {
             </h2>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <FormField label={t("settings.studioName")} defaultValue="Studio A" />
-              <FormField label={t("settings.handle")} defaultValue="@studio-a" />
+              <FormField label={t("settings.handle")} defaultValue="@studio-a" ltr />
               <FormField label={t("settings.primaryGenre")} defaultValue="Afrobeats" />
               <FormField label={t("settings.location")} defaultValue="Paris, FR" />
             </div>
@@ -116,7 +116,9 @@ function SettingsPage() {
               A
             </span>
             <p className="mt-4 font-display text-lg font-semibold text-foreground">Studio A</p>
-            <p className="text-xs text-muted-foreground">@studio-a</p>
+            <p className="text-xs text-muted-foreground">
+              <bdi dir="ltr">@studio-a</bdi>
+            </p>
             <Button variant="ghost-gold" className="mt-5 w-full">
               {t("settings.changeAvatar")}
             </Button>
@@ -137,11 +139,14 @@ function FormField({
   defaultValue,
   className,
   textarea,
+  ltr,
 }: {
   label: string;
   defaultValue: string;
   className?: string;
   textarea?: boolean;
+  /** Content that is always written left to right (a handle): the field stays aligned to the page. */
+  ltr?: boolean;
 }) {
   return (
     <label className={cn("block space-y-1.5", className)}>
@@ -155,7 +160,11 @@ function FormField({
       ) : (
         <input
           defaultValue={defaultValue}
-          className="h-10 w-full rounded-xl border border-input bg-secondary/30 px-3 text-sm text-foreground outline-none transition-colors focus:border-[color-mix(in_oklab,var(--gold)_45%,transparent)]"
+          dir={ltr ? "ltr" : undefined}
+          className={cn(
+            "h-10 w-full rounded-xl border border-input bg-secondary/30 px-3 text-sm text-foreground outline-none transition-colors focus:border-[color-mix(in_oklab,var(--gold)_45%,transparent)]",
+            ltr && "rtl:text-right",
+          )}
         />
       )}
     </label>
