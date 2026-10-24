@@ -46,11 +46,29 @@ jamais écrits par un membre) ; pas de droit de suppression, la ligne disparaît
 (`on delete cascade`) ; trigger `security definer` à `search_path` vide, exécution retirée aux rôles de
 l'API, nom lu dans l'adresse e-mail et jamais dans les métadonnées modifiables.
 
-Vérification sur PostgreSQL local (PGlite, pas aimf-dev) : **25 contrôles sur 25**, dont isolation des
-profils, suppression de compte, avatar, statuts, absence de colonne de privilège, refus de l'`upsert`.
-**Mutations** : 7 casses volontaires de la migration (contrainte d'avatar retirée, cascade retirée,
-droit sur `id`, colonne `is_admin`, rôles libres, politique qui lit le statut, lecture ouverte à tous),
-les 7 sont détectées.
+Vérification sur PostgreSQL local (PGlite, pas aimf-dev) : **35 lignes à `ok`** (34 contrôles et une
+assertion finale sur leur nombre exact, sans résultat faux ni nul), dont isolation des profils,
+suppression de compte, avatar, statuts, absence de colonne de privilège, refus de l'`upsert`,
+interdiction d'écrire `created_at` et `updated_at` (en `UPDATE` comme en `INSERT`) et rafraîchissement de
+`updated_at` par le trigger (sur une ligne datée de 2020, car `now()` est constant dans une transaction).
+
+**Correction du script de vérification (revue du commit `8ae163a`)** : le contrôle « Alice ne peut pas
+créer le profil d'un autre » visait un identifiant inexistant et acceptait n'importe quelle erreur ; une
+erreur de clé étrangère (23503) le faisait donc réussir. Il vise maintenant un compte qui existe sans
+profil, attend exactement le SQLSTATE 42501, et un contrôle témoin montre que la même insertion réussit
+quand c'est le propriétaire qui l'écrit. Tous les contrôles de refus attendent un SQLSTATE précis (42501,
+23514 ou 23505). La migration n'a pas changé : aucun défaut démontré.
+
+**Mutations** : 16 casses volontaires de la migration et 3 du script lui-même : 18 détectées, et une
+équivalente. Politique d'insertion ouverte, de mise à jour et de lecture ouvertes,
+sécurité au niveau des lignes coupée, `created_at` ou `updated_at` inscriptibles (mise à jour et
+insertion), trigger absent ou inopérant, `id` inscriptible, lecture anonyme, contrainte d'avatar
+retirée, cascade retirée, rôles libres. Pour le script : un contrôle supprimé, un contrôle nul, un
+contrôle ajouté sans mettre à jour le nombre attendu. Le seul mutant non détecté est une politique de
+mise à jour ouverte avec une politique de lecture intacte : il est sans danger, car une mise à jour ne
+touche que des lignes visibles (la lecture ouverte en plus est détectée). Preuve de l'ancien défaut :
+sur une politique d'insertion ouverte, l'**ancien script ne détectait rien** (faux succès), le nouveau
+détecte.
 
 Limites : pas de suppression de compte par le membre depuis l'application. **C'est une exigence
 bloquante avant toute ouverture publique** (fonction serveur nécessaire, critères dans
@@ -150,7 +168,7 @@ premier chargement via la coque ; les découper par langue économiserait enviro
 | `vite build` | succès, aucun avertissement de taille | réel |
 | Parcours en navigateur réel (inscription, confirmation, renvoi, lien expiré, connexion, récupération, déconnexion, garde de route, backend injoignable) | 39 sur 39 | **simulé** : serveur GoTrue/PostgREST écrit pour l'occasion, qui refuse l'`upsert` comme la vraie base |
 | Chargement à la demande en navigateur réel | 5 contrôles sur 5 (aucun supabase-js ni requête en parcourant le site ; chargé sur une page de compte ; démarré avec une session stockée) | simulé |
-| Migration et RLS | 25 contrôles, 7 mutations détectées | PostgreSQL local, pas aimf-dev |
+| Migration et RLS | 35 lignes (34 contrôles + assertion du nombre), 19 mutations : 18 détectées, 1 équivalente (sans danger) | PostgreSQL local, pas aimf-dev |
 | Matrice d'écrans : 14 écrans × 6 langues × 320, 375, 1024, 1440 px | 336 cas, aucune erreur de page, aucun défilement horizontal | simulé |
 | Hygiène du dépôt : aucun secret, deux variables `VITE_` seulement, aucun journal de session, aucune adresse réelle dans les docs | réussi | réel |
 
@@ -216,7 +234,7 @@ données fictives, réduites à 900 px de large au maximum.
 
 1. Fournir la clé publishable (variable locale et variables Lovable).
 2. Relire puis appliquer la migration sur aimf-dev, puis lancer `supabase/verify/member_profiles_rls_test.sql`
-   (25 lignes à `ok = true`).
+   (35 lignes à `ok = true`).
 3. Vérifier dans Authentication : Site URL, URLs de redirection (publication, aperçu, local),
    confirmation d'adresse activée, longueur minimale 12, SMTP Sawaz.
 4. Faire une fois le parcours complet avec une boîte e-mail dont vous êtes propriétaire, puis supprimer

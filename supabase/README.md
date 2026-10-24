@@ -41,7 +41,11 @@ available yet, no request leaves the browser, and public listening and discovery
 Run `migrations/20261024090000_member_profiles.sql` once in the SQL editor of the project.
 It creates `public.profiles`, its policies, and the trigger that gives every new account a profile.
 Then run `verify/member_profiles_rls_test.sql` in the same editor: it works inside a transaction that
-is rolled back, and every row of its result must read `ok = true` (25 rows).
+is rolled back, and every row of its result must read `ok = true` (35 rows: 34 checks, then a last row
+that asserts the exact number of checks and that none is false or null). Each "refused" check waits for
+one precise SQLSTATE (42501, 23514 or 23505), never for "any error". If the script stops on an error,
+nothing was committed: run `rollback;`, check that no `@example.invalid` account is left (the header of the
+script gives the two queries), fix the cause, run again.
 
 ### What the migration guarantees (reviewed)
 

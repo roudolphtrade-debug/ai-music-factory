@@ -83,6 +83,29 @@ describe("secrets stay out of the repository", { timeout: 30_000 }, () => {
     expect(addresses.filter((a) => !/@example\.(test|invalid|com)$/.test(a))).toEqual([]);
   });
 
+  it("keeps the SQL verification script honest: exact check count, precise SQLSTATE codes, never committed", () => {
+    const sql = readFileSync(
+      join(root, "supabase", "verify", "member_profiles_rls_test.sql"),
+      "utf8",
+    );
+    const code = sql
+      .split(/\r?\n/)
+      .filter((line) => !line.trim().startsWith("--"))
+      .join(" ");
+    // Every check inserts one row; the last insert is the harness assertion about the count itself.
+    const inserts = (code.match(/insert into checks/g) ?? []).length;
+    const expected = Number(/expected constant int := (\d+);/.exec(code)?.[1]);
+    expect(inserts - 1).toBe(expected);
+    // A refusal is accepted for one SQLSTATE only, never for "any error".
+    expect(code).not.toMatch(/exception when others then denied/);
+    const states = [...code.matchAll(/got = '(\w+)'/g)].map((m) => m[1]);
+    expect(states.length).toBeGreaterThan(10);
+    expect(states.filter((x) => x !== "no error" && !/^[0-9A-Z]{5}$/.test(x))).toEqual([]);
+    // Nothing persists.
+    expect(code).not.toMatch(/\bcommit\s*;/i);
+    expect(code.trimEnd()).toMatch(/rollback;$/);
+  });
+
   it("reads only VITE_ variables in the browser code (nothing server-side leaks into the bundle)", () => {
     const code = files(join(root, "src")).filter(
       (f) => /\.(ts|tsx)$/.test(f) && !/\.test\.tsx?$/.test(f),
