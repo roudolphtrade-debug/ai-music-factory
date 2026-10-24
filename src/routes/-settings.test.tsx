@@ -1,10 +1,25 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ComponentType } from "react";
 import { LanguageProvider } from "@/i18n/context";
+import { AuthProvider } from "@/auth/AuthProvider";
+import { authCopy } from "@/i18n/auth";
 import { LANGS, translate, translations, type Lang } from "@/i18n/translations";
 import { ThemeProvider } from "@/theme/context";
+import { makeProfile, makeSession, type FakeSupabase } from "@/test/fakeSupabase";
+import { setUpAccounts } from "@/test/authHarness";
+import type { AuthHolder } from "@/test/clientMock";
+
+const holder = vi.hoisted(
+  () => ({ fake: null, configured: false, startWithClient: true, snapshot: null }) as AuthHolder,
+);
+vi.mock("@tanstack/react-router", async () => (await import("@/test/routerMock")).routerModule);
+vi.mock("@/integrations/supabase/client", async () =>
+  (await import("@/test/clientMock")).clientModule(holder),
+);
+vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+
 import { Route } from "./_app.settings";
 
 const Page = (Route as unknown as { options: { component: ComponentType } }).options.component;
@@ -20,7 +35,11 @@ const REMOVED: Record<Lang, string[]> = {
   ar: ["إدارة الخطة", "بلاتيني · مسارات غير محدودة", "المستوى البلاتيني"],
 };
 
-beforeEach(() => localStorage.clear());
+let fake: FakeSupabase;
+beforeEach(() => {
+  fake = setUpAccounts(holder);
+  holder.configured = false; // the first groups below are about the page with accounts off
+});
 afterEach(cleanup);
 
 function mount(lang: Lang) {
@@ -28,7 +47,9 @@ function mount(lang: Lang) {
   return render(
     <LanguageProvider>
       <ThemeProvider>
-        <Page />
+        <AuthProvider>
+          <Page />
+        </AuthProvider>
       </ThemeProvider>
     </LanguageProvider>,
   );
@@ -53,19 +74,11 @@ describe("Settings page · the plan card and the tier badge are gone", () => {
     expect(text, lang).not.toMatch(/platin|白金|بلاتين/i);
   });
 
-  it("has dropped the tier badge text from every dictionary", () => {
+  it("has dropped the tier badge text and the three plan texts from every dictionary", () => {
     for (const lang of langs) {
       const settings = translations[lang].settings as Record<string, unknown>;
-      expect(settings.platinumTier, lang).toBeUndefined();
-    }
-  });
-
-  it("has dropped the three plan texts from every dictionary", () => {
-    for (const lang of langs) {
-      const settings = translations[lang].settings as Record<string, unknown>;
-      expect(settings.plan, lang).toBeUndefined();
-      expect(settings.planDesc, lang).toBeUndefined();
-      expect(settings.managePlan, lang).toBeUndefined();
+      for (const key of ["platinumTier", "plan", "planDesc", "managePlan"])
+        expect(settings[key], `${lang}.${key}`).toBeUndefined();
     }
   });
 
@@ -78,30 +91,17 @@ describe("Settings page · the plan card and the tier badge are gone", () => {
       "settings.battleInvites",
       "settings.lightMode",
       "settings.replayIntro",
-      "settings.changeAvatar",
       "settings.discard",
       "settings.saveChanges",
     ]) {
       expect(text, `${lang}:${key}`).toContain(translate(lang, key));
     }
-    // Four form fields plus the bio, as before.
+    // Genre, location and bio remain as the preview fields they were.
     expect(
       container.querySelectorAll("input[type=text], input:not([type]), textarea").length,
-    ).toBeGreaterThanOrEqual(5);
+    ).toBeGreaterThanOrEqual(3);
     // The five on/off settings are buttons with aria-pressed.
     expect(container.querySelectorAll("button[aria-pressed]")).toHaveLength(5);
-  });
-
-  it.each(langs)("%s keeps the rest of the profile card", (lang) => {
-    const { container } = mount(lang);
-    const text = container.textContent ?? "";
-    expect(text).toContain("Studio A");
-    expect(text).toContain("@studio-a");
-    expect(
-      screen.getByRole("button", { name: translate(lang, "settings.changeAvatar") }),
-    ).toBeTruthy();
-    // The monogram tile stays: the card still starts with the "A" avatar.
-    expect(container.querySelector("span.h-20.w-20")?.textContent).toBe("A");
   });
 
   it("starts no payment notification and writes no wallet when it is opened", () => {
@@ -111,22 +111,125 @@ describe("Settings page · the plan card and the tier badge are gone", () => {
   });
 });
 
-describe("Settings page · handle in right-to-left pages", () => {
-  it.each(langs)("%s: the handle is isolated left to right", (lang) => {
+describe("Settings page · accounts not configured", () => {
+  it.each(langs)(
+    "%s no longer invents a profile: no 'Studio A', no handle, no avatar card",
+    (lang) => {
+      const { container } = mount(lang);
+      const text = container.textContent ?? "";
+      expect(text).not.toContain("Studio A");
+      expect(text).not.toContain("studio-a");
+      expect(container.querySelector("span.h-20.w-20")).toBeNull();
+      expect(screen.queryByRole("link", { name: /sign in|connecter/i })).toBeNull();
+    },
+  );
+
+  it("keeps the earlier notice that accounts are not there yet", () => {
+    mount("fr");
+    expect(screen.getByText(translate("fr", "settings.accountsTitle"))).toBeTruthy();
+  });
+});
+
+describe("Settings page · a visitor, with accounts on", () => {
+  beforeEach(() => {
+    holder.configured = true;
+  });
+
+  it.each(langs)("%s invites the visitor to sign in instead of showing a profile", async (lang) => {
+    mount(lang);
+    const copy = authCopy[lang];
+    expect(await screen.findByText(copy.settingsGuestTitle)).toBeTruthy();
+    expect(screen.getByRole("link", { name: copy.signIn }).getAttribute("href")).toContain(
+      "/auth/sign-in",
+    );
+    expect(screen.getByRole("link", { name: copy.signUp }).getAttribute("href")).toBe(
+      "/auth/sign-up",
+    );
+    expect(document.body.textContent).not.toContain("Studio A");
+    expect(screen.getByText(copy.settingsNoticeTitle)).toBeTruthy();
+  });
+
+  it("remembers that the visitor came from Settings", async () => {
+    mount("en");
+    const link = await screen.findByRole("link", { name: "Sign in" });
+    expect(link.getAttribute("href")).toContain("redirect=%2Fsettings");
+  });
+});
+
+describe("Settings page · a signed-in member", () => {
+  beforeEach(() => {
+    holder.configured = true;
+    fake.restore(makeSession("user-1", "amina@example.test"));
+    fake.set("fetchProfile", {
+      data: makeProfile({
+        display_name: "Amina Okafor",
+        handle: "amina_o",
+        creator_roles: ["artist"],
+      }),
+      error: null,
+    });
+  });
+  const inputs = () => [...document.querySelectorAll("input")];
+  const field = (value: string) => inputs().find((i) => i.value === value);
+
+  it.each(langs)("%s shows the real profile and no placeholder", async (lang) => {
     const { container } = mount(lang);
-    const isolated = [...container.querySelectorAll("bdi[dir=ltr]")].map((el) => el.textContent);
-    expect(isolated).toContain("@studio-a");
-    const field = [...container.querySelectorAll("input")].find(
-      (i) => i.defaultValue === "@studio-a",
+    await waitFor(() => expect(field("Amina Okafor")).toBeTruthy());
+    expect(field("amina_o")).toBeTruthy();
+    expect(field("amina@example.test")?.readOnly).toBe(true);
+    expect(container.textContent).not.toContain("Studio A");
+    expect(
+      screen.getByRole("button", { name: authCopy[lang].roleArtist }).getAttribute("aria-pressed"),
+    ).toBe("true");
+    expect(
+      screen.getByRole("button", { name: authCopy[lang].roleLabel }).getAttribute("aria-pressed"),
+    ).toBe("false");
+  });
+
+  it.each(langs)("%s: the side card shows the member's initial, name and handle", async (lang) => {
+    const { container } = mount(lang);
+    await waitFor(() => expect(container.textContent).toContain("Amina Okafor"));
+    expect(container.querySelector("span.h-20.w-20")?.textContent).toBe("A");
+    expect(screen.getByRole("link", { name: authCopy[lang].avatarCta }).getAttribute("href")).toBe(
+      "/avatar-lab",
     );
-    expect(field?.getAttribute("dir"), lang).toBe("ltr");
-    // The field stays aligned with the page in Arabic (right) and is not forced elsewhere.
-    expect(field?.className).toContain("rtl:text-right");
-    // The other fields follow the page direction.
-    const others = [...container.querySelectorAll("input")].filter(
-      (i) => i.defaultValue !== "@studio-a",
-    );
-    for (const input of others) expect(input.getAttribute("dir")).toBeNull();
-    expect(document.documentElement.dir).toBe(lang === "ar" ? "rtl" : "ltr");
+  });
+
+  it.each(langs)(
+    "%s: the handle is isolated left to right, in the card and in its field",
+    async (lang) => {
+      const { container } = mount(lang);
+      await waitFor(() => expect(field("amina_o")).toBeTruthy());
+      expect([...container.querySelectorAll("bdi[dir=ltr]")].map((e) => e.textContent)).toContain(
+        "@amina_o",
+      );
+      expect(field("amina_o")?.getAttribute("dir")).toBe("ltr");
+      expect(field("amina_o")?.className).toContain("rtl:text-right");
+      // The name field follows the page direction.
+      expect(field("Amina Okafor")?.getAttribute("dir")).toBeNull();
+      expect(document.documentElement.dir).toBe(lang === "ar" ? "rtl" : "ltr");
+    },
+  );
+
+  it("saves a change of name and roles to the member's own profile", async () => {
+    mount("en");
+    await waitFor(() => expect(field("Amina Okafor")).toBeTruthy());
+    fireEvent.change(field("Amina Okafor")!, { target: { value: "Amina O." } });
+    fireEvent.click(screen.getByRole("button", { name: "Label" }));
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Save" })));
+    await waitFor(() => expect(fake.profileQuery.update).toHaveBeenCalled());
+    const [row] = fake.profileQuery.update.mock.calls[0] as unknown as [Record<string, unknown>];
+    expect(row).toMatchObject({
+      display_name: "Amina O.",
+      handle: "amina_o",
+      creator_roles: ["artist", "label"],
+    });
+    expect("onboarding_completed_at" in row).toBe(false); // saving in Settings is not the welcome page
+  });
+
+  it("states what is real and what is still a preview", async () => {
+    mount("en");
+    expect(await screen.findByText(authCopy.en.settingsNoticeTitle)).toBeTruthy();
+    expect(screen.getByText(authCopy.en.settingsNoticeDesc)).toBeTruthy();
   });
 });

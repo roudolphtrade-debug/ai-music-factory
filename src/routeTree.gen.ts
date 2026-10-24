@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppAnalyticsRouteImport } from './routes/_app.analytics'
@@ -23,6 +24,12 @@ import { Route as AppLibraryRouteImport } from './routes/_app.library'
 import { Route as AppRadioRouteImport } from './routes/_app.radio'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppStudioRouteImport } from './routes/_app.studio'
+import { Route as AppWelcomeRouteImport } from './routes/_app.welcome'
+import { Route as AuthConfirmRouteImport } from './routes/auth.confirm'
+import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-password'
+import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
+import { Route as AuthSignInRouteImport } from './routes/auth.sign-in'
+import { Route as AuthSignUpRouteImport } from './routes/auth.sign-up'
 import { Route as AppArtistsIndexRouteImport } from './routes/_app.artists.index'
 import { Route as AppArtistsArtistIdRouteImport } from './routes/_app.artists.$artistId'
 import { Route as AppLabelsIndexRouteImport } from './routes/_app.labels.index'
@@ -33,6 +40,11 @@ import { Route as ApiVoiceTranscribeRouteImport } from './routes/api/voice/trans
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -100,6 +112,36 @@ const AppStudioRoute = AppStudioRouteImport.update({
   path: '/studio',
   getParentRoute: () => AppRoute,
 } as any)
+const AppWelcomeRoute = AppWelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => AppRoute,
+} as any)
+const AuthConfirmRoute = AuthConfirmRouteImport.update({
+  id: '/confirm',
+  path: '/confirm',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthSignInRoute = AuthSignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthSignUpRoute = AuthSignUpRouteImport.update({
+  id: '/sign-up',
+  path: '/sign-up',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AppArtistsIndexRoute = AppArtistsIndexRouteImport.update({
   id: '/artists/',
   path: '/artists/',
@@ -138,6 +180,7 @@ const ApiVoiceTranscribeRoute = ApiVoiceTranscribeRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+  '/auth': typeof AuthRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/analytics': typeof AppAnalyticsRoute
   '/avatar-lab': typeof AppAvatarLabRoute
@@ -150,6 +193,12 @@ export interface FileRoutesByFullPath {
   '/radio': typeof AppRadioRoute
   '/settings': typeof AppSettingsRoute
   '/studio': typeof AppStudioRoute
+  '/welcome': typeof AppWelcomeRoute
+  '/auth/confirm': typeof AuthConfirmRoute
+  '/auth/forgot-password': typeof AuthForgotPasswordRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/auth/sign-in': typeof AuthSignInRoute
+  '/auth/sign-up': typeof AuthSignUpRoute
   '/artists/$artistId': typeof AppArtistsArtistIdRoute
   '/labels/$labelId': typeof AppLabelsLabelIdRoute
   '/api/studio/generate': typeof ApiStudioGenerateRoute
@@ -159,6 +208,7 @@ export interface FileRoutesByFullPath {
   '/labels/': typeof AppLabelsIndexRoute
 }
 export interface FileRoutesByTo {
+  '/auth': typeof AuthRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/analytics': typeof AppAnalyticsRoute
   '/avatar-lab': typeof AppAvatarLabRoute
@@ -170,6 +220,12 @@ export interface FileRoutesByTo {
   '/radio': typeof AppRadioRoute
   '/settings': typeof AppSettingsRoute
   '/studio': typeof AppStudioRoute
+  '/welcome': typeof AppWelcomeRoute
+  '/auth/confirm': typeof AuthConfirmRoute
+  '/auth/forgot-password': typeof AuthForgotPasswordRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/auth/sign-in': typeof AuthSignInRoute
+  '/auth/sign-up': typeof AuthSignUpRoute
   '/': typeof AppIndexRoute
   '/artists/$artistId': typeof AppArtistsArtistIdRoute
   '/labels/$labelId': typeof AppLabelsLabelIdRoute
@@ -182,6 +238,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
+  '/auth': typeof AuthRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_app/analytics': typeof AppAnalyticsRoute
   '/_app/avatar-lab': typeof AppAvatarLabRoute
@@ -194,6 +251,12 @@ export interface FileRoutesById {
   '/_app/radio': typeof AppRadioRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/studio': typeof AppStudioRoute
+  '/_app/welcome': typeof AppWelcomeRoute
+  '/auth/confirm': typeof AuthConfirmRoute
+  '/auth/forgot-password': typeof AuthForgotPasswordRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/auth/sign-in': typeof AuthSignInRoute
+  '/auth/sign-up': typeof AuthSignUpRoute
   '/_app/': typeof AppIndexRoute
   '/_app/artists/$artistId': typeof AppArtistsArtistIdRoute
   '/_app/labels/$labelId': typeof AppLabelsLabelIdRoute
@@ -207,6 +270,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
     | '/sitemap.xml'
     | '/analytics'
     | '/avatar-lab'
@@ -219,6 +283,12 @@ export interface FileRouteTypes {
     | '/radio'
     | '/settings'
     | '/studio'
+    | '/welcome'
+    | '/auth/confirm'
+    | '/auth/forgot-password'
+    | '/auth/reset-password'
+    | '/auth/sign-in'
+    | '/auth/sign-up'
     | '/artists/$artistId'
     | '/labels/$labelId'
     | '/api/studio/generate'
@@ -228,6 +298,7 @@ export interface FileRouteTypes {
     | '/labels/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/auth'
     | '/sitemap.xml'
     | '/analytics'
     | '/avatar-lab'
@@ -239,6 +310,12 @@ export interface FileRouteTypes {
     | '/radio'
     | '/settings'
     | '/studio'
+    | '/welcome'
+    | '/auth/confirm'
+    | '/auth/forgot-password'
+    | '/auth/reset-password'
+    | '/auth/sign-in'
+    | '/auth/sign-up'
     | '/'
     | '/artists/$artistId'
     | '/labels/$labelId'
@@ -250,6 +327,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_app'
+    | '/auth'
     | '/sitemap.xml'
     | '/_app/analytics'
     | '/_app/avatar-lab'
@@ -262,6 +340,12 @@ export interface FileRouteTypes {
     | '/_app/radio'
     | '/_app/settings'
     | '/_app/studio'
+    | '/_app/welcome'
+    | '/auth/confirm'
+    | '/auth/forgot-password'
+    | '/auth/reset-password'
+    | '/auth/sign-in'
+    | '/auth/sign-up'
     | '/_app/'
     | '/_app/artists/$artistId'
     | '/_app/labels/$labelId'
@@ -274,6 +358,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
+  AuthRoute: typeof AuthRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiStudioGenerateRoute: typeof ApiStudioGenerateRoute
   ApiVoiceSpeakRoute: typeof ApiVoiceSpeakRoute
@@ -287,6 +372,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -380,6 +472,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppStudioRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/welcome': {
+      id: '/_app/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof AppWelcomeRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/auth/confirm': {
+      id: '/auth/confirm'
+      path: '/confirm'
+      fullPath: '/auth/confirm'
+      preLoaderRoute: typeof AuthConfirmRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/auth/forgot-password': {
+      id: '/auth/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/auth/forgot-password'
+      preLoaderRoute: typeof AuthForgotPasswordRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/auth/reset-password': {
+      id: '/auth/reset-password'
+      path: '/reset-password'
+      fullPath: '/auth/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/auth/sign-in': {
+      id: '/auth/sign-in'
+      path: '/sign-in'
+      fullPath: '/auth/sign-in'
+      preLoaderRoute: typeof AuthSignInRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/auth/sign-up': {
+      id: '/auth/sign-up'
+      path: '/sign-up'
+      fullPath: '/auth/sign-up'
+      preLoaderRoute: typeof AuthSignUpRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_app/artists/': {
       id: '/_app/artists/'
       path: '/artists'
@@ -458,6 +592,7 @@ interface AppRouteChildren {
   AppRadioRoute: typeof AppRadioRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppStudioRoute: typeof AppStudioRoute
+  AppWelcomeRoute: typeof AppWelcomeRoute
   AppIndexRoute: typeof AppIndexRoute
   AppArtistsArtistIdRoute: typeof AppArtistsArtistIdRoute
   AppArtistsIndexRoute: typeof AppArtistsIndexRoute
@@ -475,6 +610,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppRadioRoute: AppRadioRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppStudioRoute: AppStudioRoute,
+  AppWelcomeRoute: AppWelcomeRoute,
   AppIndexRoute: AppIndexRoute,
   AppArtistsArtistIdRoute: AppArtistsArtistIdRoute,
   AppArtistsIndexRoute: AppArtistsIndexRoute,
@@ -482,8 +618,27 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
+interface AuthRouteChildren {
+  AuthConfirmRoute: typeof AuthConfirmRoute
+  AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
+  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
+  AuthSignInRoute: typeof AuthSignInRoute
+  AuthSignUpRoute: typeof AuthSignUpRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthConfirmRoute: AuthConfirmRoute,
+  AuthForgotPasswordRoute: AuthForgotPasswordRoute,
+  AuthResetPasswordRoute: AuthResetPasswordRoute,
+  AuthSignInRoute: AuthSignInRoute,
+  AuthSignUpRoute: AuthSignUpRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
+  AuthRoute: AuthRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiStudioGenerateRoute: ApiStudioGenerateRoute,
   ApiVoiceSpeakRoute: ApiVoiceSpeakRoute,

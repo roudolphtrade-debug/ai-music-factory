@@ -16,6 +16,11 @@ dist-ssr
 .nitro
 *.local
 
+# Environment files: values stay local, only .env.example is versioned
+.env
+.env.*
+!.env.example
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
