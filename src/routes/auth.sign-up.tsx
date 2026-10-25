@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,10 +11,12 @@ import {
   PasswordField,
   SubmitButton,
 } from "@/components/auth/AuthParts";
+import { PasswordRequirements } from "@/components/auth/PasswordRequirements";
 import { ResendButton } from "@/components/auth/ResendButton";
 import { useAuth } from "@/auth/context";
 import { AUTH_PATHS } from "@/auth/redirects";
 import { resendConfirmation, signUpWithEmail } from "@/auth/service";
+import { usePasswordMessage } from "@/auth/passwordText";
 import { showFailure } from "@/auth/showFailure";
 import { signUpSchema } from "@/auth/validation";
 import { PENDING_EMAIL_KEY } from "@/auth/pendingEmail";
@@ -40,6 +42,9 @@ function SignUpPage() {
   });
   const { errors, isSubmitting } = form.formState;
   const msg = (key?: string) => (key ? t(key as AuthKey) : undefined);
+  const passwordMsg = usePasswordMessage();
+  const rulesId = useId();
+  const password = form.watch("password");
 
   // Already a member: nothing to create here.
   useEffect(() => {
@@ -113,9 +118,10 @@ function SignUpPage() {
           {...form.register("password")}
           label={t("password")}
           autoComplete="new-password"
-          hint={t("passwordRule")}
-          error={msg(errors.password?.message)}
+          describedByExtra={rulesId}
+          error={passwordMsg(errors.password?.message, password)}
         />
+        <PasswordRequirements id={rulesId} value={password} invalid={!!errors.password} />
         <SubmitButton pending={isSubmitting} pendingLabel={t("signingUp")}>
           {t("signUpCta")}
         </SubmitButton>

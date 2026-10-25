@@ -90,17 +90,21 @@ interface FieldProps extends Omit<ComponentProps<"input">, "id"> {
   /** Latin-script content (an address, a handle): written left to right, still aligned with the page. */
   ltr?: boolean;
   endSlot?: ReactNode;
+  /** Id of another element that describes the field (the password rules). */
+  describedByExtra?: string;
 }
 
 export const AuthField = forwardRef<HTMLInputElement, FieldProps>(function AuthField(
-  { label, error, hint, optionalLabel, ltr, endSlot, className, ...input },
+  { label, error, hint, optionalLabel, ltr, endSlot, describedByExtra, className, ...input },
   ref,
 ) {
   const id = useId();
   const errorId = `${id}-error`;
   const hintId = `${id}-hint`;
   const describedBy =
-    [error ? errorId : null, hint ? hintId : null].filter(Boolean).join(" ") || undefined;
+    [error ? errorId : null, hint ? hintId : null, describedByExtra ?? null]
+      .filter(Boolean)
+      .join(" ") || undefined;
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id} className="flex items-baseline justify-between gap-2 text-foreground">

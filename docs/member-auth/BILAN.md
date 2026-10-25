@@ -355,3 +355,79 @@ Vérifications des corrections :
   lisible.
 
 Traductions : ZH, PT et AR restent des textes à faire relire par des locuteurs natifs.
+
+## 13. Politique de mot de passe (2026-10-25)
+
+### Règle appliquée dans l'application
+
+12 caractères au moins, une majuscule, une minuscule, un chiffre et un caractère spécial, à l'inscription et à la
+réinitialisation. **Pas à la connexion** : les comptes existants gardent leur mot de passe actuel.
+
+- Les cinq règles sont **affichées avant la saisie** sous le champ, cochées à mesure de la frappe, avec la liste
+  des symboles acceptés, dans les six langues (arabe en sens droite à gauche compris).
+- Après un refus, le message **cite précisément ce qui manque**, avec la conjonction de la langue (« Il manque :
+  au moins 12 caractères, un chiffre (0 à 9) et un caractère spécial. »), les règles manquantes passent en rouge,
+  **les valeurs sont conservées** et le curseur va dans le champ mot de passe.
+- Le collage et les gestionnaires de mots de passe sont acceptés : aucun blocage du collage, aucune limite de
+  longueur sur le champ, `autocomplete="new-password"` à l'inscription et à la réinitialisation,
+  `current-password` à la connexion, champs nommés `email` et `password`.
+- Les règles reproduisent celles du service : lettres et chiffres **ASCII** (une capitale accentuée comme « É » ne
+  compte pas comme majuscule, le service ne la compte pas non plus) et exactement la liste de symboles du service.
+  Longueur comptée en caractères ; plus de 72 octets reste refusé.
+- Quand le service refuse un mot de passe malgré tout, le message est écrit sous le champ : « refusé, trop faible »
+  en général, ou « figure dans des fuites de données connues » quand le service donne la raison `pwned`.
+
+### Protections côté service : disponibles, actives, payantes
+
+| Protection | Disponible | Active sur aimf-dev | Payante |
+|---|---|---|---|
+| Longueur minimale | oui, tous les plans | **oui, prouvé** par appel direct (422 `weak_password`, raison `length`) | non |
+| Caractères requis (minuscules, majuscules, chiffres, symboles) | oui, tous les plans | **oui, prouvé** par appels directs (422 `weak_password`, raison `characters`) | non |
+| Refus des mots de passe issus de fuites (HaveIBeenPwned, qui couvre aussi les plus courants) | oui, **Pro et supérieurs** | **non, non disponible : l'organisation est sur le plan Free** | **oui** |
+| Dictionnaire distinct de mots de passe courants | non décrit par la documentation | sans objet | |
+
+Aucun abonnement n'a été souscrit. Les deux réglages gratuits ont été enregistrés par le propriétaire dans le
+tableau de bord (je n'ai pas d'accès à la configuration d'Authentication, qui demande un jeton d'accès personnel).
+**Sans le contrôle payant, rien côté serveur n'écarte un mot de passe courant ou compromis qui respecte les
+règles** (par exemple `Password123!`) : la règle du service n'est qu'une exigence de composition, pas un filtre de
+mots de passe connus. Étapes de réglage et requête de vérification : `supabase/README.md`, section 3.1.
+
+### Preuve que le service applique les règles (appels directs)
+
+Cinq `POST /auth/v1/signup` envoyés **directement au projet** avec la clé publique, sans passer par le formulaire,
+avec des mots de passe factices et des adresses jetables en `@example.invalid` (aucune adresse réelle). Un appel
+accepté aurait créé un compte : la série devait s'arrêter au premier.
+
+| Cas | HTTP | `error_code` | `reasons` |
+|---|---|---|---|
+| Trop court (7 caractères, les quatre classes présentes) | 422 | `weak_password` | `length` |
+| Sans majuscule | 422 | `weak_password` | `characters` |
+| Sans minuscule | 422 | `weak_password` | `characters` |
+| Sans chiffre | 422 | `weak_password` | `characters` |
+| Sans symbole | 422 | `weak_password` | `characters` |
+
+Les cinq appels sont refusés par le service. **Aucun compte de test ne subsiste** : les comptages en lecture seule
+avant et après sont identiques (utilisateurs 2, identités 2, profils 2, adresses de test 0, sessions 1). Les
+journaux Auth montrent trois de ces appels en 422 (les deux autres n'y figuraient pas au moment de la lecture,
+retard d'ingestion probable, non prouvé) et aucun appel accepté ni mail de confirmation.
+
+### Limites restantes
+
+- **Réinitialisation non testée séparément côté service** : le refus a été prouvé sur l'inscription. La
+  réinitialisation passe par `PUT /user` avec une session de récupération, que je n'ai pas ouverte. La politique est un
+  réglage global du service, donc le même refus est attendu, mais ce n'est pas démontré par un appel.
+- **Filtrage des mots de passe compromis inactif** (plan Free) : un mot de passe courant qui respecte les cinq
+  règles est accepté. Je ne l'ai pas envoyé, il aurait créé un compte.
+- Les comptes existants peuvent garder un ancien mot de passe plus faible : la connexion n'applique aucune règle.
+
+### Vérifications
+
+- Tests : critères pris séparément (longueur à la limite 11/12, majuscule, minuscule, chiffre, chaque symbole de la
+  liste, caractères qui ne comptent pas), **les 32 combinaisons des cinq critères**, mêmes règles à l'inscription
+  et à la réinitialisation, aucune règle à la connexion ; écrans : règles visibles avant la saisie, coche en direct,
+  message précis pour chaque critère manquant seul et pour plusieurs à la fois, valeurs et curseur conservés,
+  collage non bloqué, indications d'auto-remplissage, refus du service (fuite, caractères) sous le champ, six langues.
+- Navigateur réel contre un **serveur simulé** qui applique les mêmes règles : inscription dans les 6 langues avant,
+  pendant et après un refus (captures), mot de passe de fuite refusé, réinitialisation (anglais et arabe) refusée
+  puis acceptée, compte ancien au mot de passe faible qui se connecte encore. Ce volet est simulé : la preuve du
+  comportement réel d'aimf-dev est celle des appels directs ci-dessus.

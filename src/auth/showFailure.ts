@@ -5,6 +5,7 @@ import type { AuthFailure, AuthFailureKind } from "./errors";
 /** Failures that belong to one field: the message goes under it and the cursor goes there. */
 const FIELD_OF: Partial<Record<AuthFailureKind, string>> = {
   weak_password: "password",
+  password_pwned: "password",
   same_password: "password",
   invalid_email: "email",
 };

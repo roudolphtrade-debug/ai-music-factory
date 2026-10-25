@@ -10,6 +10,7 @@ export type AuthFailureKind =
   | "email_failed"
   | "service_error"
   | "weak_password"
+  | "password_pwned"
   | "same_password"
   | "signup_disabled"
   | "session"
@@ -32,6 +33,7 @@ const KEY_BY_KIND: Record<AuthFailureKind, AuthKey> = {
   email_failed: "errEmailSend",
   service_error: "errServiceDown",
   weak_password: "errPasswordWeak",
+  password_pwned: "errPasswordPwned",
   same_password: "errSamePassword",
   signup_disabled: "errSignupDisabled",
   session: "errSession",
@@ -74,10 +76,16 @@ export function classifyAuthError(error: unknown): AuthFailure {
     message?: unknown;
   };
   const code = typeof e.code === "string" ? e.code : undefined;
+  // The service says why it refuses a password (reasons: length, characters, pwned for a leaked one).
+  if (e.name === "AuthWeakPasswordError" || code === "weak_password") {
+    const reasons = (error as { reasons?: unknown } | null)?.reasons;
+    return failure(
+      Array.isArray(reasons) && reasons.includes("pwned") ? "password_pwned" : "weak_password",
+    );
+  }
   if (code && BY_CODE[code]) return failure(BY_CODE[code]);
   // PostgREST: unique violation (a handle already used by another member).
   if (code === "23505") return failure("handle_taken");
-  if (e.name === "AuthWeakPasswordError") return failure("weak_password");
   // Network, mail and service failures are told apart by what the request got back, not by the class
   // of the error: auth-js also wraps HTTP 500 and 502 to 504 answers in "AuthRetryableFetchError".
   const kind = diagnoseAuthError(error).category;

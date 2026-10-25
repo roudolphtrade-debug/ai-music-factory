@@ -1,13 +1,12 @@
 import { z } from "zod";
 import type { AuthKey } from "@/i18n/auth";
 import { handleProblem, normalizeHandle } from "./handle";
+import { missingCriteria, passwordTooLong } from "./password";
 
 /** Error messages are catalog keys: the form translates them. */
 const msg = (key: AuthKey) => key;
 
-export const PASSWORD_MIN = 12;
-/** The auth service refuses more than 72 bytes (bcrypt); counting bytes keeps accents and emoji honest. */
-export const PASSWORD_MAX_BYTES = 72;
+export { PASSWORD_MAX_BYTES, PASSWORD_MIN } from "./password";
 export const NAME_MAX = 60;
 
 export const emailSchema = z
@@ -17,11 +16,16 @@ export const emailSchema = z
   .max(254, msg("errEmail"))
   .email(msg("errEmail"));
 
-export const newPasswordSchema = z
-  .string()
-  .min(1, msg("errRequired"))
-  .min(PASSWORD_MIN, msg("errPasswordShort"))
-  .refine((v) => new TextEncoder().encode(v).length <= PASSWORD_MAX_BYTES, msg("errPasswordLong"));
+/**
+ * A new password (sign-up and reset): 12 characters at least, with an uppercase letter, a lowercase
+ * letter, a digit and a symbol. One issue at a time; the screens list what is missing from the value.
+ */
+export const newPasswordSchema = z.string().superRefine((value, ctx) => {
+  const issue = (key: AuthKey) => ctx.addIssue({ code: z.ZodIssueCode.custom, message: msg(key) });
+  if (value === "") return issue("errRequired");
+  if (passwordTooLong(value)) return issue("errPasswordLong");
+  if (missingCriteria(value).length) return issue("errPasswordMissing");
+});
 
 export const signUpSchema = z
   .object({ email: emailSchema, password: newPasswordSchema })

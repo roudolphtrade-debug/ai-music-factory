@@ -36,6 +36,8 @@ const report = (ok, text) => {
   console.log(`${ok ? "ok  " : "FAIL"} ${text}`);
 };
 const note = (text) => console.log(`     ${text}`);
+// Information, not a check: it never counts as a problem.
+const info = (text) => console.log(`info ${text}`);
 
 async function call(path, withKey) {
   const headers = withKey ? { apikey: key } : {};
@@ -116,6 +118,9 @@ async function main() {
     report(
       settings.body.mailer_autoconfirm === false,
       `an address must be confirmed by e-mail (mailer_autoconfirm = ${settings.body.mailer_autoconfirm})`,
+    );
+    info(
+      "the password rules (length, required characters, leaked-password check) are not readable with a public key: see supabase/README.md section 3",
     );
   }
 

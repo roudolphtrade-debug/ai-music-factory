@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,9 +6,11 @@ import { toast } from "sonner";
 import { KeyRound, Loader2, TimerOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthCard, FormNotice, PasswordField, SubmitButton } from "@/components/auth/AuthParts";
+import { PasswordRequirements } from "@/components/auth/PasswordRequirements";
 import { useAuth } from "@/auth/context";
 import { AUTH_PATHS, readAuthUrlOutcome, type AuthUrlOutcome } from "@/auth/redirects";
 import { updateMemberPassword } from "@/auth/service";
+import { usePasswordMessage } from "@/auth/passwordText";
 import { showFailure } from "@/auth/showFailure";
 import { resetSchema } from "@/auth/validation";
 import { consumeAuthUrlSnapshot } from "@/integrations/supabase/client";
@@ -33,6 +35,9 @@ function ResetPasswordPage() {
   });
   const { errors, isSubmitting } = form.formState;
   const msg = (key?: string) => (key ? t(key as AuthKey) : undefined);
+  const passwordMsg = usePasswordMessage();
+  const rulesId = useId();
+  const password = form.watch("password");
 
   // What the link brought back, read once (child effects run before the provider's).
   useEffect(() => {
@@ -103,9 +108,10 @@ function ResetPasswordPage() {
           {...form.register("password")}
           label={t("newPassword")}
           autoComplete="new-password"
-          hint={t("passwordRule")}
-          error={msg(errors.password?.message)}
+          describedByExtra={rulesId}
+          error={passwordMsg(errors.password?.message, password)}
         />
+        <PasswordRequirements id={rulesId} value={password} invalid={!!errors.password} />
         <PasswordField
           {...form.register("confirm")}
           label={t("confirmPassword")}

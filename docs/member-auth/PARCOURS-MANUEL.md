@@ -76,7 +76,7 @@ la langue de l'application est le français.
 
 ### Étape 1. Inscription (`/auth/sign-up`)
 
-1. Saisir son adresse et un mot de passe d'au moins 12 caractères.
+1. Saisir son adresse et un mot de passe qui respecte les règles affichées sous le champ : 12 caractères au moins, une majuscule, une minuscule, un chiffre et un caractère spécial. Les règles se cochent à mesure de la saisie ; un mot de passe collé ou proposé par un gestionnaire de mots de passe est accepté.
 2. Cliquer sur **Créer mon compte**.
 
 Attendu : l'écran « Vérifiez votre boîte » affiche l'adresse saisie ; le bouton de renvoi décompte 60 s ;
@@ -133,7 +133,7 @@ invite à se connecter au lieu d'afficher un profil.
    adresse inconnue).
 2. Ouvrir le mail de récupération (mêmes relevés qu'à l'étape 2), cliquer sur le lien. Attendu : le
    formulaire de nouveau mot de passe s'ouvre.
-3. Saisir un nouveau mot de passe (12 caractères ou plus, différent de l'ancien) deux fois. Attendu :
+3. Saisir un nouveau mot de passe qui respecte les mêmes règles (différent de l'ancien) deux fois. Attendu :
    connecté.
 4. Se déconnecter, se reconnecter avec le nouveau mot de passe ; l'ancien doit être refusé.
 
@@ -178,7 +178,7 @@ ligne a disparu avec lui. Retirer la clé de `.env.local` seulement si on ne veu
 | Aucun mail | SMTP non fonctionnel, limite d'envoi, spam | Authentication, Logs et SMTP Settings |
 | Le lien retombe sur la mauvaise page | URL de redirection absente | ajouter `http://localhost:8080/**` |
 | Lien expiré tout de suite | prélecture par un filtre de messagerie | renvoyer, noter le fournisseur |
-| Mot de passe refusé | moins de 12 caractères ou plus de 72 octets | choisir un mot de passe plus long, ou plus court |
+| Mot de passe refusé | une règle manque (le message dit laquelle) ou plus de 72 octets | compléter ce qui manque |
 | Connecté puis déconnecté au rechargement | stockage du navigateur bloqué | autoriser le stockage local pour localhost |
 
 ## 5. Ce que l'on peut me transmettre
@@ -222,7 +222,7 @@ Codes de refus fréquents (`error_code`) :
 | `email_address_not_authorized` (400) | le service de mail par défaut n'écrit qu'aux membres de l'équipe du projet | configurer le SMTP Sawaz, ou tester avec une adresse de l'équipe |
 | `signup_disabled` ou `email_provider_disabled` | inscriptions fermées | Authentication, Sign In / Providers |
 | `email_address_invalid` ou `validation_failed` | adresse refusée par le service (domaine, forme) ; ou adresse de redirection refusée | essayer une autre adresse ; relire les URLs de redirection |
-| `weak_password` (422) | mot de passe refusé par les règles du projet | longueur minimale 12, mots de passe courants refusés |
+| `weak_password` (422) | mot de passe refusé par les règles du projet ; la raison `pwned` signale un mot de passe issu de fuites (contrôle payant) | règles : voir `supabase/README.md` section 3.1 |
 | 401 ou 403 | clé refusée | relancer le contrôle de connexion (étape 0.3) |
 
 Deux précisions. **Après un échec d'envoi, un compte non confirmé peut exister ou non** selon la version du service : vérifier
@@ -253,3 +253,16 @@ propriétaire : elles ne sont reproduites nulle part dans le dépôt.
 
 Rapporté par le propriétaire, corroboré par les journaux quand une ligne existe. Ce qui ne peut pas se
 lire dans les journaux (réception effective du mail, persistance après rechargement) reste déclaratif.
+
+## 8. Règles du mot de passe : réglages Supabase
+
+- **Règles du mot de passe côté service** (longueur 12, majuscule, minuscule, chiffre, symbole) : réglage gratuit
+  enregistré par le propriétaire dans Authentication, Sign In / Providers, Email. **Prouvé le 2026-10-25** par cinq
+  appels directs à l'inscription (trop court, sans majuscule, sans minuscule, sans chiffre, sans symbole), tous
+  refusés en 422 `weak_password`, sans compte créé. Étapes et requête de vérification : `supabase/README.md`,
+  section 3.1.
+- **Non testé séparément** : le refus côté service lors de la réinitialisation (il demande une session de
+  récupération).
+- **Refus des mots de passe courants ou issus de fuites** : possible seulement avec le contrôle des mots de
+  passe compromis, réservé au plan Pro et supérieurs (payant). **Inactif**, rien n'a été souscrit : un mot de passe
+  courant qui respecte les règles reste accepté.

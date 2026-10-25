@@ -95,21 +95,19 @@ describe("password reset page", () => {
     type("New password", "tiny");
     type("Confirm password", "other");
     await submit("Save password");
-    expect(
-      await screen.findByText("The password must be at least 12 characters long."),
-    ).toBeTruthy();
+    expect(await screen.findByText(/^Still missing: at least 12 characters/)).toBeTruthy();
     expect(await screen.findByText("The two passwords do not match.")).toBeTruthy();
     expect(fake.client.auth.updateUser).not.toHaveBeenCalled();
   });
 
   it("saves the new password and takes the member to the site", async () => {
     await openForm();
-    type("New password", "a brand new passphrase");
-    type("Confirm password", "a brand new passphrase");
+    type("New password", "Brand-New-Passphrase-1");
+    type("Confirm password", "Brand-New-Passphrase-1");
     await submit("Save password");
     await waitFor(() =>
       expect(fake.client.auth.updateUser).toHaveBeenCalledWith({
-        password: "a brand new passphrase",
+        password: "Brand-New-Passphrase-1",
       }),
     );
     await waitFor(() => expectNavigation("/"));
@@ -125,8 +123,8 @@ describe("password reset page", () => {
         "New password should be different from the old password.",
       ),
     });
-    type("New password", "the very same passphrase");
-    type("Confirm password", "the very same passphrase");
+    type("New password", "The-Very-Same-Passphrase-1");
+    type("Confirm password", "The-Very-Same-Passphrase-1");
     await submit("Save password");
     expect(await screen.findByText("Choose a password different from the old one.")).toBeTruthy();
     expect(screen.queryByText(/New password should be different/)).toBeNull();

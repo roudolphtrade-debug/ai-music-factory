@@ -36,7 +36,7 @@ const focused = (el: HTMLElement) => waitFor(() => expect(document.activeElement
 const technical =
   /smtp|535|\bhttp|supabase|unexpected_failure|error sending|authentication failed/i;
 
-const signUpWith = async (email = "amina@example.test", password = "a long enough password") => {
+const signUpWith = async (email = "amina@example.test", password = "Amina-Studio-26!") => {
   mountPage(SignUp);
   await screen.findByRole("heading", { name: "Join the factory" });
   type(/email address/i, email);
@@ -62,7 +62,7 @@ describe("sign-up: what the member is told when it fails", () => {
     expect(document.body.textContent).not.toMatch(technical);
     // still on the form, with what was typed
     expect(emailField().value).toBe("amina@example.test");
-    expect(passwordField().value).toBe("a long enough password");
+    expect(passwordField().value).toBe("Amina-Studio-26!");
     expect(screen.queryByRole("heading", { name: "Check your inbox" })).toBeNull();
   });
 
@@ -86,7 +86,7 @@ describe("sign-up: what the member is told when it fails", () => {
     await signUpWith();
     expect(await screen.findByText(en.errNetwork)).toBeTruthy();
     expect(screen.queryByText(en.errEmailSend)).toBeNull();
-    expect(passwordField().value).toBe("a long enough password");
+    expect(passwordField().value).toBe("Amina-Studio-26!");
   });
 
   it("a password the service refuses is written under the password field, which gets the cursor", async () => {
@@ -109,7 +109,7 @@ describe("sign-up: what the member is told when it fails", () => {
     type(/email address/i, "amina@example.test");
     type(/^password/i, "short");
     await submit("Create my account");
-    expect(await screen.findByText(en.errPasswordShort)).toBeTruthy();
+    expect(await screen.findByText(/^Still missing: at least 12 characters/)).toBeTruthy();
     await focused(passwordField());
     expect(emailField().value).toBe("amina@example.test"); // kept
     expect(passwordField().value).toBe("short");

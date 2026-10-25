@@ -76,15 +76,81 @@ run on a plain PostgreSQL, not on the hosted project, so run the script there on
 | Setting | Value |
 |---|---|
 | Site URL | the published address of the app |
-| Redirect URLs | the published address, any custom domain, the Lovable preview address, and `http://localhost:8080/**` for local work. The app sends members to `/auth/confirm` and `/auth/reset-password` |
+| Redirect URLs | the published address, any custom domain, the Lovable preview address, and `http://localhost:8080/**` for local work (patterns ending in `/**`). The app sends members to `/auth/confirm` and `/auth/reset-password` |
 | Confirm email | **on** (members must confirm their address before signing in) |
-| Minimum password length | **12** (the value kept by the owner; the app enforces the same rule, and also refuses more than 72 bytes, the limit of the service) |
-| Leaked-password protection | on if the plan offers it |
+| Password rules | minimum length **12** and required characters **lowercase, uppercase letters, digits and symbols**: see 3.1 (the app enforces the same rules and also refuses more than 72 bytes, the limit of the service) |
+| Leaked-password protection | **Pro plan or above only**: not available on the current Free plan, not enabled, never switched on without the owner's decision (see 3.1) |
 | Email OTP expiry | the default (3600 s) or shorter; an expired link shows a clear message and a resend form |
 | Custom SMTP | the owner's provider, configured in **Authentication → SMTP Settings** only. The credentials stay in the dashboard |
 
-The remote setting is not changed from this repository. If it stays below 12, the app still refuses
-shorter passwords; if it is above 12, the app shows its generic "too weak" message for the rejected ones.
+The remote settings are not changed from this repository. The browser form checks the password policy
+and shows it, but **only the project's own settings protect it**: anyone calling the authentication API
+directly bypasses the form. If a setting is looser than the form, the app still refuses; if it is stricter,
+the app shows its general "refused, too weak" message for what the service rejects.
+
+### 3.1 Password rules: what the service can enforce (checked against the current Supabase documentation)
+
+The policy decided for the app: **12 characters at least, one uppercase letter, one lowercase letter, one
+digit and one symbol**.
+
+| Protection | Available in Supabase | Plan | State on aimf-dev (organisation plan: Free) |
+|---|---|---|---|
+| Minimum password length | yes | all plans | set by the owner to 12; **enforced by the service, proved on 2026-10-25** by a direct call (see "Proof" below); the setting itself is not readable from here |
+| Required characters: lowercase, uppercase letters, digits **and symbols** (the strongest option) | yes | all plans | set by the owner; **enforced by the service, proved on 2026-10-25** by direct calls (see "Proof" below) |
+| Refusal of leaked passwords (HaveIBeenPwned "Pwned Passwords" check, which also covers the most common passwords) | yes | **Pro plan and above: paid** | **not available and not enabled** on the Free plan. Nothing was switched on or subscribed |
+| A separate dictionary of common passwords | **not described in the documentation**: the leaked-password check above is the only protection of that kind | | none |
+
+How the app relates to it: the browser form applies the same four classes (ASCII letters and digits, the
+service's own 32 symbols, see `PASSWORD_SYMBOLS` in `src/auth/password.ts`) so that what the form accepts the
+service accepts. When the service refuses a password anyway, the app says so under the field: "refused, too weak" in
+general, or "appears in known data leaks" when the service gives that reason (only possible once the
+leaked-password check exists on the project). **Without the paid check, nothing server-side refuses
+common or compromised passwords such as `Password123!`: it follows every rule.**
+
+Existing accounts keep signing in with their current password even if it would not meet the new rules (the
+sign-in form has no rule). The rules apply to new passwords: sign-up and the reset form.
+
+**Steps for the owner (Free plan, nothing to pay; done by the owner, kept for reference):**
+
+1. Dashboard of the project `liewjcwkogoesgxcuyff` → **Authentication** → **Sign In / Providers** → **Email**
+   (direct link: `https://supabase.com/dashboard/project/liewjcwkogoesgxcuyff/auth/providers?provider=Email`).
+2. **Minimum password length**: `12`.
+3. **Password Requirements**: the strongest option, "lowercase, uppercase letters, digits and symbols".
+4. Leave **Prevent use of leaked passwords** off: it is greyed out or refused on the Free plan. Switching
+   to a paid plan is a separate decision, not needed for the app to work.
+5. **Save**. (Option labels may differ slightly from these names; the intent is the strongest option.)
+6. Do **not** enable "Require current password when changing password" without testing the reset form
+   first: a member who forgot their password has no current password to give. I have not verified how the
+   recovery session behaves with it.
+
+**Check that the service really enforces it** (with an address you own and a throw-away password; the
+request must be refused before anything is created):
+
+```bash
+curl -s -X POST "https://liewjcwkogoesgxcuyff.supabase.co/auth/v1/signup" \
+  -H "apikey: <publishable key>" -H "Content-Type: application/json" \
+  -d '{"email":"<an address you own>","password":"alllowercase1234"}'
+```
+
+Expected: HTTP **422**, `error_code` `weak_password`, and `"reasons":["characters"]`. If it answers **200**,
+the setting is not active and an unconfirmed test user was created: delete it in **Authentication → Users**,
+fix the setting, retry.
+
+**Proof (2026-10-25, aimf-dev).** Five direct `POST /auth/v1/signup` calls with the publishable key, throw-away
+passwords and `@example.invalid` addresses, no form involved. All five were refused by the service and no
+account was created (the users, identities, profiles and sessions counts were the same before and after):
+
+| Password | HTTP | `error_code` | `reasons` |
+|---|---|---|---|
+| 7 characters, all four classes | 422 | `weak_password` | `length` |
+| no uppercase letter | 422 | `weak_password` | `characters` |
+| no lowercase letter | 422 | `weak_password` | `characters` |
+| no digit | 422 | `weak_password` | `characters` |
+| no symbol | 422 | `weak_password` | `characters` |
+
+Not proved by a call: the same refusal on the reset form (`PUT /user` with a recovery session). The setting is
+global to the project, so it is expected, but it was not exercised separately. The leaked-password check stays
+off (Free plan), so a common password that follows every rule is still accepted.
 
 Email templates can keep the default `{{ .ConfirmationURL }}` links: the app uses the implicit flow,
 so a link also works when opened on another device.

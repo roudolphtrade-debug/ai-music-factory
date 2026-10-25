@@ -41,7 +41,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-const fillSignUp = (email = "amina@example.test", password = "a long enough password") => {
+const fillSignUp = (email = "amina@example.test", password = "Amina-Studio-26!") => {
   type(/email address/i, email);
   type(/^password/i, password);
 };
@@ -50,7 +50,10 @@ describe("sign-up", () => {
   it("shows the form, the password rule and a way to sign in", async () => {
     mountPage(SignUp);
     expect(await screen.findByRole("heading", { name: "Join the factory" })).toBeTruthy();
-    expect(screen.getByText("At least 12 characters.")).toBeTruthy();
+    // the rules are on screen before anything is typed
+    expect(screen.getByText(authCopy.en.passwordReqTitle)).toBeTruthy();
+    for (const key of ["critLength", "critUpper", "critLower", "critDigit", "critSpecial"] as const)
+      expect(screen.getByText(authCopy.en[key])).toBeTruthy();
     expect(screen.getByRole("link", { name: "Sign in" }).getAttribute("href")).toBe(
       "/auth/sign-in",
     );
@@ -65,9 +68,7 @@ describe("sign-up", () => {
     fillSignUp("nope", "short");
     await submit("Create my account");
     expect(await screen.findByText("Enter a valid email address.")).toBeTruthy();
-    expect(
-      await screen.findByText("The password must be at least 12 characters long."),
-    ).toBeTruthy();
+    expect(await screen.findByText(/^Still missing: at least 12 characters/)).toBeTruthy();
     expect(fake.client.auth.signUp).not.toHaveBeenCalled();
   });
 

@@ -24,32 +24,35 @@ const messages = (result: { success: boolean; error?: { issues: Issue[] } }) => 
     .map((i) => i.message);
 };
 
+// 15 characters with an uppercase letter, a lowercase letter, a digit and a symbol
+const GOOD = "Amina-Studio-26";
+
 describe("sign-up and sign-in validation", () => {
-  it("accepts a plain address and a 12 character password", () => {
-    expect(signUpSchema.safeParse({ email: " a@b.co ", password: "012345678901" }).success).toBe(
-      true,
-    );
+  it("accepts a plain address and a password that follows the policy", () => {
+    expect(signUpSchema.safeParse({ email: " a@b.co ", password: GOOD }).success).toBe(true);
   });
 
   it("wants at least 12 characters and at most 72 bytes", () => {
     const check = (password: string) =>
       messages(signUpSchema.safeParse({ email: "a@b.co", password }));
     expect(PASSWORD_MIN).toBe(12);
-    expect(check("a".repeat(11))).toEqual(["errPasswordShort"]);
-    expect(check("a".repeat(12))).toEqual([]);
-    expect(check("a".repeat(72))).toEqual([]);
-    expect(check("a".repeat(73))).toEqual(["errPasswordLong"]);
-    // 37 two-byte letters are 37 characters but 74 bytes: the service would refuse them.
-    expect(check("é".repeat(37))).toEqual(["errPasswordLong"]);
-    expect(check("é".repeat(36))).toEqual([]);
+    const pad = (n: number) => "Aa1!" + "x".repeat(n - 4); // n characters, all four classes
+    expect(check(pad(11))).toEqual(["errPasswordMissing"]);
+    expect(check(pad(12))).toEqual([]);
+    expect(check(pad(72))).toEqual([]);
+    expect(check(pad(73))).toEqual(["errPasswordLong"]);
+    // two-byte letters: 34 of them make 72 bytes with the four classes, one more makes 74
+    expect(check("Aa1!" + "é".repeat(34))).toEqual([]);
+    expect(check("Aa1!" + "é".repeat(35))).toEqual(["errPasswordLong"]);
   });
 
   it.each(LANGS.map((l) => l.code))("states the same password rule as the code in %s", (lang) => {
     const copy = authCopy[lang];
-    expect(copy.passwordRule).toContain(String(PASSWORD_MIN));
-    expect(copy.errPasswordShort).toContain(String(PASSWORD_MIN));
+    expect(copy.critLength).toContain(String(PASSWORD_MIN));
     expect(copy.errPasswordLong).toContain("72");
-    expect(copy.passwordRule + copy.errPasswordShort).not.toMatch(/\b10\b/); // the old rule
+    expect(copy.passwordSymbols).toContain("{symbols}");
+    expect(copy.errPasswordMissing).toContain("{missing}");
+    expect(copy.critLength + copy.errPasswordLong).not.toMatch(/\b10\b/); // the old rule
   });
 
   it("explains each problem with a catalog key, never a raw message", () => {
@@ -57,18 +60,21 @@ describe("sign-up and sign-in validation", () => {
       "errRequired",
       "errRequired",
     ]);
-    expect(messages(signUpSchema.safeParse({ email: "nope", password: "012345678901" }))).toEqual([
+    expect(messages(signUpSchema.safeParse({ email: "nope", password: GOOD }))).toEqual([
       "errEmail",
     ]);
     expect(messages(signUpSchema.safeParse({ email: "a@b.co", password: "123456789" }))).toEqual([
-      "errPasswordShort",
+      "errPasswordMissing",
     ]);
   });
 
   it("refuses a password that is the address itself", () => {
     expect(
       messages(
-        signUpSchema.safeParse({ email: "member@example.test", password: "member@example.test" }),
+        signUpSchema.safeParse({
+          email: "Amina-Studio_26@example.test",
+          password: "Amina-Studio_26@example.test", // follows the policy, but is the address
+        }),
       ),
     ).toEqual(["errPasswordWeak"]);
   });
@@ -85,12 +91,16 @@ describe("sign-up and sign-in validation", () => {
   });
 
   it("checks the confirmation on the reset form", () => {
+    expect(messages(resetSchema.safeParse({ password: GOOD, confirm: GOOD + "x" }))).toEqual([
+      "errPasswordMismatch",
+    ]);
+    expect(resetSchema.safeParse({ password: GOOD, confirm: GOOD }).success).toBe(true);
+    // the reset form applies the same policy as the sign-up form
     expect(
-      messages(resetSchema.safeParse({ password: "012345678901", confirm: "012345678900" })),
-    ).toEqual(["errPasswordMismatch"]);
-    expect(
-      resetSchema.safeParse({ password: "012345678901", confirm: "012345678901" }).success,
-    ).toBe(true);
+      messages(
+        resetSchema.safeParse({ password: "alllowercase1234", confirm: "alllowercase1234" }),
+      ),
+    ).toEqual(["errPasswordMissing"]);
   });
 });
 
@@ -317,6 +327,8 @@ describe("account catalog, six languages", () => {
             chars: "c",
             count: 1,
             suggestion: "s",
+            symbols: "y",
+            missing: "m",
           }),
           `${lang}:${key}`,
         ).not.toMatch(/[{}]/);
