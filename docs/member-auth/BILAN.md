@@ -242,3 +242,31 @@ données fictives, réduites à 900 px de large au maximum.
 5. Avant toute ouverture publique : suppression autonome du compte, voir `EXIGENCES-ET-PARCOURS.md`.
 6. La préparation musicale sans compte, avec inscription au clic **Générer**, conservation des saisies et
    avatar facultatif, reste un lot ultérieur documenté dans le même fichier (rien n'est implémenté).
+
+## 11. Raccordement à aimf-dev (état au 2026-10-25)
+
+**Migration** : appliquée sur aimf-dev (`liewjcwkogoesgxcuyff`) par le propriétaire, version distante
+`20261024224751`. Ne pas la réappliquer. Le fichier local `20261024090000_member_profiles.sql` en est la
+source relue ; les deux numéros décrivent la même migration (le local est celui d'écriture, le distant celui
+du moment de l'application). Détail et conduite à tenir avec la CLI : `supabase/README.md`, section 5.
+
+**Rapporté par le propriétaire, non vérifié ici** : les 35 lignes du script SQL à vrai, aucune donnée de
+test restante, aucun avertissement de sécurité.
+
+**Vérifié depuis ce dépôt le 2026-10-25, avec la vraie clé publique** (saisie dans `.env.local`, ignoré par
+Git, jamais écrite dans un fichier suivi) :
+- `node supabase/preflight.mjs` (lecture seule, aucun compte créé) : **8 contrôles sur 8, sortie 0**.
+  Projet attendu reconnu par l'adresse et par l'en-tête `sb-project-ref`, clé de type publique acceptée par
+  le projet (HTTP 200), inscription par e-mail activée, nouvelles inscriptions autorisées
+  (`disable_signup = false`), confirmation par e-mail exigée (`mailer_autoconfirm = false`), table
+  `profiles` présente et illisible par un visiteur (HTTP 401, code 42501).
+- L'application démarre sur http://localhost:8080 ; la page d'inscription affiche le formulaire (et non
+  « Comptes momentanément indisponibles »), sans erreur de console ; ouvrir la page n'envoie aucune requête
+  vers Supabase (le client ne parle au projet qu'à la première action de compte).
+
+**Pas encore vérifié** : le parcours réel avec une vraie boîte e-mail, par le propriétaire : inscription,
+réception du mail par le SMTP Sawaz, confirmation et redirection vers localhost:8080, connexion, persistance
+après rechargement, récupération du mot de passe, déconnexion, suppression du compte de test. Les
+réglages d'Authentication (URL de redirection, Site URL, longueur minimale 12, SMTP) ne sont lisibles qu'en
+partie par le contrôle (inscription, confirmation) : le reste se constate pendant le parcours. Feuille de route
+et relevé : `PARCOURS-MANUEL.md`.

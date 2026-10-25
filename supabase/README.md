@@ -4,7 +4,8 @@ The app talks to one Supabase project, **aimf-dev** (reference `liewjcwkogoesgxc
 Cloud, no server secret: the browser only holds the project URL and the **publishable** key, and
 what belongs to a member is protected in the database by row-level security.
 
-Nothing in this folder has been applied to the project. Each step below is done once, by the owner.
+The migration of section 2 **has been applied** to aimf-dev by the owner (see "Remote state" at the end).
+The other steps below are done once, by the owner.
 
 ## 1. Environment variables (browser-safe values only)
 
@@ -96,3 +97,31 @@ open the reset mail, choose a new password, sign in again. Delete the test accou
 
 Until this has been done once, everything reported about the member journey comes from simulations
 (see `docs/member-auth/BILAN.md`): none of it proves the behaviour of aimf-dev or of the SMTP service.
+
+## 5. Remote state of aimf-dev (as reported by the owner, 2026-10-25)
+
+| Item | State |
+|---|---|
+| Migration `member_profiles` | **Applied** on aimf-dev (`liewjcwkogoesgxcuyff`). **Do not apply it again.** |
+| Remote migration version | `20261024224751` |
+| Local file | `supabase/migrations/20261024090000_member_profiles.sql`, unchanged since commit `8ae163a` |
+| Verification script | all 35 rows true; no test data left behind; no security warning reported |
+| Recorded by | the owner; not checked from this repository (no access to the project's dashboard or database) |
+
+**Link between the two version numbers.** The local file name carries the number it was written with
+(`20261024090000`); the remote history records the moment the owner applied it (`20261024224751`,
+that is 2026-10-24 22:47:51). They describe **the same migration**, so the numbers differ although the
+content is the same. Consequences:
+
+- Nothing to run: the project already has the table, policies and triggers.
+- If the Supabase CLI is adopted later, `supabase migration list` will show the local version as local-only
+  and the remote one as remote-only. Do **not** run `db push` in that state (it would try to apply the file
+  again and fail on "already exists"). Either rename the local file to the remote version in a dedicated
+  commit, which also changes the path read by `src/auth/hygiene.test.ts`, or mark them as the same with
+  `supabase migration repair`. Neither was done now.
+- The repository keeps the file as the source of truth for review; the remote history is the source of
+  truth for what is applied.
+
+**Connection check.** `node supabase/preflight.mjs` (read-only, creates nothing) confirms the project, the
+public key, the sign-up settings and that visitors cannot read `profiles`. The manual journey is in
+`docs/member-auth/PARCOURS-MANUEL.md`.
