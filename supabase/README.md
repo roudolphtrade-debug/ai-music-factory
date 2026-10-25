@@ -20,19 +20,29 @@ visitor), which is why only these two are allowed:
 They are read **when the app is built or started**, not at runtime: changing one means restarting the
 dev server or rebuilding.
 
-**Local work.** Copy `.env.example` to **`.env.local`** and fill the key. `.env.local` and `.env` are
-both ignored by Git (`*.local`, `.env`, `.env.*`); `.env.example` is the only environment file that is
-versioned.
-Then run `npm run dev` (port 8080).
+**The versioned `.env`.** The two values of aimf-dev are written in `.env` at the root of the project,
+**on purpose and committed**. Both are public by nature: the key is a *publishable* one, protected by row-level
+security and not by secrecy, and it ends up in the JavaScript sent to every visitor. Lovable reads `.env` for its
+preview and its published site (its documentation: `VITE_` values live in `.env`, never in its Secrets panel,
+and `.env` must not be ignored by Git). `src/auth/hygiene.test.ts` fails if `.env` holds any name other than
+these two, if the key is not a publishable one, or if `.gitignore` ignores `.env` again.
 
-**Lovable preview and published site.** The same two variables must be defined in the Lovable project
-for its builds (preview and publish), with exactly these names. This has not been verified from this
-repository: check in the preview that the sign-in button appears, then run the test of section 4.
-Also add the preview address to the Redirect URLs of section 3, or confirmation links will be refused.
+Every other variant stays out of Git: `.env.local`, `.env.production`, any `.env.*` and `*.local` are ignored.
+`.env.example` only documents the names.
+
+**Local work.** Nothing to set up: `npm run dev` (port 8080) reads `.env`. To use another project or key on one
+machine only, copy `.env.example` to **`.env.local`**: it wins over `.env` and is never committed.
+
+**Lovable preview and published site.** Nothing to define in Lovable: `.env` is read as it is. Do not enable
+Lovable Cloud and do not use Settings, General, External Supabase, Connect: the app reads the two values
+itself, and that flow could rewrite `.env` and `src/integrations/supabase/` (not verified). After the merge,
+check in the Code tab that `.env` is there with the two names, open the preview in its own browser tab, and run
+the test of section 4. Also add the preview address to the Redirect URLs of section 3, or confirmation links
+and the return from Google will be refused.
 
 **Never** put in the repository or in a `VITE_` variable: a secret key (`sb_secret_…`), the legacy
 `service_role` key, the database password or any SMTP credential. An automated test
-(`src/auth/hygiene.test.ts`) fails if one appears in the source, the SQL, `.env.example` or the docs.
+(`src/auth/hygiene.test.ts`) fails if one appears in the source, the SQL, `.env`, `.env.example` or the docs.
 
 **Without the two variables** the app still works: the account pages explain that accounts are not
 available yet, no request leaves the browser, and public listening and discovery are untouched.

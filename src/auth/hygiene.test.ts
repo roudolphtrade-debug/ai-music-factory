@@ -3,7 +3,8 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 // What must never reach the repository or the browser bundle: a secret key, a database password, a
-// mail-service credential. Only the project address and the publishable key are browser-safe.
+// mail-service credential. Only the project address and the publishable key are browser-safe, and
+// they are the only two values the versioned .env file may hold (the Lovable preview reads it).
 const root = process.cwd();
 
 function files(dir: string): string[] {
@@ -18,10 +19,14 @@ const scanned = [
   ...files(join(root, "src")),
   ...files(join(root, "supabase")),
   ...files(join(root, "docs", "member-auth")),
+  join(root, ".env"),
   join(root, ".env.example"),
   join(root, "package.json"),
 ].filter(
-  (f) => existsSync(f) && /\.(ts|tsx|sql|md|json|example)$/.test(f) && !/\.test\.tsx?$/.test(f),
+  (f) =>
+    existsSync(f) &&
+    /(\.(ts|tsx|sql|md|json|example)|[\\/]\.env)$/.test(f) &&
+    !/\.test\.tsx?$/.test(f),
 );
 
 const FORBIDDEN: [string, RegExp][] = [
@@ -41,6 +46,7 @@ describe("secrets stay out of the repository", { timeout: 30_000 }, () => {
   it("scans a meaningful set of files", () => {
     expect(scanned.length).toBeGreaterThan(30);
     expect(scanned.some((f) => f.endsWith(".env.example"))).toBe(true);
+    expect(scanned.some((f) => /[\\/]\.env$/.test(f))).toBe(true);
     expect(scanned.some((f) => f.endsWith("member_profiles.sql"))).toBe(true);
   });
 
@@ -63,18 +69,45 @@ describe("secrets stay out of the repository", { timeout: 30_000 }, () => {
     expect(lines[0]).toMatch(/^VITE_SUPABASE_URL=https:\/\/[a-z0-9]+\.supabase\.co$/);
   });
 
-  it("keeps local values in a Git-ignored file (.env.local) and documents exactly two variables", () => {
+  it("versions .env (public values only) and keeps every other environment file out of Git", () => {
     const ignore = readFileSync(join(root, ".gitignore"), "utf8");
-    expect(ignore).toMatch(/^\*\.local\s*$/m);
-    expect(ignore).toMatch(/^\.env\s*$/m);
-    expect(ignore).toMatch(/^\.env\.\*\s*$/m);
-    // .env.example is the one environment file that is versioned; its exception comes last.
-    const lines = ignore.split(/\r?\n/);
+    const lines = ignore.split(/\r?\n/).map((l) => l.trim());
+    // Private and per-machine variants stay local: .env.local, .env.production, .env.anything...
+    expect(lines).toContain("*.local");
+    expect(lines).toContain(".env.*");
+    // .env.example is the one variant with an exception, and the exception comes after the rule.
     expect(lines.lastIndexOf("!.env.example")).toBeGreaterThan(lines.lastIndexOf(".env.*"));
+    // .env itself is versioned (Lovable needs it committed): no rule may ignore it.
+    expect(lines).not.toContain(".env");
+    expect(lines).not.toContain("/.env");
+    expect(lines).not.toContain("*.env");
+    expect(lines).not.toContain(".env*");
     const readme = readFileSync(join(root, "supabase", "README.md"), "utf8");
     expect(readme).toContain(".env.local");
     expect(readme).toContain("VITE_SUPABASE_URL");
     expect(readme).toContain("VITE_SUPABASE_PUBLISHABLE_KEY");
+  });
+
+  it("keeps .env to exactly the two browser-safe variables, with a publishable key and no other name", () => {
+    const content = readFileSync(join(root, ".env"), "utf8");
+    const entries = content
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter((l) => l && !l.startsWith("#"));
+    // Every line is a plain NAME=value pair: no export, no quotes, no extra variable.
+    for (const line of entries) expect(line).toMatch(/^[A-Z][A-Z0-9_]*=\S+$/);
+    const names = entries.map((l) => l.slice(0, l.indexOf("=")));
+    expect([...names].sort()).toEqual(["VITE_SUPABASE_PUBLISHABLE_KEY", "VITE_SUPABASE_URL"]);
+    const value = (name: string) =>
+      entries.find((l) => l.startsWith(name + "="))!.slice(name.length + 1);
+    // The project address is the one .env.example documents.
+    const exampleUrl = /^VITE_SUPABASE_URL=(\S+)$/m.exec(
+      readFileSync(join(root, ".env.example"), "utf8"),
+    );
+    expect(value("VITE_SUPABASE_URL")).toMatch(/^https:\/\/[a-z0-9]+\.supabase\.co$/);
+    expect(value("VITE_SUPABASE_URL")).toBe(exampleUrl?.[1]);
+    // The key is a publishable one: never a secret key, never a legacy token.
+    expect(value("VITE_SUPABASE_PUBLISHABLE_KEY")).toMatch(/^sb_publishable_[A-Za-z0-9_-]{16,}$/);
   });
 
   it("keeps real people out of the documentation: only reserved example addresses appear", () => {

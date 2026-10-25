@@ -11,16 +11,16 @@ URL locale : **http://localhost:8080** (le port compte : il doit figurer dans le
 
 ### 0.1 La clé publique (à saisir par le propriétaire)
 
-*État au 2026-10-25 : la clé publique d'aimf-dev a été saisie dans `.env.local` et le contrôle 0.3 passe (8 sur 8). Cette section reste valable pour refaire l'opération sur une autre machine.*
+*État au 2026-10-25 : le fichier `.env` versionné contient déjà les deux valeurs publiques d'aimf-dev (adresse et clé publishable) et le contrôle 0.3 passe. Il n'y a rien à saisir. Cette section ne sert que pour utiliser une autre clé ou un autre projet sur une seule machine.*
 
-1. Ouvrir le fichier `.env.local` à la racine du projet (il existe déjà, ignoré par Git).
+1. Créer ou ouvrir le fichier `.env.local` à la racine du projet (copie de `.env.example`, ignoré par Git, prioritaire sur `.env`).
 2. Dans le tableau de bord Supabase : **Project Settings, API Keys**. Copier la clé **publishable**
    (`sb_publishable_…`). **Pas** la clé secrète, **pas** `service_role`.
 3. La coller après `VITE_SUPABASE_PUBLISHABLE_KEY=` (sans guillemets), enregistrer.
 4. `VITE_SUPABASE_URL` est déjà renseignée : `https://liewjcwkogoesgxcuyff.supabase.co`.
 
-La clé publique est visible par tout visiteur du site : ce n'est pas un secret, mais elle reste hors du
-dépôt. Si une clé secrète est collée par erreur, le contrôle ci-dessous la refuse sans l'utiliser ;
+La clé publique est visible par tout visiteur du site : ce n'est pas un secret, elle est volontairement
+versionnée dans `.env` (Lovable la lit). Si une clé secrète est collée par erreur, le contrôle ci-dessous la refuse sans l'utiliser ;
 la retirer aussitôt du fichier.
 
 ### 0.2 Réglages à relire dans Supabase (Authentication)
@@ -54,7 +54,7 @@ Code de sortie 2 : clé absente. Code 3 : clé refusée (secrète ou illisible).
 npm run dev
 ```
 
-Les variables sont lues **au démarrage** : après toute modification de `.env.local`, arrêter le serveur
+Les variables sont lues **au démarrage** : après toute modification de `.env` ou de `.env.local`, arrêter le serveur
 (Ctrl+C) et le relancer. Ouvrir http://localhost:8080/auth/sign-up : le formulaire d'inscription doit
 s'afficher. Si la page dit « Comptes momentanément indisponibles », la clé est vide ou le serveur n'a pas
 été relancé.
@@ -172,7 +172,7 @@ ligne a disparu avec lui. Retirer la clé de `.env.local` seulement si on ne veu
 
 | Symptôme | Cause probable | Piste |
 |---|---|---|
-| « Comptes momentanément indisponibles » | clé vide, ou serveur non relancé | remplir `.env.local`, relancer `npm run dev` |
+| « Comptes momentanément indisponibles » | clé vide, ou serveur non relancé | vérifier `.env` (ou `.env.local`), relancer `npm run dev` |
 | `preflight` : clé refusée (HTTP 401) | clé incomplète ou d'un autre projet | recopier la clé publishable d'aimf-dev |
 | `preflight` : table introuvable | migration absente sur ce projet | ne pas réappliquer sans accord : vérifier le projet |
 | Aucun mail | SMTP non fonctionnel, limite d'envoi, spam | Authentication, Logs et SMTP Settings |

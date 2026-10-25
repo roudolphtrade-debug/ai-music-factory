@@ -26,7 +26,7 @@ publique seulement. Mise en place : `supabase/README.md`.
 | Enregistrement du profil | `upsert` | `update` de sa propre ligne, `insert` seulement si le trigger n'a pas créé la ligne | **bug réel** : le `upsert` met `id` dans sa liste `SET`, or les membres n'ont pas le droit d'écrire `id` ; PostgreSQL le refuse. Le serveur simulé l'acceptait et le masquait. Trouvé en rejouant le SQL de PostgREST sur une base locale |
 | Avatar | adresse libre | `https://` uniquement (jamais `javascript:`, `data:`, `http:`) | contrainte SQL et test de mutation |
 | Poids du premier chargement | supabase-js dans le bundle d'entrée (+69,5 Ko gzip, +47 %), nouvel avertissement Vite « chunk > 500 Ko » | client chargé à la demande ; `safeRedirect` sorti du module zod | voir section 6 |
-| Variables locales | « copier en `.env` » | **`.env.local`** ; `.env` et `.env.*` sont désormais ignorés par `.gitignore`, seul `.env.example` reste versionné | `git check-ignore` et test de dépôt |
+| Variables | « copier en `.env` » | **`.env` versionné avec les deux valeurs publiques d'aimf-dev** (lu par Lovable, voir section 15) ; `.env.local` et toutes les autres variantes `.env.*` ignorés ; `.env.example` documente les noms | `git check-ignore` et test de dépôt |
 
 ## 3. Statuts artiste et label, avatar
 
@@ -83,13 +83,13 @@ vérification doit encore être exécuté une fois sur aimf-dev.
 | `VITE_SUPABASE_URL` | adresse du projet, publique |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | clé publishable, publique par nature, protégée par la RLS |
 
-- **Local** : copier `.env.example` vers `.env.local` (`.env` fonctionne aussi, les deux sont ignorés), renseigner la clé, redémarrer le serveur de dev.
-- **Aperçu et publication Lovable** : définir les deux mêmes noms dans le projet Lovable. **Non vérifié
-  depuis ce dépôt.** Les valeurs sont figées à la construction ; ajouter aussi l'adresse de l'aperçu
-  aux URLs de redirection d'Authentication.
+- **Local et Lovable** : le fichier `.env` versionné contient les deux valeurs, lues par le serveur local et par
+  Lovable. Une autre clé, sur une seule machine : `.env.local` (ignoré, prioritaire).
+- **Aperçu et publication Lovable** : rien à définir dans Lovable (son panneau Secrets refuse les noms `VITE_`).
+  Les valeurs sont figées à la construction ; ajouter l'adresse de l'aperçu aux URLs de redirection d'Authentication.
 - Sans les deux variables, l'application fonctionne : pages de compte explicatives, aucune requête.
 - Jamais de clé secrète, de mot de passe de base ou d'identifiant SMTP dans le dépôt ni dans une
-  variable `VITE_` : un test automatisé le garantit (source, SQL, docs, `.env.example`).
+  variable `VITE_` : un test automatisé le garantit (source, SQL, docs, `.env`, `.env.example`).
 
 ## 6. Taille du bundle, comparée à la base `84beb23`
 
@@ -232,7 +232,7 @@ données fictives, réduites à 900 px de large au maximum.
 
 ## 10. Avant de relier le backend réel
 
-1. Fournir la clé publishable (variable locale et variables Lovable).
+1. Fournir la clé publishable : elle est dans le `.env` versionné (section 15).
 2. Relire puis appliquer la migration sur aimf-dev, puis lancer `supabase/verify/member_profiles_rls_test.sql`
    (35 lignes à `ok = true`).
 3. Vérifier dans Authentication : Site URL, URLs de redirection (publication, aperçu, local),
@@ -254,7 +254,7 @@ du moment de l'application). Détail et conduite à tenir avec la CLI : `supabas
 test restante, aucun avertissement de sécurité.
 
 **Vérifié depuis ce dépôt le 2026-10-25, avec la vraie clé publique** (saisie dans `.env.local`, ignoré par
-Git, jamais écrite dans un fichier suivi) :
+Git ; elle a été versionnée ensuite, volontairement, dans `.env`, voir section 15) :
 - `node supabase/preflight.mjs` (lecture seule, aucun compte créé) : **8 contrôles sur 8, sortie 0**.
   Projet attendu reconnu par l'adresse et par l'en-tête `sb-project-ref`, clé de type publique acceptée par
   le projet (HTTP 200), inscription par e-mail activée, nouvelles inscriptions autorisées
@@ -491,3 +491,29 @@ Ce qui est vérifié par moi et ce qui est rapporté :
 - Navigateur réel contre un **serveur simulé** : Google absent puis présent dans les 6 langues, clic jusqu'à la
   connexion d'un nouveau membre, annulation chez Google. Simulé seulement : la preuve du comportement réel est celle
   des essais du propriétaire ci-dessus.
+
+## 15. Clé publishable volontairement publique dans le dépôt (2026-10-25)
+
+**Décision du propriétaire.** Le fichier `.env` est versionné et contient **uniquement** `VITE_SUPABASE_URL` et
+`VITE_SUPABASE_PUBLISHABLE_KEY` d'aimf-dev. La clé est une clé *publishable* : elle est publique par nature
+(elle part dans le JavaScript envoyé à chaque visiteur) et ce sont les règles de sécurité des lignes (RLS) qui
+protègent les données, pas son secret. Cela remplace la phrase précédente de la PR (« clé absente du dépôt »).
+
+**Pourquoi.** La documentation de Lovable range les variables `VITE_` dans le fichier `.env` du projet, pas dans
+son panneau Secrets (qui les refuse), et avertit qu'ignorer `.env` dans Git casse l'aperçu. Sans ce fichier,
+l'aperçu aurait affiché « comptes momentanément indisponibles ». Aucun besoin de Lovable Cloud ni de connecter
+Supabase dans Lovable.
+
+**Ce qui reste privé.** `.env.local`, `.env.production` et toute autre variante `.env.*` restent ignorés par
+Git, ainsi que `*.local`. Jamais de clé secrète, de clé `service_role`, de mot de passe de base ni d'identifiant
+SMTP, ni dans `.env` ni ailleurs.
+
+**Garde-fous automatiques** (`src/auth/hygiene.test.ts`) : `.env` ne contient que ces deux noms, sans guillemets ni
+variable supplémentaire ; l'adresse du projet est celle de `.env.example` ; la clé commence par `sb_publishable_` ;
+`.gitignore` n'ignore plus `.env` mais ignore toujours `.env.*` et `*.local` ; le fichier est parcouru par les
+mêmes recherches de secrets que le reste du dépôt. Six dégradations volontaires du fichier ou du `.gitignore`
+(variable en plus, nom de clé de service, clé secrète, valeur entre guillemets, clé absente, `.env` de nouveau
+ignoré) ont été essayées : chacune fait échouer le test.
+
+**Aussi corrigé** : le commentaire d'en-tête de la migration disait « NOT APPLIED » alors qu'elle est appliquée
+sur aimf-dev ; seul ce commentaire change, pas une ligne de SQL.

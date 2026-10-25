@@ -1,8 +1,8 @@
 -- Member profiles for Ai Music Factory (Supabase project aimf-dev).
 --
--- NOT APPLIED by anyone yet. Review it, then run it once in the Supabase SQL editor (or with the
--- CLI against the linked project). It only creates objects in `public` plus one trigger on
--- `auth.users`; it never alters or deletes existing data.
+-- ALREADY APPLIED on aimf-dev by the owner (remote version 20261024224751). Do NOT run it again: it
+-- would fail on "already exists". It stays here as the reviewed source of what was applied. It only
+-- creates objects in `public` plus one trigger on `auth.users`; it never alters or deletes existing data.
 --
 -- What it gives:
 --   * one private profile per member, created automatically at sign-up;
