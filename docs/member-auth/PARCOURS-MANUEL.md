@@ -186,3 +186,70 @@ ligne a disparu avec lui. Retirer la clé de `.env.local` seulement si on ne veu
 Le relevé de la section 3, les messages d'erreur affichés à l'écran, l'heure approximative des essais,
 et les lignes de **Authentication, Logs** sans adresse ni lien. **Jamais** un lien du mail, un jeton, un mot
 de passe, ni une capture montrant la barre d'adresse après un lien.
+
+## 6. Diagnostiquer l'échec d'une inscription
+
+L'écran affiche volontairement un message neutre (« Une erreur est survenue », « Connexion impossible »…) :
+il ne dit pas **quelle** panne s'est produite. Pour trancher entre trois cas, relever trois choses, **sans
+jamais copier le mot de passe, un jeton, un lien ni l'adresse e-mail** :
+
+1. **La requête** (navigateur, outils de développement, onglet Réseau) : la ligne `signup`, requête vers
+   `liewjcwkogoesgxcuyff.supabase.co/auth/v1/signup`. Relever le **statut HTTP**, et dans l'onglet
+   **Réponse** uniquement `error_code` et `msg`. **Ne pas ouvrir ni copier l'onglet « Charge utile »**
+   (il contient le mot de passe) ni les en-têtes de la requête.
+2. **La trace sans secret de l'application** (développement local seulement, après une **nouvelle**
+   tentative : l'ancienne n'a pas été enregistrée) : dans la console du navigateur,
+   `copy(JSON.stringify(window.__afmAuthDiagnostics))`. Chaque entrée ne contient que l'heure, l'opération,
+   la catégorie (`network`, `service_refusal`, `smtp`, `service_error`, `unknown`), le statut HTTP et le
+   code d'erreur : jamais le message, l'adresse, le mot de passe ni un jeton (des tests le vérifient).
+3. **Les journaux Auth du projet** (tableau de bord, **Logs** puis **Auth**, ou **Authentication, Logs**), à
+   l'heure de l'essai. Les journaux sont en UTC : noter l'heure locale et le fuseau. Relever la ligne
+   `/signup` : statut, `error_code`, `msg`, et pour un échec de mail la cause sous-jacente (authentification
+   refusée, connexion refusée, délai dépassé, TLS). Masquer l'adresse avant de montrer quoi que ce soit.
+
+| Cas | Ce que l'on voit côté navigateur | Ce que l'on voit dans les journaux Auth | À faire |
+|---|---|---|---|
+| **Problème réseau** | aucune réponse HTTP : requête « failed », `ERR_…`, blocage CORS ; catégorie `network`, statut 0 ou absent | **rien** à l'heure de l'essai (la requête n'est pas arrivée) | vérifier la connexion, un VPN, un proxy, un bloqueur de publicités ; relancer `node supabase/preflight.mjs` |
+| **Refus du service** (4xx) | statut 400, 401, 403, 422 ou 429 avec un `error_code` ; catégorie `service_refusal` | une ligne `/signup` avec ce statut et ce code | lire le code ci-dessous |
+| **Échec SMTP** | statut **500**, `error_code` `unexpected_failure`, message du type « Error sending confirmation email » ; catégorie `smtp` | une ligne `/signup` en 500 « Error sending confirmation email », avec la cause du serveur de mail | corriger **Authentication, SMTP Settings** (hôte, port, utilisateur, expéditeur, TLS), puis réessayer |
+| **Autre erreur du service** (5xx) | statut 500 ou 502 à 504 sans mot sur le mail ; catégorie `service_error` | ligne en 5xx ; « Database error saving new user » désigne le trigger de création du profil | lire le message exact dans les journaux ; ne pas réappliquer la migration sans accord |
+
+Codes de refus fréquents (`error_code`) :
+
+| Code | Sens | Piste |
+|---|---|---|
+| `over_email_send_rate_limit` (429) | trop de mails envoyés dans l'heure | attendre ; la limite est très basse sans SMTP personnalisé |
+| `email_address_not_authorized` (400) | le service de mail par défaut n'écrit qu'aux membres de l'équipe du projet | configurer le SMTP Sawaz, ou tester avec une adresse de l'équipe |
+| `signup_disabled` ou `email_provider_disabled` | inscriptions fermées | Authentication, Sign In / Providers |
+| `email_address_invalid` ou `validation_failed` | adresse refusée par le service (domaine, forme) ; ou adresse de redirection refusée | essayer une autre adresse ; relire les URLs de redirection |
+| `weak_password` (422) | mot de passe refusé par les règles du projet | longueur minimale 12, mots de passe courants refusés |
+| 401 ou 403 | clé refusée | relancer le contrôle de connexion (étape 0.3) |
+
+Deux précisions. **Après un échec d'envoi, un compte non confirmé peut exister ou non** selon la version du service : vérifier
+dans **Authentication, Users** s'il y a une ligne pour l'adresse, et la supprimer avant de recommencer. **Si l'inscription répond 200 mais qu'aucun mail n'arrive**, ce n'est ni un échec réseau ni un
+refus du service : regarder les journaux d'envoi du fournisseur de mail (Sawaz), le dossier spam, puis
+l'authentification de l'expéditeur du domaine. La catégorie `smtp` repose sur le texte de l'erreur du
+service : si sa formulation change, elle retombe sur `service_error`, et seuls les journaux Auth tranchent.
+
+## 7. Relevé du premier parcours réel (2026-10-25)
+
+| Étape | Résultat | Preuve (journaux Auth du projet, en UTC ; Paris = UTC+1) |
+|---|---|---|
+| 0.3 Contrôle de connexion | ok, 8 sur 8 | 08:32 : `GET /settings` 200 avec la clé publique, `profiles` refusée à un visiteur (401) |
+| 1 Inscription, premiers essais | **échec SMTP** (2 fois) | 08:36 et 11:23 : `POST /signup` 500, `535 5.7.8 authentication failed` : identifiants du serveur de mail refusés |
+| 1 Inscription, après correction du SMTP | **réussie** | 11:26 : `POST /signup` 200, `user_confirmation_requested` |
+| 2 Réception du mail | **réussie** (rapportée) | corroborée : le lien a été ouvert à 11:28 |
+| 3 Confirmation | **réussie** | 11:28 : `user_signedup` (`GET /verify` 303, redirection vers l'application) ; 11:28:23 : lien rouvert, redirection (303) ; 11:28:33 : `POST /resend` 200 |
+| 4 Profil | **réussi** | base : 1 profil créé par le trigger, pseudonyme renseigné, accueil terminé |
+| 5 Persistance après rechargement | **réussie** (rapportée) | non visible dans les journaux : un rechargement ne rappelle pas le service tant que le jeton est valide ; 1 session ouverte à la fin |
+| 6 Déconnexion | **réussie** | 11:41:12 et 11:42:50 : `POST /logout` 204 |
+| 7 Reconnexion | **réussie** | 11:32:13 et 11:41:18 : `POST /token` 200, évènement `login` |
+| 8 Réinitialisation du mot de passe | **réussie** | 11:42:58 : `POST /recover` 200 ; 11:43:15 : lien de récupération (`GET /verify` 303, `login`) ; 11:43:44 : `PUT /user` 422 `same_password` (le même mot de passe est refusé) ; 11:43:53 : `PUT /user` 200, `user_updated_password` |
+
+État de la base après les essais (lecture seule) : 1 compte, confirmé, déjà connecté ; 1 profil avec
+pseudonyme et accueil terminé ; 1 session ouverte ; `profiles` protégée par la sécurité au niveau des
+lignes ; aucun avertissement de sécurité. Les journaux Auth contiennent l'adresse et l'adresse IP du
+propriétaire : elles ne sont reproduites nulle part dans le dépôt.
+
+Rapporté par le propriétaire, corroboré par les journaux quand une ligne existe. Ce qui ne peut pas se
+lire dans les journaux (réception effective du mail, persistance après rechargement) reste déclaratif.

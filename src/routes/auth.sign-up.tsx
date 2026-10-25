@@ -15,6 +15,7 @@ import { ResendButton } from "@/components/auth/ResendButton";
 import { useAuth } from "@/auth/context";
 import { AUTH_PATHS } from "@/auth/redirects";
 import { resendConfirmation, signUpWithEmail } from "@/auth/service";
+import { showFailure } from "@/auth/showFailure";
 import { signUpSchema } from "@/auth/validation";
 import { PENDING_EMAIL_KEY } from "@/auth/pendingEmail";
 import { useAuthCopy, type AuthKey } from "@/i18n/auth";
@@ -49,7 +50,7 @@ function SignUpPage() {
     setFormError(null);
     const result = await signUpWithEmail(email.trim(), password);
     if (!result.ok) {
-      setFormError(result.failure.key);
+      showFailure(form, result.failure, setFormError);
       return;
     }
     if (!result.data.needsConfirmation) {

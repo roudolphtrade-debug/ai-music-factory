@@ -1,12 +1,18 @@
 import { loadSupabase } from "@/integrations/supabase/client";
 import { AUTH_PATHS, absoluteUrl } from "./redirects";
 import { classifyAuthError, failure, isAlreadyRegistered, type AuthFailure } from "./errors";
+import { recordAuthDiagnostic } from "./diagnostics";
 import type { Profile, ProfilePatch } from "./types";
 
 export type Result<T = undefined> = { ok: true; data: T } | { ok: false; failure: AuthFailure };
 const ok = <T>(data: T): Result<T> => ({ ok: true, data });
 const fail = (f: AuthFailure): Result<never> => ({ ok: false, failure: f });
 const unavailable = () => fail(failure("unavailable"));
+/** Classifies a failure for the screen, and keeps a secret-free trace of its kind (development only). */
+const diagnosed = (operation: string, error: unknown): AuthFailure => {
+  recordAuthDiagnostic(operation, error);
+  return classifyAuthError(error);
+};
 
 /** Creates the account. `needsConfirmation` is false only when the project confirms addresses itself. */
 export async function signUpWithEmail(
@@ -25,11 +31,11 @@ export async function signUpWithEmail(
     if (error) {
       return isAlreadyRegistered(error)
         ? ok({ needsConfirmation: true })
-        : fail(classifyAuthError(error));
+        : fail(diagnosed("signUpWithEmail", error));
     }
     return ok({ needsConfirmation: !data.session });
   } catch (e) {
-    return fail(classifyAuthError(e));
+    return fail(diagnosed("signUpWithEmail", e));
   }
 }
 
@@ -38,9 +44,9 @@ export async function signInWithEmail(email: string, password: string): Promise<
   if (!sb) return unavailable();
   try {
     const { error } = await sb.auth.signInWithPassword({ email, password });
-    return error ? fail(classifyAuthError(error)) : ok(undefined);
+    return error ? fail(diagnosed("signInWithEmail", error)) : ok(undefined);
   } catch (e) {
-    return fail(classifyAuthError(e));
+    return fail(diagnosed("signInWithEmail", e));
   }
 }
 
@@ -50,9 +56,9 @@ export async function signOutMember(): Promise<Result> {
   try {
     // This device only: signing out here does not end the member's sessions elsewhere.
     const { error } = await sb.auth.signOut({ scope: "local" });
-    return error ? fail(classifyAuthError(error)) : ok(undefined);
+    return error ? fail(diagnosed("signOutMember", error)) : ok(undefined);
   } catch (e) {
-    return fail(classifyAuthError(e));
+    return fail(diagnosed("signOutMember", e));
   }
 }
 
@@ -65,9 +71,9 @@ export async function resendConfirmation(email: string): Promise<Result> {
       email,
       options: { emailRedirectTo: absoluteUrl(AUTH_PATHS.confirm) },
     });
-    return error ? fail(classifyAuthError(error)) : ok(undefined);
+    return error ? fail(diagnosed("resendConfirmation", error)) : ok(undefined);
   } catch (e) {
-    return fail(classifyAuthError(e));
+    return fail(diagnosed("resendConfirmation", e));
   }
 }
 
@@ -80,10 +86,10 @@ export async function requestPasswordReset(email: string): Promise<Result> {
       redirectTo: absoluteUrl(AUTH_PATHS.reset),
     });
     if (!error) return ok(undefined);
-    const f = classifyAuthError(error);
+    const f = diagnosed("requestPasswordReset", error);
     return f.kind === "rate_limit" || f.kind === "network" ? fail(f) : ok(undefined);
   } catch (e) {
-    return fail(classifyAuthError(e));
+    return fail(diagnosed("requestPasswordReset", e));
   }
 }
 
@@ -92,9 +98,9 @@ export async function updateMemberPassword(password: string): Promise<Result> {
   if (!sb) return unavailable();
   try {
     const { error } = await sb.auth.updateUser({ password });
-    return error ? fail(classifyAuthError(error)) : ok(undefined);
+    return error ? fail(diagnosed("updateMemberPassword", error)) : ok(undefined);
   } catch (e) {
-    return fail(classifyAuthError(e));
+    return fail(diagnosed("updateMemberPassword", e));
   }
 }
 
@@ -103,9 +109,9 @@ export async function fetchProfile(userId: string): Promise<Result<Profile | nul
   if (!sb) return unavailable();
   try {
     const { data, error } = await sb.from("profiles").select("*").eq("id", userId).maybeSingle();
-    return error ? fail(classifyAuthError(error)) : ok((data as Profile | null) ?? null);
+    return error ? fail(diagnosed("fetchProfile", error)) : ok((data as Profile | null) ?? null);
   } catch (e) {
-    return fail(classifyAuthError(e));
+    return fail(diagnosed("fetchProfile", e));
   }
 }
 
@@ -132,7 +138,7 @@ export async function saveProfile(
       .eq("id", userId)
       .select()
       .maybeSingle();
-    if (updated.error) return fail(classifyAuthError(updated.error));
+    if (updated.error) return fail(diagnosed("saveProfile", updated.error));
     if (updated.data) return ok(updated.data as Profile);
 
     const name = (fields.display_name ?? fallbackName).trim().slice(0, 60) || "member";
@@ -141,8 +147,10 @@ export async function saveProfile(
       .insert({ id: userId, ...changes, display_name: name })
       .select()
       .single();
-    return created.error ? fail(classifyAuthError(created.error)) : ok(created.data as Profile);
+    return created.error
+      ? fail(diagnosed("saveProfile", created.error))
+      : ok(created.data as Profile);
   } catch (e) {
-    return fail(classifyAuthError(e));
+    return fail(diagnosed("saveProfile", e));
   }
 }

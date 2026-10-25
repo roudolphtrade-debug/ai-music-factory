@@ -13,6 +13,7 @@ import {
   type,
 } from "@/test/authHarness";
 import type { AuthHolder } from "@/test/clientMock";
+import { authCopy } from "@/i18n/auth";
 
 const holder = vi.hoisted(
   () => ({ fake: null, configured: true, startWithClient: true, snapshot: null }) as AuthHolder,
@@ -237,7 +238,7 @@ describe("sign-in", () => {
       Object.assign(new TypeError("Failed to fetch"), { name: "TypeError" }),
       "Connection failed. Check your network and try again.",
     ],
-    [authError("unexpected_failure", 500), "Something went wrong. Please try again in a moment."],
+    [authError("unexpected_failure", 500), authCopy.en.errServiceDown],
   ])("explains a refusal or an outage in plain words (%#)", async (error, message) => {
     fake.set("signInWithPassword", { data: {}, error });
     mountPage(SignIn);

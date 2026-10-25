@@ -7,6 +7,7 @@ import { AuthCard, AuthField, FormNotice, SubmitButton } from "@/components/auth
 import { ResendButton } from "@/components/auth/ResendButton";
 import { AUTH_PATHS } from "@/auth/redirects";
 import { requestPasswordReset } from "@/auth/service";
+import { showFailure } from "@/auth/showFailure";
 import { forgotSchema } from "@/auth/validation";
 import { useAuthCopy, type AuthKey } from "@/i18n/auth";
 
@@ -28,7 +29,7 @@ function ForgotPasswordPage() {
     setFormError(null);
     const result = await requestPasswordReset(email.trim());
     if (!result.ok) {
-      setFormError(result.failure.key);
+      showFailure(form, result.failure, setFormError);
       return;
     }
     setSentTo(email.trim());

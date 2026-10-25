@@ -355,7 +355,7 @@ describe("welcome page", () => {
     type(/^Handle/, "a b");
     await submit("Enter the factory");
     expect(await screen.findByText("The name must be 1 to 60 characters.")).toBeTruthy();
-    expect(await screen.findByText(/3 to 24 characters/)).toBeTruthy();
+    expect(await screen.findByText(/Characters not allowed: .?\(space\)/)).toBeTruthy();
     expect(written()).toEqual([]);
   });
 
@@ -369,7 +369,7 @@ describe("welcome page", () => {
     await screen.findByRole("heading", { name: "Welcome, Amina" });
     type(/^Handle/, "taken_name");
     await submit("Enter the factory");
-    expect(await screen.findByText("This handle is already taken.")).toBeTruthy();
+    expect(await screen.findByText(/This handle is already taken/)).toBeTruthy();
     expect(screen.queryByText(/duplicate key/)).toBeNull();
     expect(navigations()).toEqual([]);
   });

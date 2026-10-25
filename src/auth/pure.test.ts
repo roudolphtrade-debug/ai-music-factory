@@ -106,9 +106,16 @@ describe("profile validation", () => {
   });
 
   it("refuses a handle that is too short, too long or has other characters", () => {
-    for (const handle of ["ab", "a".repeat(25), "a b c", "ça_va", "a-b-c"]) {
+    const expected: [string, string][] = [
+      ["ab", "errHandleShort"],
+      ["a".repeat(25), "errHandleLong"],
+      ["a b c", "errHandleChars"],
+      ["ça_va", "errHandleChars"],
+      ["a-b-c", "errHandleChars"],
+    ];
+    for (const [handle, key] of expected) {
       expect(messages(profileSchema.safeParse({ displayName: "Amina", handle })), handle).toEqual([
-        "errHandle",
+        key,
       ]);
     }
   });
@@ -164,7 +171,9 @@ describe("what the backend says, mapped to what the screens show", () => {
     ["email_address_invalid", 400, "invalid_email"],
     ["validation_failed", 400, "invalid_email"],
     ["23505", 409, "handle_taken"],
-    ["something_new", 500, "generic"],
+    ["something_new", 400, "generic"],
+    ["something_new", 500, "service_error"],
+    ["email_address_not_authorized", 400, "email_failed"],
   ];
   it.each(cases)("%s (%i) is %s", (code, status, kind) => {
     expect(
@@ -300,9 +309,17 @@ describe("account catalog, six languages", () => {
     expect(fillCopy("Hi {name} {other}", { name: "Amina" })).toBe("Hi Amina {other}");
     for (const lang of codes) {
       for (const key of keys)
-        expect(authText(lang, key, { email: "x", s: 1, name: "n" }), `${lang}:${key}`).not.toMatch(
-          /[{}]/,
-        );
+        expect(
+          authText(lang, key, {
+            email: "x",
+            s: 1,
+            name: "n",
+            chars: "c",
+            count: 1,
+            suggestion: "s",
+          }),
+          `${lang}:${key}`,
+        ).not.toMatch(/[{}]/);
     }
   });
 

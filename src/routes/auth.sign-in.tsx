@@ -14,6 +14,7 @@ import { ResendButton } from "@/components/auth/ResendButton";
 import { useAuth } from "@/auth/context";
 import { AUTH_PATHS, safeRedirect } from "@/auth/redirects";
 import { resendConfirmation, signInWithEmail } from "@/auth/service";
+import { showFailure } from "@/auth/showFailure";
 import { signInSchema } from "@/auth/validation";
 import { usePostAuth } from "@/auth/usePostAuth";
 import { useAuthCopy, type AuthKey } from "@/i18n/auth";
@@ -62,7 +63,7 @@ function SignInPage() {
       return;
     }
     if (result.failure.kind === "not_confirmed") setUnconfirmed(email.trim());
-    else setFormError(result.failure.key);
+    else showFailure(form, result.failure, setFormError);
   });
 
   return (

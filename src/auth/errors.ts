@@ -1,4 +1,5 @@
 import type { AuthKey } from "@/i18n/auth";
+import { diagnoseAuthError } from "./diagnostics";
 
 /** What went wrong, in terms the screens can act on. Raw backend messages are never shown. */
 export type AuthFailureKind =
@@ -6,6 +7,8 @@ export type AuthFailureKind =
   | "not_confirmed"
   | "rate_limit"
   | "network"
+  | "email_failed"
+  | "service_error"
   | "weak_password"
   | "same_password"
   | "signup_disabled"
@@ -26,6 +29,8 @@ const KEY_BY_KIND: Record<AuthFailureKind, AuthKey> = {
   not_confirmed: "errNotConfirmed",
   rate_limit: "errRateLimit",
   network: "errNetwork",
+  email_failed: "errEmailSend",
+  service_error: "errServiceDown",
   weak_password: "errPasswordWeak",
   same_password: "errSamePassword",
   signup_disabled: "errSignupDisabled",
@@ -56,6 +61,8 @@ const BY_CODE: Record<string, AuthFailureKind> = {
   otp_expired: "expired",
   validation_failed: "invalid_email",
   email_address_invalid: "invalid_email",
+  // The default mail service only writes to the project team: the mail cannot be sent, nothing to do with the network.
+  email_address_not_authorized: "email_failed",
 };
 
 /** Maps a supabase-js error (or anything thrown) to a failure, reading `code`, then `status`. */
@@ -71,10 +78,14 @@ export function classifyAuthError(error: unknown): AuthFailure {
   // PostgREST: unique violation (a handle already used by another member).
   if (code === "23505") return failure("handle_taken");
   if (e.name === "AuthWeakPasswordError") return failure("weak_password");
-  if (e.name === "AuthRetryableFetchError" || e.name === "TypeError") return failure("network");
+  // Network, mail and service failures are told apart by what the request got back, not by the class
+  // of the error: auth-js also wraps HTTP 500 and 502 to 504 answers in "AuthRetryableFetchError".
+  const kind = diagnoseAuthError(error).category;
+  if (kind === "network") return failure("network"); // no HTTP answer at all
+  if (kind === "smtp") return failure("email_failed"); // the service answered, the mail could not be sent
+  if (kind === "service_error") return failure("service_error"); // the service answered with a failure
   if (e.status === 429) return failure("rate_limit");
   const message = typeof e.message === "string" ? e.message : "";
-  if (/failed to fetch|network ?error|load failed/i.test(message)) return failure("network");
   // Older servers answer with a message only.
   if (/invalid login credentials/i.test(message)) return failure("credentials");
   if (/email not confirmed/i.test(message)) return failure("not_confirmed");

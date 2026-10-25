@@ -9,6 +9,7 @@ import { useAuth } from "@/auth/context";
 import { clearPendingEmail, readPendingEmail } from "@/auth/pendingEmail";
 import { AUTH_PATHS, readAuthUrlOutcome, type AuthUrlOutcome } from "@/auth/redirects";
 import { resendConfirmation } from "@/auth/service";
+import { showFailure } from "@/auth/showFailure";
 import { forgotSchema } from "@/auth/validation";
 import { usePostAuth } from "@/auth/usePostAuth";
 import { consumeAuthUrlSnapshot } from "@/integrations/supabase/client";
@@ -115,7 +116,7 @@ function LinkProblem({ expired }: { expired: boolean }) {
     setFormError(null);
     const result = await resendConfirmation(value.trim());
     if (!result.ok) {
-      setFormError(result.failure.key);
+      showFailure(form, result.failure, setFormError);
       return;
     }
     setEmail(value.trim());

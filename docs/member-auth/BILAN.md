@@ -163,7 +163,7 @@ premier chargement via la coque ; les découper par langue économiserait enviro
 | Vérification | Résultat | Nature |
 |---|---|---|
 | `tsc --noEmit` | 0 erreur | réel |
-| Vitest, suite complète | 652 tests, 29 fichiers, tous réussis | simulé (client Supabase et routeur remplacés) |
+| Vitest, suite complète | 727 tests, 32 fichiers, tous réussis | simulé (client Supabase et routeur remplacés) |
 | ESLint, comparaison fichier par fichier avec la base | aucun nouvel avertissement | réel |
 | `vite build` | succès, aucun avertissement de taille | réel |
 | Parcours en navigateur réel (inscription, confirmation, renvoi, lien expiré, connexion, récupération, déconnexion, garde de route, backend injoignable) | 39 sur 39 | **simulé** : serveur GoTrue/PostgREST écrit pour l'occasion, qui refuse l'`upsert` comme la vraie base |
@@ -270,3 +270,88 @@ après rechargement, récupération du mot de passe, déconnexion, suppression d
 réglages d'Authentication (URL de redirection, Site URL, longueur minimale 12, SMTP) ne sont lisibles qu'en
 partie par le contrôle (inscription, confirmation) : le reste se constate pendant le parcours. Feuille de route
 et relevé : `PARCOURS-MANUEL.md`.
+
+### Diagnostic d'un échec d'inscription
+
+Une trace sans secret est tenue en mémoire en développement (`src/auth/diagnostics.ts`,
+`window.__afmAuthDiagnostics`) : heure, opération, catégorie (réseau, refus du service, SMTP, autre erreur du
+service, inconnue), statut HTTP et code d'erreur, jamais le message, l'adresse, le mot de passe ni un jeton.
+Elle ne change rien à ce que voit le membre. Mode d'emploi et tableau de décision : `PARCOURS-MANUEL.md`,
+section 6. Vérifié par des tests simulés ; aucune vraie tentative d'inscription n'a été observée ici.
+
+### Premier essai réel d'inscription (2026-10-25, 08:36 UTC)
+
+Relevé en lecture seule dans les journaux du projet aimf-dev, sans adresse, sans identifiant de compte et
+sans adresse IP (les journaux Auth les contiennent en clair : ne jamais les coller tels quels).
+
+| Observation | Valeur |
+|---|---|
+| Requête | `OPTIONS` puis `POST /auth/v1/signup` : la requête **est arrivée** au service (ce n'est pas un problème réseau) |
+| Réponse du service | HTTP **500**, `error_code = unexpected_failure`, durée environ 3,3 s |
+| Cause dans les journaux Auth | `535 "5.7.8 Error: authentication failed: (reason unavailable)"` : le serveur SMTP a **refusé l'authentification** |
+| Conclusion | **échec SMTP** (identifiants refusés par le serveur de mail), ni réseau, ni refus du service |
+| Effet sur la base | aucun compte et aucun profil créés : l'inscription a été annulée avec l'envoi (`auth.users` vide, `profiles` vide) |
+| Base de données | aucune erreur Postgres à l'heure de l'essai ; le trigger de profil n'est pas en cause |
+
+À corriger côté propriétaire dans **Authentication, SMTP Settings** (non modifiable depuis ce dépôt, et les
+identifiants ne doivent jamais être communiqués) : nom d'utilisateur (souvent l'adresse complète), mot de
+passe ou mot de passe d'application régénéré, hôte et port avec le bon mode (587 STARTTLS ou 465 SSL),
+adresse d'expéditeur autorisée par le compte, et côté Sawaz : compte actif, restrictions d'adresse IP,
+authentification à deux facteurs. Tester ces identifiants directement chez le fournisseur avant de réessayer.
+
+Contrôles faits le même jour avec l'accès en lecture au projet : un seul projet `aimf-dev`
+(`liewjcwkogoesgxcuyff`, actif et en bonne santé, région eu-west-1) ; une seule migration enregistrée,
+`20261024224751` `member_profiles` ; table `public.profiles` avec la sécurité au niveau des lignes activée ;
+aucun avertissement de sécurité ; `auth.users` et `profiles` vides.
+
+## 12. Parcours réel réussi et messages d'erreur corrigés (2026-10-25)
+
+### Essais réels du propriétaire
+
+Le parcours complet a été réussi sur aimf-dev avec une vraie boîte e-mail, après la correction du SMTP.
+
+| Étape | Résultat | Preuve (journaux Auth du projet, en UTC ; Paris = UTC+1) |
+|---|---|---|
+| 0.3 Contrôle de connexion | ok, 8 sur 8 | 08:32 : `GET /settings` 200 avec la clé publique, `profiles` refusée à un visiteur (401) |
+| 1 Inscription, premiers essais | **échec SMTP** (2 fois) | 08:36 et 11:23 : `POST /signup` 500, `535 5.7.8 authentication failed` : identifiants du serveur de mail refusés |
+| 1 Inscription, après correction du SMTP | **réussie** | 11:26 : `POST /signup` 200, `user_confirmation_requested` |
+| 2 Réception du mail | **réussie** (rapportée) | corroborée : le lien a été ouvert à 11:28 |
+| 3 Confirmation | **réussie** | 11:28 : `user_signedup` (`GET /verify` 303, redirection vers l'application) ; 11:28:23 : lien rouvert, redirection (303) ; 11:28:33 : `POST /resend` 200 |
+| 4 Profil | **réussi** | base : 1 profil créé par le trigger, pseudonyme renseigné, accueil terminé |
+| 5 Persistance après rechargement | **réussie** (rapportée) | non visible dans les journaux : un rechargement ne rappelle pas le service tant que le jeton est valide ; 1 session ouverte à la fin |
+| 6 Déconnexion | **réussie** | 11:41:12 et 11:42:50 : `POST /logout` 204 |
+| 7 Reconnexion | **réussie** | 11:32:13 et 11:41:18 : `POST /token` 200, évènement `login` |
+| 8 Réinitialisation du mot de passe | **réussie** | 11:42:58 : `POST /recover` 200 ; 11:43:15 : lien de récupération (`GET /verify` 303, `login`) ; 11:43:44 : `PUT /user` 422 `same_password` (le même mot de passe est refusé) ; 11:43:53 : `PUT /user` 200, `user_updated_password` |
+
+État de la base après les essais (lecture seule) : 1 compte, confirmé, déjà connecté ; 1 profil avec
+pseudonyme et accueil terminé ; 1 session ouverte ; `profiles` protégée par la sécurité au niveau des
+lignes ; aucun avertissement de sécurité. Les journaux Auth contiennent l'adresse et l'adresse IP du
+propriétaire : elles ne sont reproduites nulle part dans le dépôt.
+
+Rapporté par le propriétaire, corroboré par les journaux quand une ligne existe. Ce qui ne peut pas se
+lire dans les journaux (réception effective du mail, persistance après rechargement) reste déclaratif.
+
+### Messages d'erreur corrigés
+
+| Sujet | Avant | Après |
+|---|---|---|
+| Échec d'envoi du mail à l'inscription | affiché comme un problème de réseau (« Vérifiez votre réseau »), car la version de la bibliothèque (auth-js) enveloppe toute réponse HTTP 500 et 502 à 504 dans l'erreur « réessayable » que l'application classait en réseau | classement d'après ce que la requête a reçu : **pas de réponse HTTP** = réseau ; **5xx sur l'envoi du mail** = « le mail n'a pas pu être envoyé, problème de notre côté et non de votre connexion » ; **autre 5xx** = « le service est momentanément indisponible, pas un problème de votre connexion » ; adresse refusée par le service de mail par défaut = même message que l'échec d'envoi |
+| Pseudonyme refusé | un seul message : « 3 à 24 caractères : lettres minuscules, chiffres et tiret bas » | **caractères refusés** cités (par exemple « (espace), é, - »), **longueur** donnée (« vous en avez saisi 2 », minimum 3, maximum 24), **indisponibilité** annoncée avec une proposition valide (`taken_name2`), et **un exemple valide** (`amina_o`) ; une aide permanente sous le champ |
+| Saisies et curseur | les saisies étaient conservées ; le curseur ne bougeait pas pour une erreur venue du service | les saisies restent toujours ; le curseur va au **premier champ invalide** (nom avant pseudonyme) ; une erreur du service qui concerne un champ (pseudonyme pris, mot de passe refusé, adresse refusée) s'écrit sous ce champ et y place le curseur ; un mot de passe incorrect remet le curseur dans le champ mot de passe, texte sélectionné |
+| Détails techniques | aucun n'était affiché | aucun non plus : ni code HTTP, ni mot SMTP, ni code d'erreur, ni texte du service ; un test le vérifie dans les six langues |
+
+Règles du pseudonyme (inchangées) : facultatif ; 3 à 24 caractères ; lettres minuscules sans accent,
+chiffres et tiret bas ; les majuscules, un @ initial et les espaces autour sont corrigés sans reproche. Les
+caractères refusés passent avant la longueur : raccourcir ne sert à rien tant qu'ils sont là.
+
+Vérifications des corrections :
+- 727 tests sur 32 fichiers : classement des erreurs, règles et messages du pseudonyme, comportement des écrans
+  (saisies conservées, curseur, messages), et pour **chacune des six langues** la présence des caractères,
+  du nombre, de la suggestion et de l'exemple, l'absence de marqueur non remplacé, la traduction (pas la phrase
+  anglaise) et l'absence de terme technique ;
+- navigateur réel (Chrome, serveur simulé) : 4 cas du pseudonyme dans les 6 langues (24 captures) avec curseur
+  sur le champ et saisies conservées, échec de mail et service indisponible dans les 6 langues, perte totale de
+  connexion simulée dans le navigateur (message « réseau » seulement dans ce cas), arabe en sens droite à gauche
+  lisible.
+
+Traductions : ZH, PT et AR restent des textes à faire relire par des locuteurs natifs.

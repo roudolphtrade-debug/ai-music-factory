@@ -115,6 +115,8 @@ describe("secrets stay out of the repository", { timeout: 30_000 }, () => {
       for (const m of readFileSync(f, "utf8").matchAll(/import\.meta\.env\.([A-Z0-9_]+)/g))
         used.add(m[1]);
     }
+    // DEV is a Vite built-in boolean (true only when serving for development), not an environment value.
+    used.delete("DEV");
     expect([...used].sort()).toEqual(["VITE_SUPABASE_PUBLISHABLE_KEY", "VITE_SUPABASE_URL"]);
   });
 

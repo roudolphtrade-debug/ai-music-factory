@@ -9,6 +9,7 @@ import { AuthCard, FormNotice, PasswordField, SubmitButton } from "@/components/
 import { useAuth } from "@/auth/context";
 import { AUTH_PATHS, readAuthUrlOutcome, type AuthUrlOutcome } from "@/auth/redirects";
 import { updateMemberPassword } from "@/auth/service";
+import { showFailure } from "@/auth/showFailure";
 import { resetSchema } from "@/auth/validation";
 import { consumeAuthUrlSnapshot } from "@/integrations/supabase/client";
 import { useAuthCopy, type AuthKey } from "@/i18n/auth";
@@ -49,7 +50,7 @@ function ResetPasswordPage() {
     setFormError(null);
     const result = await updateMemberPassword(password);
     if (!result.ok) {
-      setFormError(result.failure.key);
+      showFailure(form, result.failure, setFormError);
       return;
     }
     endRecovery();

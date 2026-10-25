@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { AuthKey } from "@/i18n/auth";
+import { handleProblem, normalizeHandle } from "./handle";
 
 /** Error messages are catalog keys: the form translates them. */
 const msg = (key: AuthKey) => key;
@@ -50,15 +51,25 @@ export const displayNameSchema = z
   .min(1, msg("errName"))
   .max(NAME_MAX, msg("errName"));
 
-const HANDLE = /^[a-z0-9_]{3,24}$/;
-/** "@Studio_A " becomes "studio_a". */
-export function normalizeHandle(input: string): string {
-  return input.trim().replace(/^@+/, "").toLowerCase();
-}
+export { normalizeHandle } from "./handle";
+
+/**
+ * The handle is optional. When it is not valid, the issue says exactly why (refused characters, too
+ * short, too long) and carries the details the message needs in `params`.
+ */
 export const handleSchema = z
   .string()
   .transform(normalizeHandle)
-  .refine((v) => v === "" || HANDLE.test(v), msg("errHandle"));
+  .superRefine((value, ctx) => {
+    const problem = handleProblem(value);
+    if (!problem) return;
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: msg(problem.key),
+      params:
+        problem.key === "errHandleChars" ? { chars: problem.chars } : { count: problem.count },
+    });
+  });
 
 export const profileSchema = z.object({
   displayName: displayNameSchema,
