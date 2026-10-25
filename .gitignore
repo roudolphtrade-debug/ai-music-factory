@@ -16,6 +16,11 @@ dist-ssr
 .nitro
 *.local
 
+# Environment files: .env holds only the two browser-safe Supabase values and is versioned (Lovable
+# reads it for the preview and the published site). Every other variant stays local; .env.example is versioned.
+.env.*
+!.env.example
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars

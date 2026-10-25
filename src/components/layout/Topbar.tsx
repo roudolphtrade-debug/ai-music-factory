@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Search, Plus, Menu } from "lucide-react";
 import { NotificationsBell } from "@/components/premium/NotificationsBell";
 import { LanguageSelector } from "@/components/layout/LanguageSelector";
+import { AccountMenu } from "@/components/auth/AccountMenu";
 import { SearchPalette } from "@/components/layout/SearchPalette";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/context";
@@ -53,15 +54,7 @@ export function Topbar({ onMenu, compact = false }: { onMenu: () => void; compac
             </Link>
           </Button>
           <NotificationsBell />
-          <Link
-            to="/settings"
-            className="hidden shrink-0 items-center gap-2 rounded-lg sm:flex border border-border bg-secondary/30 py-1 pl-1 pr-1.5 transition-colors hover:border-[color-mix(in_oklab,var(--gold)_28%,transparent)] sm:pr-2.5"
-          >
-            <span className="grid h-8 w-8 place-items-center rounded-md border border-[color-mix(in_oklab,var(--gold)_30%,transparent)] bg-[color-mix(in_oklab,var(--gold)_12%,transparent)] text-sm font-semibold text-gold">
-              A
-            </span>
-            <span className="hidden text-sm font-medium text-foreground md:block">Studio A</span>
-          </Link>
+          <AccountMenu />
         </div>
       </div>
     </header>

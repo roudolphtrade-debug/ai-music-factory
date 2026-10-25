@@ -3,6 +3,9 @@ import { useState } from "react";
 import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/premium/SectionHeading";
+import { MemberProfileSection, MemberSideCard } from "@/components/auth/SettingsMember";
+import { useAuth } from "@/auth/context";
+import { useAuthCopy } from "@/i18n/auth";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/context";
 import { useTheme } from "@/theme/context";
@@ -26,6 +29,10 @@ export const Route = createFileRoute("/_app/settings")({
 
 function SettingsPage() {
   const { t } = useI18n();
+  const { t: account } = useAuthCopy();
+  const { status } = useAuth();
+  const signedIn = status === "signedIn";
+  const accountsOff = status === "unconfigured";
   return (
     <div className="space-y-8">
       <SectionHeading
@@ -40,21 +47,24 @@ function SettingsPage() {
           <Lock className="h-5 w-5" />
         </span>
         <div>
-          <p className="font-medium text-foreground">{t("settings.accountsTitle")}</p>
-          <p className="mt-0.5 text-sm text-muted-foreground">{t("settings.accountsDesc")}</p>
+          <p className="font-medium text-foreground">
+            {accountsOff ? t("settings.accountsTitle") : account("settingsNoticeTitle")}
+          </p>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            {accountsOff ? t("settings.accountsDesc") : account("settingsNoticeDesc")}
+          </p>
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+      <div className={signedIn ? "grid gap-6 lg:grid-cols-[1fr_320px]" : "grid gap-6"}>
         <div className="space-y-6">
           {/* PROFILE */}
           <section className="rounded-2xl border border-border bg-card p-6">
             <h2 className="font-display text-xl font-semibold text-foreground">
               {t("settings.studioProfile")}
             </h2>
+            <MemberProfileSection />
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              <FormField label={t("settings.studioName")} defaultValue="Studio A" />
-              <FormField label={t("settings.handle")} defaultValue="@studio-a" ltr />
               <FormField label={t("settings.primaryGenre")} defaultValue="Afrobeats" />
               <FormField label={t("settings.location")} defaultValue="Paris, FR" />
             </div>
@@ -110,20 +120,11 @@ function SettingsPage() {
         </div>
 
         {/* SIDE */}
-        <div className="space-y-6">
-          <div className="rounded-2xl border border-border bg-card p-6 text-center">
-            <span className="mx-auto grid h-20 w-20 place-items-center rounded-2xl bg-gold-gradient text-2xl font-semibold text-primary-foreground">
-              A
-            </span>
-            <p className="mt-4 font-display text-lg font-semibold text-foreground">Studio A</p>
-            <p className="text-xs text-muted-foreground">
-              <bdi dir="ltr">@studio-a</bdi>
-            </p>
-            <Button variant="ghost-gold" className="mt-5 w-full">
-              {t("settings.changeAvatar")}
-            </Button>
+        {signedIn && (
+          <div className="space-y-6">
+            <MemberSideCard />
           </div>
-        </div>
+        )}
       </div>
 
       <div className="flex justify-end gap-3">
@@ -139,14 +140,11 @@ function FormField({
   defaultValue,
   className,
   textarea,
-  ltr,
 }: {
   label: string;
   defaultValue: string;
   className?: string;
   textarea?: boolean;
-  /** Content that is always written left to right (a handle): the field stays aligned to the page. */
-  ltr?: boolean;
 }) {
   return (
     <label className={cn("block space-y-1.5", className)}>
@@ -160,11 +158,7 @@ function FormField({
       ) : (
         <input
           defaultValue={defaultValue}
-          dir={ltr ? "ltr" : undefined}
-          className={cn(
-            "h-10 w-full rounded-xl border border-input bg-secondary/30 px-3 text-sm text-foreground outline-none transition-colors focus:border-[color-mix(in_oklab,var(--gold)_45%,transparent)]",
-            ltr && "rtl:text-right",
-          )}
+          className="h-10 w-full rounded-xl border border-input bg-secondary/30 px-3 text-sm text-foreground outline-none transition-colors focus:border-[color-mix(in_oklab,var(--gold)_45%,transparent)]"
         />
       )}
     </label>
