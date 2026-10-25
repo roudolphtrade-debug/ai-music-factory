@@ -266,3 +266,24 @@ lire dans les journaux (réception effective du mail, persistance après recharg
 - **Refus des mots de passe courants ou issus de fuites** : possible seulement avec le contrôle des mots de
   passe compromis, réservé au plan Pro et supérieurs (payant). **Inactif**, rien n'a été souscrit : un mot de passe
   courant qui respecte les règles reste accepté.
+
+## 9. Connexion avec Google
+
+Le bouton « Continuer avec Google » n'apparaît que si le projet annonce Google actif (`node supabase/preflight.mjs`
+le dit ; aujourd'hui : actif). Configuration : `supabase/README.md`, section 3.2.
+
+Parcours à rejouer (avec un compte Google qui vous appartient) :
+
+1. Ouvrir `/auth/sign-in`, cliquer sur **Continuer avec Google**, choisir le compte. Attendu : retour dans l'application,
+   connecté (un nouveau membre arrive sur la page de bienvenue).
+2. Recharger la page. Attendu : toujours connecté.
+3. Se déconnecter. Attendu : retour à l'état déconnecté.
+4. Se reconnecter avec Google. Attendu : **le même profil** (même nom affiché, pas de nouvelle page de bienvenue, pas de
+   second profil dans Table Editor, `profiles`).
+
+Rapporté par le propriétaire le 2026-10-25 : les quatre étapes réussies. Relevé en lecture seule après coup : un seul
+compte Google et un seul profil de plus qu'avant, aucun utilisateur sans profil (détail : `BILAN.md`, section 14). Le
+maintien après rechargement et la déconnexion restent déclaratifs.
+
+Si Google renvoie une erreur de redirection : vérifier que l'adresse de la page figure dans Authentication, URL
+Configuration (motif `.../**`) et dans les origines autorisées du client Google.

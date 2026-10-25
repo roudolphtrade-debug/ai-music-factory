@@ -154,3 +154,23 @@ export async function saveProfile(
     return fail(diagnosed("saveProfile", e));
   }
 }
+
+/**
+ * Sends the member to Google. Supabase brings them back to the sign-in page with a session (implicit
+ * flow), where the usual after-sign-in routing takes over. Only offered once Google is switched on in
+ * the project (see providers.ts).
+ */
+export async function signInWithGoogle(destination?: string): Promise<Result> {
+  const sb = await loadSupabase();
+  if (!sb) return unavailable();
+  try {
+    const back = destination ? `?redirect=${encodeURIComponent(destination)}` : "";
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: absoluteUrl(AUTH_PATHS.signIn) + back },
+    });
+    return error ? fail(diagnosed("signInWithGoogle", error)) : ok(undefined);
+  } catch (e) {
+    return fail(diagnosed("signInWithGoogle", e));
+  }
+}

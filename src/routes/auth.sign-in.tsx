@@ -10,13 +10,15 @@ import {
   PasswordField,
   SubmitButton,
 } from "@/components/auth/AuthParts";
+import { GoogleSection } from "@/components/auth/GoogleSection";
 import { ResendButton } from "@/components/auth/ResendButton";
 import { useAuth } from "@/auth/context";
-import { AUTH_PATHS, safeRedirect } from "@/auth/redirects";
+import { AUTH_PATHS, readAuthUrlOutcome, safeRedirect } from "@/auth/redirects";
 import { resendConfirmation, signInWithEmail } from "@/auth/service";
 import { showFailure } from "@/auth/showFailure";
 import { signInSchema } from "@/auth/validation";
 import { usePostAuth } from "@/auth/usePostAuth";
+import { consumeAuthUrlSnapshot } from "@/integrations/supabase/client";
 import { useAuthCopy, type AuthKey } from "@/i18n/auth";
 
 export const Route = createFileRoute("/auth/sign-in")({
@@ -39,6 +41,8 @@ function SignInPage() {
   const { go, pending } = usePostAuth(redirect);
   const [formError, setFormError] = useState<AuthKey | null>(null);
   const [unconfirmed, setUnconfirmed] = useState<string | null>(null);
+  // Back from Google without a session (refused or cancelled): the address says so.
+  const [googleFailed, setGoogleFailed] = useState(false);
   const form = useForm<Values>({
     resolver: zodResolver(signInSchema),
     mode: "onTouched",
@@ -46,6 +50,10 @@ function SignInPage() {
   });
   const { errors, isSubmitting } = form.formState;
   const msg = (key?: string) => (key ? t(key as AuthKey) : undefined);
+
+  useEffect(() => {
+    setGoogleFailed(readAuthUrlOutcome(consumeAuthUrlSnapshot(AUTH_PATHS.signIn)).kind === "error");
+  }, []);
 
   // Opened while already signed in (a bookmark, the back button): just continue.
   useEffect(() => {
@@ -72,7 +80,9 @@ function SignInPage() {
       description={t("signInDesc")}
       icon={<LogIn aria-hidden="true" className="h-5 w-5" />}
     >
+      <GoogleSection destination={redirect} />
       <form onSubmit={onSubmit} noValidate className="space-y-5">
+        {googleFailed && <FormNotice tone="error">{t("errGoogle")}</FormNotice>}
         {formError && <FormNotice tone="error">{t(formError)}</FormNotice>}
         {unconfirmed && (
           <div className="space-y-3">

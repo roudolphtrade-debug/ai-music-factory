@@ -120,6 +120,11 @@ async function main() {
       `an address must be confirmed by e-mail (mailer_autoconfirm = ${settings.body.mailer_autoconfirm})`,
     );
     info(
+      settings.body.external?.google === true
+        ? "Google sign-in is enabled in the project: the app shows the Google button"
+        : "Google sign-in is not enabled in the project: the app shows no Google button (expected until it is configured)",
+    );
+    info(
       "the password rules (length, required characters, leaked-password check) are not readable with a public key: see supabase/README.md section 3",
     );
   }

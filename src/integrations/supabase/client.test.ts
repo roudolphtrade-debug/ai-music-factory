@@ -12,6 +12,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
 });
 
 describe("member backend configuration", () => {
@@ -134,5 +135,75 @@ describe("the first-load address of an email link", () => {
     const client = await load();
     await client.loadSupabase();
     expect(client.consumeAuthUrlSnapshot("/auth/reset-password")?.hash).toContain("type=recovery");
+  });
+});
+
+describe("the project's public sign-in settings", () => {
+  const configure = () => {
+    vi.stubEnv("VITE_SUPABASE_URL", "https://example.supabase.co");
+    vi.stubEnv("VITE_SUPABASE_PUBLISHABLE_KEY", "sb_publishable_x");
+  };
+  const answer = (status: number, body: unknown) =>
+    vi.fn(async (..._args: unknown[]) => ({
+      ok: status >= 200 && status < 300,
+      status,
+      json: async () => body,
+    }));
+
+  it("asks GET /auth/v1/settings with the publishable key and sends nothing else", async () => {
+    configure();
+    const fetchMock = answer(200, { external: { google: true } });
+    vi.stubGlobal("fetch", fetchMock);
+    const client = await load();
+    expect(await client.loadAuthSettings()).toEqual({ external: { google: true } });
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe("https://example.supabase.co/auth/v1/settings");
+    expect(init.method).toBeUndefined(); // a plain GET
+    expect(init.body).toBeUndefined();
+    expect(Object.keys(init.headers as Record<string, string>)).toEqual(["apikey"]);
+    expect(init.credentials).toBeUndefined();
+  });
+
+  it("is asked once per page load when it works", async () => {
+    configure();
+    const fetchMock = answer(200, { external: { google: false } });
+    vi.stubGlobal("fetch", fetchMock);
+    const client = await load();
+    await client.loadAuthSettings();
+    await client.loadAuthSettings();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("is null on a refusal, a network failure or an unreadable answer, and is asked again later", async () => {
+    configure();
+    const client = await load();
+    vi.stubGlobal("fetch", answer(401, { message: "Invalid API key" }));
+    expect(await client.loadAuthSettings()).toBeNull();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => Promise.reject(new TypeError("Failed to fetch"))),
+    );
+    expect(await client.loadAuthSettings()).toBeNull();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        status: 200,
+        json: async () => Promise.reject(new SyntaxError("bad")),
+      })),
+    );
+    expect(await client.loadAuthSettings()).toBeNull();
+    vi.stubGlobal("fetch", answer(200, { external: { google: true } })); // the project is back
+    expect(await client.loadAuthSettings()).toEqual({ external: { google: true } });
+  });
+
+  it("is null, and asks nothing, when the accounts are not configured", async () => {
+    vi.stubEnv("VITE_SUPABASE_URL", "");
+    vi.stubEnv("VITE_SUPABASE_PUBLISHABLE_KEY", "");
+    const fetchMock = answer(200, {});
+    vi.stubGlobal("fetch", fetchMock);
+    const client = await load();
+    expect(await client.loadAuthSettings()).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

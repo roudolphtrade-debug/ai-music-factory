@@ -49,6 +49,27 @@ export function loadSupabase(): Promise<SupabaseClient | null> {
   return loading;
 }
 
+let settings: Promise<unknown> | null = null;
+
+/**
+ * The project's public sign-in settings (GET /auth/v1/settings, with the publishable key): which
+ * providers are switched on. Resolves to `null` on any failure, so that nothing is shown on a doubt.
+ */
+export function loadAuthSettings(): Promise<unknown> {
+  if (!isAuthConfigured || typeof window === "undefined") return Promise.resolve(null);
+  settings ??= fetch(`${url}/auth/v1/settings`, {
+    headers: { apikey: key! },
+    signal: typeof AbortSignal.timeout === "function" ? AbortSignal.timeout(6000) : undefined,
+  })
+    .then((response) => (response.ok ? response.json() : null))
+    .catch(() => null)
+    .then((value) => {
+      if (value === null) settings = null; // retry on the next screen
+      return value;
+    });
+  return settings;
+}
+
 /** Calls back with the client as soon as it exists (now, if it already does). Returns a way to stop. */
 export function whenSupabaseReady(listener: (sb: SupabaseClient) => void): () => void {
   if (client) listener(client);

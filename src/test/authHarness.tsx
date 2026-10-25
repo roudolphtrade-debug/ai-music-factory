@@ -24,6 +24,7 @@ export function setUpAccounts(holder: AuthHolder, lang = "en") {
   holder.configured = true;
   holder.startWithClient = true;
   holder.snapshot = null;
+  holder.settings = null;
   return holder.fake;
 }
 

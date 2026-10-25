@@ -431,3 +431,63 @@ retard d'ingestion probable, non prouvé) et aucun appel accepté ni mail de con
   pendant et après un refus (captures), mot de passe de fuite refusé, réinitialisation (anglais et arabe) refusée
   puis acceptée, compte ancien au mot de passe faible qui se connecte encore. Ce volet est simulé : la preuve du
   comportement réel d'aimf-dev est celle des appels directs ci-dessus.
+
+## 14. Connexion avec Google (2026-10-25)
+
+### Ce que fait l'application
+
+Le bouton « Continuer avec Google » existe dans les six langues sur la page de connexion et la page d'inscription,
+et **n'apparaît que si le projet déclare Google activé** (`external.google` vrai dans ses réglages publics, lus avec
+la clé publique, une fois par chargement). Un doute (pas de réponse, réponse refusée) vaut « pas de bouton ».
+
+Au retour de Google (flux implicite), l'application revient sur la page de connexion avec une session et
+l'acheminement habituel s'applique (nouveau membre vers la page de bienvenue, destination mémorisée). Un retour sans
+session (refus ou annulation) affiche « La connexion avec Google n'a pas abouti » et laisse le formulaire e-mail.
+Supabase relie automatiquement les identités de même adresse **vérifiée** ; s'inscrire par e-mail avec une adresse
+déjà créée par Google donne l'écran neutre habituel, sans mail. Le secret du client Google reste dans le tableau de
+bord Supabase : jamais dans le dépôt, une variable `VITE_` ou Lovable (un test de dépôt cherche aussi les secrets et
+identifiants Google). Étapes de configuration : `supabase/README.md`, section 3.2.
+
+### État du projet
+
+Le projet aimf-dev **annonce désormais Google actif** : `node supabase/preflight.mjs` affiche « Google sign-in is
+enabled in the project », et le serveur local sur le port 8080 (configuration réelle d'aimf-dev) affiche le bouton
+« Continuer avec Google » sur `/auth/sign-in`.
+
+### Essais réels du propriétaire
+
+Le propriétaire a réussi, avec son propre compte Google, sur l'application locale branchée sur aimf-dev :
+
+1. **Connexion** avec Google, retour dans l'application connecté.
+2. **Maintien après rechargement** : la session est conservée au rechargement de la page.
+3. **Déconnexion**.
+4. **Reconnexion** avec Google, **sur le même profil**.
+
+Ce qui est vérifié par moi et ce qui est rapporté :
+
+- Rapporté par le propriétaire, **non reproduit par moi** : les quatre étapes ci-dessus (je n'ai pas cliqué sur le
+  bouton, qui ouvre une vraie connexion avec son compte). Le maintien après rechargement et la déconnexion ne se
+  lisent pas dans la base.
+- Vérifié en lecture seule dans la base après les essais, sans reproduire d'adresse : utilisateurs 3 (2 avant),
+  identités 3 dont **1 Google**, profils 3, **aucun utilisateur sans profil**, sessions 2. Un seul compte et un seul
+  profil Google existent : la reconnexion n'a pas créé de doublon, ce qui concorde avec « même profil ».
+
+### Limites restantes
+
+- Le message du propriétaire ne précise pas l'adresse de la page d'essai ; le serveur local du port 8080 était
+  actif. **L'adresse publiée et l'aperçu Lovable ne sont pas couverts** : leurs adresses doivent figurer dans les URL
+  de redirection du projet et dans les origines autorisées du client Google (`supabase/README.md`, section 3.2).
+- Non essayés en réel : refus ou annulation chez Google, liaison avec un compte créé par e-mail à la même adresse,
+  autre navigateur ou autre appareil.
+- **Réinitialisation non testée séparément côté service** et **filtrage des mots de passe compromis inactif** (plan
+  Free) : voir la section 13 ; ces deux limites restent entières.
+
+### Vérifications
+
+- Tests : bouton absent tant que le projet ne répond pas « activé », présent ensuite dans les six langues, départ vers
+  Google avec retour sur la page de connexion et destination mémorisée, refus et panne sans détail technique, retour
+  refusé ; réglages publics lus avec la clé seule, une fois par chargement ; recherche de secrets et d'identifiants
+  Google dans le dépôt.
+- Navigateur réel contre un **serveur simulé** : Google absent puis présent dans les 6 langues, clic jusqu'à la
+  connexion d'un nouveau membre, annulation chez Google. Simulé seulement : la preuve du comportement réel est celle
+  des essais du propriétaire ci-dessus.

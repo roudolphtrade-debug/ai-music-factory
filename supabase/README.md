@@ -76,10 +76,11 @@ run on a plain PostgreSQL, not on the hosted project, so run the script there on
 | Setting | Value |
 |---|---|
 | Site URL | the published address of the app |
-| Redirect URLs | the published address, any custom domain, the Lovable preview address, and `http://localhost:8080/**` for local work (patterns ending in `/**`). The app sends members to `/auth/confirm` and `/auth/reset-password` |
+| Redirect URLs | the published address, any custom domain, the Lovable preview address, and `http://localhost:8080/**` for local work (patterns ending in `/**`). The app sends members to `/auth/confirm` and `/auth/reset-password` from mails, and to `/auth/sign-in` when they come back from Google |
 | Confirm email | **on** (members must confirm their address before signing in) |
 | Password rules | minimum length **12** and required characters **lowercase, uppercase letters, digits and symbols**: see 3.1 (the app enforces the same rules and also refuses more than 72 bytes, the limit of the service) |
 | Leaked-password protection | **Pro plan or above only**: not available on the current Free plan, not enabled, never switched on without the owner's decision (see 3.1) |
+| Google sign-in | off until configured by the owner: see 3.2 |
 | Email OTP expiry | the default (3600 s) or shorter; an expired link shows a clear message and a resend form |
 | Custom SMTP | the owner's provider, configured in **Authentication → SMTP Settings** only. The credentials stay in the dashboard |
 
@@ -151,6 +152,44 @@ account was created (the users, identities, profiles and sessions counts were th
 Not proved by a call: the same refusal on the reset form (`PUT /user` with a recovery session). The setting is
 global to the project, so it is expected, but it was not exercised separately. The leaked-password check stays
 off (Free plan), so a common password that follows every rule is still accepted.
+
+### 3.2 Google sign-in
+
+The app has the Google sign-in, **hidden until the project really has Google switched on**. It asks the
+project (`GET /auth/v1/settings`, public) and shows the "Continue with Google" button, in the six languages,
+only when `external.google` is true. A doubt (no answer, a refusal) means no button. **On 2026-10-25 the
+project answers `google: true`: the app shows the button.** `node supabase/preflight.mjs` prints this.
+
+Steps for the owner (from the current Supabase documentation; the secret stays in the dashboard, never in
+this repository, never in a `VITE_` variable, never in Lovable):
+
+1. **Google Cloud Console** → Google Auth platform: configure **Audience**, **Data Access** (scopes
+   `openid`, `.../auth/userinfo.email`, `.../auth/userinfo.profile`) and, for a clean consent screen,
+   **Branding**.
+2. **Clients** → create an **OAuth client ID** of type **Web application**.
+   - **Authorized JavaScript origins**: the published address, the Lovable preview address, and
+     `http://localhost:8080` for local work.
+   - **Authorized redirect URIs**: `https://liewjcwkogoesgxcuyff.supabase.co/auth/v1/callback` (also shown on
+     the Google provider page of the dashboard).
+3. Copy the **Client ID** and **Client secret**.
+4. Dashboard → **Authentication** → **Sign In / Providers** → **Google** (direct link:
+   `https://supabase.com/dashboard/project/liewjcwkogoesgxcuyff/auth/providers?provider=Google`): enable,
+   paste both values, save.
+5. Check the **Redirect URLs** (section 3) include the sign-in page patterns (`https://<published address>/**`,
+   the preview address, `http://localhost:8080/**`).
+6. `node supabase/preflight.mjs` must now print "Google sign-in is enabled"; reload the app: the button appears.
+
+Behaviour: the app uses the implicit flow, so Google sends the member back to `/auth/sign-in` with a session
+and the usual routing applies (new member → welcome page). Supabase **automatically links identities that
+share the same verified e-mail address** to one user, so a member who signed up by e-mail and later uses
+Google with that address stays one account. A Google sign-up with an address that exists by e-mail with an
+**unverified** address does not link. Signing up by e-mail with an address already created through Google gives
+the same neutral screen as for any existing address, and no mail. The profile of a Google member is created
+by the same trigger as any other (name taken from the address, never from Google's metadata).
+Tried for real by the owner on 2026-10-25 (their own Google account, local app on aimf-dev): sign-in, session
+kept after a reload, sign-out, then sign-in again on the same profile (`docs/member-auth/BILAN.md`, section 14).
+Not tried: a refusal or cancellation at Google, linking with an e-mail account of the same address, the published
+address and the Lovable preview.
 
 Email templates can keep the default `{{ .ConfirmationURL }}` links: the app uses the implicit flow,
 so a link also works when opened on another device.

@@ -11,6 +11,7 @@ import {
   PasswordField,
   SubmitButton,
 } from "@/components/auth/AuthParts";
+import { GoogleSection } from "@/components/auth/GoogleSection";
 import { PasswordRequirements } from "@/components/auth/PasswordRequirements";
 import { ResendButton } from "@/components/auth/ResendButton";
 import { useAuth } from "@/auth/context";
@@ -100,6 +101,7 @@ function SignUpPage() {
       description={t("signUpDesc")}
       icon={<Sparkles aria-hidden="true" className="h-5 w-5" />}
     >
+      <GoogleSection />
       <form onSubmit={onSubmit} noValidate className="space-y-5">
         {formError && <FormNotice tone="error">{t(formError)}</FormNotice>}
         <AuthField

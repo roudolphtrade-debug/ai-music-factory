@@ -48,6 +48,10 @@ export function createFakeSupabase() {
     fetchProfile: { data: makeProfile(), error: null },
     saveProfile: { data: makeProfile(), error: null },
     insertProfile: { data: makeProfile(), error: null },
+    signInWithOAuth: {
+      data: { provider: "google", url: "https://accounts.example.test/o/oauth2" },
+      error: null,
+    },
   };
 
   // Reading, updating and inserting a profile are separate chains, like the real query builder.
@@ -72,6 +76,7 @@ export function createFakeSupabase() {
     auth: {
       signUp: vi.fn(async () => reply.signUp),
       signInWithPassword: vi.fn(async () => reply.signInWithPassword),
+      signInWithOAuth: vi.fn(async (..._args: unknown[]) => reply.signInWithOAuth),
       signOut: vi.fn(async () => reply.signOut),
       resend: vi.fn(async () => reply.resend),
       resetPasswordForEmail: vi.fn(async () => reply.resetPasswordForEmail),

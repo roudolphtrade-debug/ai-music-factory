@@ -33,6 +33,8 @@ const FORBIDDEN: [string, RegExp][] = [
   ["a database URL with a password", /postgres(?:ql)?:\/\/[^\s:@]+:[^\s@]+@/],
   ["an SMTP password", /smtp[._-]?pass(?:word)?\s*[:=]\s*\S+/i],
   ["a service-role environment variable", /SUPABASE_(?:SERVICE_ROLE|SECRET)_KEY\s*=\s*\S+/],
+  ["a Google OAuth client secret", /GOCSPX-[A-Za-z0-9_-]{10,}/],
+  ["a Google OAuth client id", /\b\d{6,}-[a-z0-9]{10,}\.apps\.googleusercontent\.com\b/],
 ];
 
 describe("secrets stay out of the repository", { timeout: 30_000 }, () => {

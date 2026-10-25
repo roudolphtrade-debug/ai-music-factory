@@ -9,6 +9,8 @@ export interface AuthHolder {
   configured: boolean;
   /** Whether the page opens with a stored session or an email link (the client starts at once). */
   startWithClient: boolean;
+  /** What GET /auth/v1/settings answers (null = no usable answer). Undefined counts as null. */
+  settings?: unknown;
   snapshot: { path: string; hash: string; search: string } | null;
 }
 
@@ -23,6 +25,7 @@ export function clientModule(holder: AuthHolder) {
       return () => {};
     },
     authNeededAtStart: () => holder.configured && holder.startWithClient,
+    loadAuthSettings: async () => (holder.configured ? (holder.settings ?? null) : null),
     takeAuthUrlSnapshot: () => holder.snapshot,
     consumeAuthUrlSnapshot: (path: string) => {
       const taken = holder.snapshot;

@@ -101,6 +101,10 @@ const fr = {
   passwordSymbols: "Caractères spéciaux acceptés : {symbols}",
   critMet: "rempli",
   critMissing: "à compléter",
+  googleContinue: "Continuer avec Google",
+  googleOr: "ou",
+  errGoogle:
+    "La connexion avec Google n'a pas abouti. Réessayez, ou utilisez votre adresse e-mail.",
   errPasswordMismatch: "Les deux mots de passe ne correspondent pas.",
   errName: "Le nom doit contenir de 1 à 60 caractères.",
   errHandleChars:
@@ -243,6 +247,9 @@ const en: Dict = {
   passwordSymbols: "Special characters accepted: {symbols}",
   critMet: "done",
   critMissing: "still needed",
+  googleContinue: "Continue with Google",
+  googleOr: "or",
+  errGoogle: "Signing in with Google did not work. Try again, or use your email address.",
   errPasswordMismatch: "The two passwords do not match.",
   errName: "The name must be 1 to 60 characters.",
   errHandleChars:
@@ -379,6 +386,10 @@ const es: Dict = {
   passwordSymbols: "Caracteres especiales admitidos: {symbols}",
   critMet: "cumplido",
   critMissing: "pendiente",
+  googleContinue: "Continuar con Google",
+  googleOr: "o",
+  errGoogle:
+    "No se pudo iniciar sesión con Google. Inténtalo de nuevo o usa tu correo electrónico.",
   errPasswordMismatch: "Las dos contraseñas no coinciden.",
   errName: "El nombre debe tener de 1 a 60 caracteres.",
   errHandleChars:
@@ -514,6 +525,9 @@ const zh: Dict = {
   passwordSymbols: "可用的特殊字符：{symbols}",
   critMet: "已满足",
   critMissing: "尚缺",
+  googleContinue: "使用 Google 继续",
+  googleOr: "或",
+  errGoogle: "使用 Google 登录未能完成。请重试，或使用您的电子邮箱。",
   errPasswordMismatch: "两次输入的密码不一致。",
   errName: "名称需为 1 到 60 个字符。",
   errHandleChars: "不支持的字符：{chars}。请使用不带重音的字母、数字和下划线，例如 amina_o。",
@@ -645,6 +659,9 @@ const pt: Dict = {
   passwordSymbols: "Caracteres especiais aceitos: {symbols}",
   critMet: "atendido",
   critMissing: "falta",
+  googleContinue: "Continuar com o Google",
+  googleOr: "ou",
+  errGoogle: "Não foi possível entrar com o Google. Tente novamente ou use seu e-mail.",
   errPasswordMismatch: "As duas senhas não coincidem.",
   errName: "O nome deve ter de 1 a 60 caracteres.",
   errHandleChars:
@@ -782,6 +799,9 @@ const ar: Dict = {
   passwordSymbols: "الرموز الخاصة المقبولة: {symbols}",
   critMet: "مستوفى",
   critMissing: "ناقص",
+  googleContinue: "المتابعة باستخدام Google",
+  googleOr: "أو",
+  errGoogle: "تعذّر تسجيل الدخول باستخدام Google. أعد المحاولة أو استخدم بريدك الإلكتروني.",
   errPasswordMismatch: "كلمتا المرور غير متطابقتين.",
   errName: "يجب أن يتراوح الاسم بين 1 و60 حرفًا.",
   errHandleChars:
