@@ -1,9 +1,11 @@
 /**
- * Temporary protections for the AI gateway endpoints (`/api/studio/generate`,
- * `/api/voice/speak`, `/api/voice/transcribe`).
+ * Protections for the AI gateway endpoints (`/api/studio/generate`, `/api/voice/speak`,
+ * `/api/voice/transcribe`).
  *
- * These routes spend server-side AI credits and there is no account system yet. What exists here
- * limits obvious abuse and accidents. It does NOT cap the total spend:
+ * These routes spend server-side AI credits. Every request must come from a signed-in member: the
+ * session is verified server-side (`member-guard.ts`) before the body is read and before any provider
+ * call. Beyond that, what exists here limits obvious abuse and accidents. It does NOT cap the total
+ * spend, not even of a signed-in member (per-member quotas need shared storage: a later lot):
  *  - Same-origin check: a browser `fetch` sends `Origin` / `Sec-Fetch-Site`. A scripted client can
  *    forge both, so this only stops casual hits, not a determined caller.
  *  - Local safety net: at most `AI_LIMITS.localRequestsPerWindow` accepted requests per route in
@@ -15,8 +17,9 @@
  *  - No caller identification: no request header (`x-forwarded-for` included) is used to tell callers
  *    apart or to limit them, since a client can set most of them. All callers of an instance share
  *    the same counter.
- *  - Manual pause: `AI_ROUTES_PAUSED` (off by default) makes the three routes answer 503 without any
- *    upstream call.
+ *  - Pause, ON BY DEFAULT: the three routes answer 503 without any member check or upstream call unless
+ *    the server states `AI_ROUTES_PAUSED=0` (or false, no, off). A missing variable, an unreadable
+ *    environment or any other value keeps them paused, so the delivered state cannot spend.
  *  - Input caps: see `AI_LIMITS`.
  * The only real spending ceilings are on the AI provider side (credit balance, auto top-up limit).
  *
@@ -24,13 +27,20 @@
  */
 
 import { AI_LIMITS } from "@/lib/ai-limits";
+import { verifyMemberSession, type MemberCheck } from "@/lib/member-guard";
 
 export type AiRoute = "generate" | "speak" | "transcribe";
 
 export { AI_LIMITS };
 
-/** Used when the platform offers no `AI_ROUTES_PAUSED` variable; the variable wins when it is set. */
-const AI_ROUTES_PAUSED_FALLBACK = false;
+/**
+ * What happens when the server has no `AI_ROUTES_PAUSED` variable (or the platform does not hand its
+ * environment to the code): the routes are PAUSED. Nothing paid can run until the owner states
+ * `AI_ROUTES_PAUSED=0` on purpose (see docs/member-auth/LOT-STUDIO-GENERER.md, section 13).
+ */
+const AI_ROUTES_PAUSED_FALLBACK = true;
+/** The only values that open the routes. Anything else, or nothing at all, keeps them paused. */
+const OPEN_VALUES = ["0", "false", "no", "off"];
 /** Multipart framing around the audio file. */
 const MULTIPART_OVERHEAD_BYTES = 64 * 1024;
 
@@ -88,10 +98,11 @@ function sameOrigin(request: Request): boolean {
   return false;
 }
 
+/** Paused unless the variable explicitly says "0", "false", "no" or "off": it fails closed. */
 function isPaused(env: Env): boolean {
   const value = env.AI_ROUTES_PAUSED;
   if (value === undefined) return AI_ROUTES_PAUSED_FALLBACK;
-  return ["1", "true", "yes", "on"].includes(value.trim().toLowerCase());
+  return !OPEN_VALUES.includes(value.trim().toLowerCase());
 }
 
 export interface AiGuardOptions {
@@ -108,23 +119,22 @@ export function createAiGuard(options: AiGuardOptions = {}) {
   const readEnv = options.env ?? (() => (typeof process !== "undefined" ? process.env : {}));
   const local = createWindowLimiter(AI_LIMITS.localRequestsPerWindow, AI_LIMITS.windowMs, now);
 
-  /**
-   * Returns a `Response` to short-circuit the handler when the request is rejected, or `null` when
-   * it may proceed.
-   */
-  return function guard(request: Request, route: AiRoute): Response | null {
+  /** Same-origin check, then the manual pause. Reads and records nothing. */
+  const preflight = (request: Request): Response | null => {
     if (!sameOrigin(request)) {
       return Response.json({ error: "Forbidden." }, { status: 403 });
     }
-
-    const env = readEnv();
-    if (isPaused(env)) {
+    if (isPaused(readEnv())) {
       return Response.json(
         { error: "AI features are temporarily paused.", code: "ai_paused" },
         { status: 503, headers: { "Cache-Control": "no-store" } },
       );
     }
+    return null;
+  };
 
+  /** The local sliding-window limit; an admitted request is recorded. */
+  const limit = (route: AiRoute): Response | null => {
     const wait = local.take(route);
     if (wait !== null) {
       return Response.json(
@@ -134,9 +144,40 @@ export function createAiGuard(options: AiGuardOptions = {}) {
     }
     return null;
   };
+
+  /**
+   * Returns a `Response` to short-circuit the handler when the request is rejected, or `null` when
+   * it may proceed. Origin, pause, then the limit; the member check sits between the last two in
+   * `createMemberGuard`.
+   */
+  const guard = (request: Request, route: AiRoute): Response | null =>
+    preflight(request) ?? limit(route);
+  return Object.assign(guard, { preflight, limit });
 }
 
-export const guardAiRequest = createAiGuard();
+export interface MemberGuardOptions extends AiGuardOptions {
+  /** Defaults to the real check against the project's authentication service. */
+  verify?: (request: Request) => Promise<MemberCheck>;
+}
+
+/**
+ * The guard the three paid routes use. Order: same origin, manual pause, signed-in member, local
+ * limit. A refused request never reaches the body or a provider. The member check runs before the
+ * limit so that callers without a session cannot use up the window of those who have one.
+ */
+export function createMemberGuard(options: MemberGuardOptions = {}) {
+  const guard = createAiGuard(options);
+  const verify = options.verify ?? ((request: Request) => verifyMemberSession(request));
+  return async function memberGuard(request: Request, route: AiRoute): Promise<Response | null> {
+    const early = guard.preflight(request);
+    if (early) return early;
+    const member = await verify(request);
+    if (!member.ok) return member.response;
+    return guard.limit(route);
+  };
+}
+
+export const guardMemberRequest = createMemberGuard();
 
 export function tooLargeResponse(message: string): Response {
   return Response.json({ error: message, code: "too_large" }, { status: 413 });

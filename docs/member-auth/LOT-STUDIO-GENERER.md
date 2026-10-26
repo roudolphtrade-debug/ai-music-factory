@@ -64,8 +64,8 @@ Tous les appels payants passent par la passerelle IA de Lovable, avec la variabl
 **Exposition actuelle, indépendante des comptes.** Les trois routes n'identifient personne : ouvrir un compte ne les
 protège pas. La vérification « même origine » peut être imitée par un script, le compteur de 60 requêtes par minute
 est propre à une instance et se remet à zéro au redémarrage, et le portefeuille de crédits est côté navigateur. **Le
-seul vrai plafond de dépense est le solde du fournisseur.** Un interrupteur manuel existe (`AI_ROUTES_PAUSED`) ; je
-n'ai aucun moyen de connaître son état réel depuis ce dépôt. Aucune nouvelle tentative automatique n'existe dans le
+seul vrai plafond de dépense est le solde du fournisseur.** Un interrupteur manuel existait (`AI_ROUTES_PAUSED`, inactif par défaut) ; **depuis le lot A il est actif par
+défaut** (voir la section 13) et je n'ai aucun moyen de connaître l'état réel du déploiement depuis ce dépôt. Aucune nouvelle tentative automatique n'existe dans le
 client : un clic fait un appel, un second clic en fait un autre.
 
 ## 5. Pourquoi la préparation se perd aujourd'hui (constats dans le code)
@@ -190,9 +190,8 @@ dépense d'un membre connecté : c'est le rôle du lot B.
 
 1. **Autoriser le lot A** malgré la réserve sur le Lot 3 du dépôt.
 2. **Jeton de reprise de 24 h** et **destination valable 24 h** : valeurs à valider.
-3. **Le plus tôt possible, en attendant le lot A** : les trois routes sont aujourd'hui ouvertes sans compte. Faut-il
-   activer la pause manuelle (`AI_ROUTES_PAUSED`) dans Lovable jusqu'à la livraison ? Cela coupe aussi la lecture à
-   voix haute et la dictée existantes. Je ne l'active pas moi-même.
+3. **Pause des routes payantes** : décidée et réalisée au lot A, active par défaut (section 13.1). Reste à la vérifier sur
+   le déploiement réel (section 13.3, point 1) ; l'ouvrir (`AI_ROUTES_PAUSED=0`) n'a de sens qu'après le lot B.
 4. **Solde et plafond du fournisseur IA** à relever dans Lovable (condition 2 de la section 8).
 5. **Brouillons audio générés** (IndexedDB) : les effacer aussi à la déconnexion ? Hors de ce lot, à décider.
 6. **Confirmation sur un autre appareil** : la préparation ne suit pas (le membre retrouve un studio vide avec un
@@ -246,3 +245,151 @@ dépense d'un membre connecté : c'est le rôle du lot B.
 Présence de `LOVABLE_API_KEY` et solde du fournisseur ; état de `AI_ROUTES_PAUSED` ; tarif des modèles ; qualité réelle
 du résultat sonore (aucun appel fait) ; comportement exact du contrôle de jeton sur la plateforme d'hébergement avant
 d'avoir été essayé ; existence d'un plafond de dépense réglable chez le fournisseur.
+
+## 13. Réalisation du lot A (2026-10-26)
+
+*Section écrite à la fin du lot A, sur la branche `feat/studio-lot-a` (depuis `origin/main`, avec le commit
+documentaire repris par cherry-pick). Aucun appel payant, aucune migration, aucun changement distant. Les preuves
+sont rangées en trois catégories, à ne pas confondre : **preuves locales** (le code réel, exécuté ici),
+**simulations** (un faux service à la place du vrai) et **vérifications distantes encore nécessaires** (ce que
+seule la plateforme réelle peut dire).*
+
+### 13.1 État livré : les trois routes payantes sont en pause par défaut
+
+| Contexte | Où s'exécutent les routes | Lecture de la variable |
+|---|---|---|
+| Aperçu Lovable et serveur local | serveur de développement (Vite, Node) | `process.env.AI_ROUTES_PAUSED`, relu à **chaque requête** |
+| Site publié | **Worker Cloudflare** (préréglage Nitro `cloudflare`, `wrangler.json` généré : `nodejs_compat`, date de compatibilité 2026-10-25) | même lecture de `process.env` |
+
+**Règle livrée (`src/lib/api-guard.ts`) : les routes sont en pause, sauf si le serveur dit explicitement le
+contraire.** Variable absente, vide, environnement que la plateforme ne transmet pas, ou valeur inconnue : **503
+`ai_paused`**, avant tout contrôle de session et tout appel fournisseur. Seules les valeurs `0`, `false`, `no` et
+`off` (insensibles à la casse) ouvrent les routes. Ouvrir est donc un geste volontaire, à ne faire qu'après le lot B
+(quotas serveur, plafond de dépense vérifiable). L'ordre du garde : origine, **pause**, session, limite, corps.
+
+Conséquence assumée : dans l'état livré, la génération, la lecture à voix haute et la dictée répondent « momentanément
+en pause » à tout le monde, y compris aux membres connectés. C'est le but : **aucun appel payant n'est possible sans
+décision écrite**. Avec la variable absente, rien à configurer pour être protégé.
+
+**Pour ouvrir les routes plus tard (pas maintenant) :** ajouter une variable serveur `AI_ROUTES_PAUSED` à `0` (sans
+préfixe `VITE_`), puis Publish puis Update ; pour refermer, supprimer la variable (ou lui donner `1`).
+
+### 13.2 Ce qui a été réalisé
+
+- **Pause par défaut** (voir 13.1), avec une garantie testée par des fournisseurs simulés.
+- **Session vérifiée côté serveur sur les trois routes** (`src/lib/member-guard.ts`) : `Authorization: Bearer`,
+  contrôlé auprès du service d'authentification (`GET /auth/v1/user`, clé publique de `.env`, aucun secret), avant la
+  lecture du corps et avant tout appel fournisseur. Sans jeton ou jeton malformé : 401, sans appel réseau. Jeton
+  refusé : 401. Service injoignable, en erreur, en retard (4 s) ou réponse illisible : 503 `auth_unavailable` (échec
+  fermé). Le jeton n'est ni journalisé, ni renvoyé, ni transmis au fournisseur.
+- **Appel côté navigateur** (`src/lib/ai-fetch.ts`) : joint le jeton ; sans session, n'envoie rien ; sur 401, renouvelle
+  la session une fois et réessaie une fois. Lecture à voix haute et dictée : sans compte, aucune requête (la dictée
+  n'ouvre même pas le micro).
+- **Préparation conservée sept jours sur l'appareil** (`src/studio/prep.ts`) : enregistrée à chaque changement,
+  restaurée à l'ouverture, **conservée après une génération réussie**, sept jours après la dernière modification
+  (ouvrir le studio ne la prolonge pas), un emplacement par compte, jeton de reprise de 24 h posé par le clic sur
+  Générer, texte tapé avant que la session soit connue jamais écrasé.
+- **Changement de compte dans la page** : le formulaire prend la préparation du nouveau compte (ou le défaut) ; il
+  n'emporte jamais les mots du compte précédent. *Défaut trouvé pendant la consolidation (par un test) et corrigé :
+  les mots tapés par un compte étaient recopiés dans l'emplacement du suivant.*
+- **Destination de reprise 24 h** (`src/auth/returnTo.ts`) : survit à l'inscription, à la confirmation par e-mail
+  (même navigateur), à Google et à la bienvenue ; chemins du site hors `/auth` seulement ; utilisée une fois.
+- **Clic sur Générer sans compte** : aucune requête, préparation enregistrée avec son jeton, envoi à la connexion. **Au
+  retour, aucune génération automatique** : bandeau « Préparation reprise » et bouton Effacer.
+- **Brouillons audio générés** (consolidation) : ils contiennent le prompt, les paroles et l'audio de l'utilisateur, donc
+  des données personnelles. Ils appartiennent désormais à un compte (`ownerId`) ; un autre compte ne les voit pas, même
+  si la première session s'est terminée sans déconnexion ; ceux d'avant les comptes sont repris par le premier compte
+  qui ouvre le studio. **À la déconnexion volontaire, ils sont effacés** : disque (IndexedDB, ce compte seulement),
+  références en mémoire, **adresses temporaires révoquées**, et le lecteur s'arrête et oublie ces titres. La fenêtre
+  d'avertissement cite aussi les titres générés ; elle s'affiche même pendant que la liste se charge.
+- **Réponse tardive** : une génération qui revient après une déconnexion, ou après qu'un autre compte s'est connecté,
+  n'affiche rien, ne garde rien, ne débite rien : ni dans le studio, ni dans le magasin (ce qu'elle aurait écrit sur
+  le disque est supprimé aussitôt). La liste lue sur le disque après une déconnexion n'est pas remise à l'écran.
+- **Textes trompeurs corrigés** dans les six langues : plus de « chanté » (voix de synthèse), plus d'achat ni de
+  recharge de crédits ; nouveaux textes de session, de reprise et d'erreur.
+- **Crédit local débité après l'enregistrement** ; un titre que l'appareil ne peut pas garder reste écoutable et
+  téléchargeable, avec un message, sans débit, et son adresse temporaire est révoquée à la déconnexion.
+- **Débordement horizontal à 375 px corrigé** (`min-w-0` sur les cartes de projets et de titres générés, sans refonte) :
+  la liste de projets de démonstration élargissait la page.
+- **Banc de test** (`src/test/networkGuard.ts`) : toute requête vers un hôte réel échoue avant d'utiliser le réseau ;
+  la clé du fournisseur est retirée de l'environnement des tests.
+
+### 13.3 Preuves, par catégorie
+
+**Preuves locales (le code réel, exécuté ici)**
+
+| Contrôle | Résultat |
+|---|---|
+| `tsc --noEmit`, ESLint (fichiers modifiés), `vite build` | 0 erreur, 0 erreur (1 avertissement de plus du même type que ceux qui existaient : un second hook exporté à côté d'un composant), succès |
+| Suite de tests | **1 023 sur 1 023**, 47 fichiers, deux passes complètes. Une première passe a vu deux tests qui parcourent tout le dépôt dépasser leur délai de 5 s sous charge ; le mien a reçu un délai explicite, l'autre (`credits-free`) est connu et passe seul |
+| **Vingt et une dégradations volontaires** du code (neuf du premier temps, douze de la consolidation : routes ouvertes sans configuration, valeur inconnue ou vide qui ouvre, disque non effacé, réponse tardive gardée, tous les comptes voient tous les titres, adresses non révoquées, lecteur qui continue, mots d'un compte recopiés chez le suivant, avertissement qui ignore les titres) | chacune détectée par au moins un test, fichiers rétablis à l'identique |
+| Pause locale, deux serveurs de développement, corps vides, aucune clé fournisseur | avec `AI_ROUTES_PAUSED=1` : 503 `ai_paused` sur les trois routes, même sans jeton ; sans variable (code d'avant la consolidation) : 401 |
+| IndexedDB réel (Chrome) | l'effacement à la déconnexion vide les titres du compte et laisse ceux d'un autre compte (parcours F2 ci-dessous) |
+| Navigateur réel, serveur local, adresse sans session | clic sur Générer d'un visiteur : aucune requête `/api/` |
+
+**Simulations (un faux service à la place du vrai)**
+
+- **Parcours complets dans Chrome réel (37 contrôles sur 37)** contre un faux service d'authentification, un faux
+  Google et une fausse boîte mail, sans aucun fournisseur IA joignable :
+  - *F1 Google* : préparation d'un visiteur, Générer, connexion, retour de Google, bienvenue « Plus tard », studio,
+    **préparation restaurée à l'identique avec son bandeau, aucune génération, aucune requête aux routes payantes** ;
+  - *F2 changement de compte volontaire* : avertissement, « Rester connecté » n'efface rien, « Se déconnecter et
+    effacer » vide la préparation et les titres du compte (un autre compte garde les siens), un second compte voit un
+    studio vierge ;
+  - *F3 changement sans déconnexion* : un autre compte ne voit ni la préparation ni les titres du premier ; le premier
+    les retrouve en se reconnectant ;
+  - *F4 expiration* : un jeton de reprise de plus de 24 h ne donne rien au compte qui se connecte ; une préparation de
+    plus de sept jours n'est pas restaurée et est supprimée ;
+  - *F5 inscription et confirmation par e-mail* : lien de la boîte simulée, page de confirmation, bienvenue, studio,
+    préparation intacte, aucune génération ;
+  - *F6 annulation chez Google* : retour à la connexion avec un message simple, préparation et jeton intacts, nouvel
+    essai réussi ;
+  - *F7* bouton « Effacer la préparation » ; *F8* aucun débordement horizontal du studio à 375 px.
+- Les routes IA, le garde, le magasin de titres, la fenêtre de déconnexion et le lecteur sont aussi testés (tests
+  automatiques) avec un faux fournisseur, un faux service d'authentification et un faux disque : **rien de réel n'a été
+  appelé**.
+
+**Vérifications distantes encore nécessaires (rien de tout cela n'est prouvé)**
+
+1. **La pause par défaut sur la plateforme réelle.** Sur le site publié **et** sur l'aperçu, un `curl` à corps vide sur
+   les trois routes doit répondre `503` avec `"code":"ai_paused"` sans qu'aucune variable ne soit définie :
+
+```bash
+curl -s -i -X POST "https://<adresse du site>/api/studio/generate" \
+  -H "Content-Type: application/json" -H "Sec-Fetch-Site: same-origin" -d "{}"
+```
+
+   Refaire sur `/api/voice/speak` et `/api/voice/transcribe`. Ne jamais envoyer de prompt ni de texte pour ce test.
+   Tant que ce n'est pas fait, la garantie vaut pour le code livré, pas pour le déploiement. (Si le site publié est
+   encore sur la version d'avant ce lot, la réponse sera 400 ou 401 : c'est la preuve qu'il faut publier ce lot.)
+2. **L'aperçu et le site Lovable avec le vrai projet** : connexion Google dans un onglet séparé, inscription et
+   confirmation par e-mail réelles jusqu'au studio, préparation restaurée. Seuls des faux services ont été exercés.
+3. **Le Worker joint-il le vrai service d'authentification ?** Le contrôle de session part du Worker vers le projet
+   Supabase : non essayé. S'il échoue, les routes répondent 503 `auth_unavailable` (fermées), donc sans risque mais
+   inutilisables une fois ouvertes.
+4. **Navigateurs autres que Chrome** (Safari, Firefox, mobiles) : l'effacement d'IndexedDB et la révocation des adresses
+   n'ont été vus que dans Chrome.
+5. **Côté fournisseur IA** : solde et plafond de recharge à relever avant d'ouvrir les routes (lot B).
+
+### 13.4 Limites
+
+- **Stockage local** : la séparation entre comptes est celle de l'application, pas une frontière de sécurité. Les
+  outils du navigateur sur le même profil lisent tous les emplacements. Une session qui se termine sans déconnexion
+  volontaire laisse la préparation et les titres jusqu'à leurs sept jours (la préparation) ou jusqu'à la prochaine
+  déconnexion volontaire du compte (les titres), lisibles seulement par leur compte dans l'application. Rien ne quitte
+  le navigateur : un autre appareil ou navigateur repart à vide, et un lien de confirmation ouvert ailleurs ne
+  retrouve ni préparation ni destination. Navigation privée ou stockage bloqué : rien n'est gardé.
+- **Titres d'avant les comptes** : le premier compte qui ouvre le studio les reprend. Sur un appareil partagé, ce n'est
+  pas forcément leur auteur.
+- **Favoris et listes de lecture** qui citent un titre effacé gardent un identifiant sans titre derrière (aucune donnée
+  du titre ne reste) ; non nettoyé ici.
+- **Pas de plafond de dépense** : la session vérifiée ne limite pas ce qu'un membre connecté dépense une fois les
+  routes ouvertes. Le compteur de 60 requêtes par minute est propre à une instance ; le portefeuille de crédits est
+  local et modifiable. Quotas par membre, plafond vérifiable et crédits par compte restent le **lot B** (table,
+  migration à approuver). **Les essais payants restent bloqués** jusqu'à ce lot.
+- **Une vérification de session par appel** : un aller-retour vers le service d'authentification ; s'il est en panne,
+  la génération est refusée (voulu).
+- Non fait : libellés de voix (« Ténor chaud », « Soprano »), message sur les droits, relecture native des textes ZH, PT
+  et AR (premiers jets), nettoyage des listes de lecture.
+- Un avertissement de lint de plus (`react-refresh/only-export-components`) : le magasin de titres exporte maintenant
+  deux hooks à côté de son composant, comme le lecteur en exporte déjà deux.

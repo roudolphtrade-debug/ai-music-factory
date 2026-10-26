@@ -3,14 +3,16 @@ import { Mic, Square, Loader2, Sparkles, Trash2, Copy, Check } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { WaveBars } from "@/components/audio/WaveBars";
 import { useI18n } from "@/i18n/context";
-import { DICTATION_MAX_SECONDS, aiErrorKey } from "@/lib/ai-limits";
+import { DICTATION_MAX_SECONDS, aiErrorCode, aiErrorKey } from "@/lib/ai-limits";
+import { aiFetch, hasMemberSession, SignInRequiredError } from "@/lib/ai-fetch";
 import { cn } from "@/lib/utils";
 
 type Phase = "idle" | "recording" | "transcribing";
 
 /**
  * Lightweight voice prompt: record from the mic, transcribe via Lovable AI,
- * and surface an editable transcript. No advanced audio editing.
+ * and surface an editable transcript. No advanced audio editing. Transcription is for members: without
+ * a session the microphone is not even opened, and nothing is sent.
  */
 export function VoicePrompt({
   className,
@@ -60,6 +62,10 @@ export function VoicePrompt({
   const start = async () => {
     setError(null);
     setNotice(null);
+    if (!(await hasMemberSession())) {
+      setError(t("aiErrors.signIn"));
+      return;
+    }
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -108,14 +114,20 @@ export function VoicePrompt({
     try {
       const form = new FormData();
       form.append("audio", blob, "recording");
-      const res = await fetch("/api/voice/transcribe", { method: "POST", body: form });
-      if (!res.ok) throw new Error(t(aiErrorKey(res.status)));
+      const res = await aiFetch("/api/voice/transcribe", { method: "POST", body: form });
+      if (!res.ok) throw new Error(t(aiErrorKey(res.status, await aiErrorCode(res))));
       const data = (await res.json()) as { text?: string };
       const text = (data.text ?? "").trim();
       setTranscript((prev) => (prev ? `${prev} ${text}` : text));
       onTranscript?.(text);
     } catch (e) {
-      setError(e instanceof Error ? e.message : t("aiErrors.generic"));
+      setError(
+        e instanceof SignInRequiredError
+          ? t("aiErrors.signIn")
+          : e instanceof Error
+            ? e.message
+            : t("aiErrors.generic"),
+      );
     } finally {
       setPhase("idle");
     }

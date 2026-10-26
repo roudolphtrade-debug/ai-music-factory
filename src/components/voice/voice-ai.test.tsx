@@ -9,6 +9,20 @@ import { VoicePrompt } from "./VoicePrompt";
 
 const en = (key: string) => translate("en", key);
 
+// The two voice routes are for members: the backend client is a scripted stand-in with or without a
+// session, and fetch is a fake route. Nothing real is reached.
+const member = vi.hoisted(() => ({ token: "aaaaaaaa.bbbbbbbb.cccccccc" as string | null }));
+vi.mock("@/integrations/supabase/client", () => ({
+  loadSupabase: async () => ({
+    auth: {
+      getSession: async () => ({
+        data: { session: member.token ? { access_token: member.token } : null },
+      }),
+      refreshSession: async () => ({ data: { session: null } }),
+    },
+  }),
+}));
+
 class FakeRecorder {
   static instances: FakeRecorder[] = [];
   static isTypeSupported = () => true;
@@ -33,6 +47,7 @@ let upstream: ReturnType<typeof vi.fn>;
 beforeEach(() => {
   localStorage.clear();
   localStorage.setItem("afm-lang", "en");
+  member.token = "aaaaaaaa.bbbbbbbb.cccccccc";
   FakeRecorder.instances = [];
   vi.stubGlobal("MediaRecorder", FakeRecorder);
   Object.defineProperty(navigator, "mediaDevices", {
@@ -143,5 +158,60 @@ describe("read aloud text cap", () => {
     await flush();
     const body = JSON.parse((upstream.mock.calls[0][1] as RequestInit).body as string);
     expect(body.text).toHaveLength(AI_LIMITS.speechChars);
+  });
+});
+
+describe("voice routes are for members", () => {
+  it("read aloud without a session sends nothing and says to sign in", async () => {
+    member.token = null;
+    wrap(<ReadAloudButton text="Hello there" />);
+    fireEvent.click(screen.getByRole("button", { name: en("voice.readAloud") }));
+    await flush();
+    expect(upstream).not.toHaveBeenCalled();
+    expect(screen.getByText(en("aiErrors.signIn"))).toBeTruthy();
+  });
+
+  it("dictation without a session does not even open the microphone, and sends nothing", async () => {
+    member.token = null;
+    const getUserMedia = vi.fn(async () => ({ getTracks: () => [{ stop: () => {} }] }));
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: { getUserMedia },
+    });
+    wrap(<VoicePrompt />);
+    await startRecording();
+    expect(getUserMedia).not.toHaveBeenCalled();
+    expect(upstream).not.toHaveBeenCalled();
+    expect(screen.getByText(en("aiErrors.signIn"))).toBeTruthy();
+  });
+
+  it("read aloud sends the session token with the text", async () => {
+    upstream.mockResolvedValue(new Response(new Uint8Array([1]), { status: 200 }));
+    vi.stubGlobal(
+      "URL",
+      Object.assign(URL, { createObjectURL: () => "blob:x", revokeObjectURL: () => {} }),
+    );
+    wrap(<ReadAloudButton text="Hello there" />);
+    fireEvent.click(screen.getByRole("button", { name: en("voice.readAloud") }));
+    await flush();
+    const init = upstream.mock.calls[0][1] as RequestInit;
+    expect(new Headers(init.headers).get("Authorization")).toBe(
+      "Bearer aaaaaaaa.bbbbbbbb.cccccccc",
+    );
+  });
+
+  it("shows the right sentence for an expired session and for a session check that is out of reach", async () => {
+    wrap(<ReadAloudButton text="Hello there" />);
+    for (const [status, code, key] of [
+      [401, "invalid_session", "aiErrors.session"],
+      [503, "auth_unavailable", "aiErrors.authUnavailable"],
+      [503, "ai_paused", "aiErrors.paused"],
+    ] as const) {
+      upstream.mockResolvedValue(Response.json({ error: "RAW SERVER TEXT", code }, { status }));
+      fireEvent.click(screen.getByRole("button", { name: en("voice.readAloud") }));
+      await flush();
+      expect(screen.getByText(en(key)), key).toBeTruthy();
+      expect(screen.queryByText(/RAW SERVER TEXT/)).toBeNull();
+    }
   });
 });

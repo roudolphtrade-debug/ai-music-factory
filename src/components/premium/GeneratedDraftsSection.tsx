@@ -61,7 +61,7 @@ export function GeneratedDraftsSection() {
           {drafts.map((d) => {
             const track = draftToTrack(d, t);
             return (
-              <article key={d.id} className="group rounded-2xl border border-border bg-card p-5 card-hover">
+              <article key={d.id} className="group min-w-0 rounded-2xl border border-border bg-card p-5 card-hover">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-3">
                     <PlayButton track={track} queue={drafts.map((x) => draftToTrack(x, t))} size="md" />

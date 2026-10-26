@@ -13,5 +13,7 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.test.{ts,tsx}"],
     restoreMocks: true,
+    // Blocks every request to a real host: tests run on fake providers only (see the file).
+    setupFiles: ["src/test/networkGuard.ts"],
   },
 });

@@ -8,6 +8,7 @@ import { ProfileForm } from "@/components/auth/ProfileForm";
 import { MemberMonogram } from "@/components/auth/ProfileParts";
 import { useAuth } from "@/auth/context";
 import { safeRedirect } from "@/auth/redirects";
+import { clearReturnTo, peekReturnTo } from "@/auth/returnTo";
 import { useAuthCopy } from "@/i18n/auth";
 
 export const Route = createFileRoute("/_app/welcome")({
@@ -33,8 +34,11 @@ function Welcome() {
   const navigate = useNavigate();
   const { redirect } = Route.useSearch();
   const { profile, profileState, memberName, updateProfile, reloadProfile } = useAuth();
-  const destination = redirect ?? "/";
-  const leave = () => void navigate({ to: destination, replace: true });
+  const destination = redirect ?? peekReturnTo() ?? "/";
+  const leave = () => {
+    clearReturnTo();
+    void navigate({ to: destination, replace: true });
+  };
 
   const later = async () => {
     const result = await updateProfile({ onboardingCompleted: true });

@@ -561,3 +561,20 @@ utilisateur sans profil, 3 sessions. Aucun compte n'a été créé le 26.
   et un autre appareil ne sont pas couverts par cette recette.
 - Un GET isolé sans clé sur l'adresse d'inscription, refusé en 401 à 05:29, apparaît dans les journaux du 26 ; il ne
   correspond à aucun essai connu. Il a été refusé et n'a rien créé.
+
+## 17. Consolidation du lot A du studio (2026-10-26)
+
+Détail, preuves et limites : `docs/member-auth/LOT-STUDIO-GENERER.md`, section 13.
+
+- **Livré** : les trois routes payantes (`generate`, `speak`, `transcribe`) sont **en pause par défaut** et exigent une
+  session vérifiée côté serveur ; brouillon conservé sept jours et restauré après connexion, inscription et
+  confirmation, sans génération automatique ; destination de reprise 24 h ; titres générés rattachés au compte et
+  effacés à la déconnexion volontaire (disque, mémoire, adresses temporaires) ; réponse tardive jamais conservée ;
+  textes trompeurs corrigés ; débordement à 375 px corrigé.
+- **Preuves locales** : `tsc`, ESLint, build, 1 023 tests sur 1 023 (fournisseurs simulés, hôtes réels refusés par le
+  banc de test), vingt et une dégradations volontaires toutes détectées, IndexedDB réel dans Chrome.
+- **Simulations** : 37 contrôles sur 37 dans Chrome réel contre un faux service d'authentification, un faux Google et
+  une fausse boîte mail (Google, confirmation par e-mail, changement de compte, expiration, annulation).
+- **Vérifications distantes encore nécessaires** : la pause par défaut sur le site publié et sur l'aperçu (`curl` à corps
+  vide, 503 `ai_paused` attendu), le parcours réel avec le vrai Google et les vrais e-mails, le contrôle de session
+  depuis le Worker vers le vrai projet, les navigateurs autres que Chrome. **Aucun essai payant avant le lot B.**

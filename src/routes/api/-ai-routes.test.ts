@@ -17,17 +17,29 @@ async function handler(name: keyof typeof routes) {
 const ENV_KEYS = ["LOVABLE_API_KEY", "AI_ROUTES_PAUSED"] as const;
 const savedEnv: Record<string, string | undefined> = {};
 let upstream: ReturnType<typeof vi.fn>;
+// The fake authentication service: answers the session check (GET .../auth/v1/user), never the provider.
+let session: ReturnType<typeof vi.fn>;
+const ask = (fake: ReturnType<typeof vi.fn>, ...args: unknown[]) =>
+  (fake as unknown as (...a: unknown[]) => unknown)(...args);
 
 beforeEach(() => {
   for (const key of ENV_KEYS) savedEnv[key] = process.env[key];
   process.env.LOVABLE_API_KEY = "test-key";
-  delete process.env.AI_ROUTES_PAUSED;
+  process.env.AI_ROUTES_PAUSED = "0"; // the routes are paused unless opened on purpose
   vi.resetModules();
   vi.useFakeTimers({ toFake: ["Date"] }); // frozen clock: the 60 s window never moves under a test
   vi.setSystemTime(1_700_000_000_000);
   vi.spyOn(console, "error").mockImplementation(() => {});
   upstream = vi.fn();
-  vi.stubGlobal("fetch", upstream);
+  session = vi.fn(async () => Response.json({ id: "user-1" }));
+  vi.stubGlobal(
+    "fetch",
+    vi.fn((input: unknown, init?: unknown) =>
+      String(input).endsWith("/auth/v1/user")
+        ? ask(session, input, init)
+        : ask(upstream, input, init),
+    ),
+  );
 });
 afterEach(() => {
   vi.useRealTimers();
@@ -38,7 +50,8 @@ afterEach(() => {
   }
 });
 
-const same = { "sec-fetch-site": "same-origin" };
+const TOKEN = "aaaaaaaa.bbbbbbbb.cccccccc";
+const same = { "sec-fetch-site": "same-origin", authorization: `Bearer ${TOKEN}` };
 function jsonRequest(body: unknown, headers: Record<string, string> = {}) {
   return new Request("http://app.test/api/x", {
     method: "POST",
@@ -268,7 +281,7 @@ describe("emergency pause on the three routes", () => {
     transcribe: () => audioRequest(2048),
   };
 
-  it("is off by default: nothing is paused without the variable", async () => {
+  it("is open when the server says so on purpose (0)", async () => {
     upstream.mockImplementation(async (url: string) =>
       String(url).endsWith("/chat/completions") ? Response.json({ choices: [] }) : mp3(),
     );
@@ -286,7 +299,7 @@ describe("emergency pause on the three routes", () => {
     }
     expect(upstream).not.toHaveBeenCalled();
 
-    delete process.env.AI_ROUTES_PAUSED;
+    process.env.AI_ROUTES_PAUSED = "0";
     upstream.mockResolvedValue(mp3());
     expect((await (await handler("speak"))({ request: requests.speak() })).status).toBe(200);
   });

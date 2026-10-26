@@ -14,6 +14,12 @@ export interface GeneratedDraftMeta {
   lyrics: string;
   duration: string;
   createdAt: number;
+  /**
+   * The account the draft belongs to. The prompt, the lyrics and the audio are the member's own data:
+   * only that account sees them, and they are erased when it signs out. Older drafts have no owner;
+   * the first account to open the studio takes them over (see GeneratedDraftsProvider).
+   */
+  ownerId?: string;
 }
 
 export interface GeneratedDraftRecord extends GeneratedDraftMeta {
@@ -65,6 +71,26 @@ export async function getAllDrafts(): Promise<GeneratedDraftRecord[]> {
   });
   db.close();
   return records.sort((a, b) => b.createdAt - a.createdAt);
+}
+
+/** Deletes every draft of one account (and only that account's) in a single transaction. */
+export async function deleteDraftsOf(ownerId: string): Promise<void> {
+  if (!hasIDB()) return;
+  const db = await openDB();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(STORE, "readwrite");
+    const cursorRequest = tx.objectStore(STORE).openCursor();
+    cursorRequest.onsuccess = () => {
+      const cursor = cursorRequest.result;
+      if (!cursor) return;
+      if ((cursor.value as GeneratedDraftMeta).ownerId === ownerId) cursor.delete();
+      cursor.continue();
+    };
+    cursorRequest.onerror = () => reject(cursorRequest.error);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+  db.close();
 }
 
 export async function deleteDraft(id: string): Promise<void> {

@@ -2,14 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import { Volume2, Loader2, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n/context";
-import { AI_LIMITS, aiErrorKey } from "@/lib/ai-limits";
+import { AI_LIMITS, aiErrorCode, aiErrorKey } from "@/lib/ai-limits";
+import { aiFetch, SignInRequiredError } from "@/lib/ai-fetch";
 import { cn } from "@/lib/utils";
 
 type State = "idle" | "loading" | "playing";
 
 /**
  * "Read aloud" control — sends text to the TTS endpoint and plays the result.
- * Lightweight: one shared <audio> element, no advanced processing.
+ * Lightweight: one shared <audio> element, no advanced processing. The endpoint is for members: without
+ * a session nothing is sent and the control says to sign in.
  */
 export function ReadAloudButton({
   text,
@@ -58,12 +60,12 @@ export function ReadAloudButton({
     setError(null);
     setState("loading");
     try {
-      const res = await fetch("/api/voice/speak", {
+      const res = await aiFetch("/api/voice/speak", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: text.slice(0, AI_LIMITS.speechChars), voice }),
       });
-      if (!res.ok) throw new Error(t(aiErrorKey(res.status)));
+      if (!res.ok) throw new Error(t(aiErrorKey(res.status, await aiErrorCode(res))));
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       urlRef.current = url;
@@ -76,7 +78,13 @@ export function ReadAloudButton({
     } catch (e) {
       cleanup();
       setState("idle");
-      setError(e instanceof Error ? e.message : t("aiErrors.generic"));
+      setError(
+        e instanceof SignInRequiredError
+          ? t("aiErrors.signIn")
+          : e instanceof Error
+            ? e.message
+            : t("aiErrors.generic"),
+      );
     }
   };
 
