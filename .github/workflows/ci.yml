@@ -1,0 +1,62 @@
+# Minimal continuous integration: TypeScript, ESLint, tests and build, on every pull request and on main.
+#
+# What it does NOT do, on purpose: it deploys nothing, publishes nothing, reads no secret and calls no
+# provider. The tests use simulated providers only (src/test/networkGuard.ts refuses any real host), and the
+# build only needs the two public values that are committed in .env.
+#
+# The commands are the ones run locally; tools are called through node so that they behave the same here and
+# there. Dependencies come from bun.lock, the lockfile the project uses (no package-lock.json is used).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: TypeScript, ESLint, tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+
+      - name: Install dependencies (lockfile respected)
+        run: bun install --frozen-lockfile
+
+      - name: TypeScript
+        run: node node_modules/typescript/bin/tsc --noEmit
+
+      # Prettier's formatting rule is switched off here: 65 files already do not follow it (457 findings), so
+      # keeping it on would fail every run for reasons unrelated to a change. Every other rule is enforced, with
+      # no error allowed and no new warning (16 exist today; the number may only go down).
+      - name: ESLint
+        run: |
+          node node_modules/eslint/bin/eslint.js . \
+            --rule '{"prettier/prettier":"off"}' \
+            --max-warnings=16
+
+      # A generous test timeout: a few tests read every source file and are slow on a shared runner.
+      - name: Tests
+        run: node node_modules/vitest/vitest.mjs run --testTimeout=30000
+
+      - name: Build
+        run: node node_modules/vite/bin/vite.js build

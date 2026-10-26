@@ -112,6 +112,8 @@ describe("the recovery of tracks that belong to nobody", () => {
     "unassignedClaimFailed",
     "unassignedDeleted",
     "unassignedDeleteFailed",
+    "unassignedClaimCancelled",
+    "deleteDraftFailed",
   ].map((k) => `studio.gen.${k}`);
   const takesCount = [
     "studio.gen.unassignedDesc",

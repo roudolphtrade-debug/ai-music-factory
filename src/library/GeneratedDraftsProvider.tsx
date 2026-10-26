@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useAuth } from "@/auth/context";
 import {
-  deleteDraft as idbDelete,
+  claimUnownedDrafts,
+  deleteDraftIfOwned,
   deleteDraftsOf,
   deleteUnownedDrafts,
   getAllDrafts,
   putDraft,
+  releaseDrafts,
   type GeneratedDraftMeta,
   type GeneratedDraftRecord,
 } from "@/library/generatedDrafts";
@@ -42,6 +44,8 @@ export function GeneratedDraftsProvider({ children }: { children: ReactNode }) {
   // Who the drafts in memory belong to, and a counter that changes whenever that must be forgotten.
   const owner = useRef<string | null>(null);
   const epoch = useRef(0);
+  // The recovery being written, if any: a sign-out cancels it, and waits for it to be undone.
+  const claiming = useRef<{ cancelled: boolean; done: Promise<ClaimResult> } | null>(null);
 
   const toDraft = useCallback((rec: GeneratedDraftRecord): GeneratedDraft => {
     const url = URL.createObjectURL(rec.blob);
@@ -105,8 +109,9 @@ export function GeneratedDraftsProvider({ children }: { children: ReactNode }) {
       const record: GeneratedDraftRecord = { ...meta, ownerId: startedFor, blob };
       await putDraft(record);
       if (epoch.current !== mine || owner.current !== startedFor) {
-        // too late: the account changed while this was being written. Undo it.
-        await idbDelete(meta.id).catch(() => {});
+        // too late: the account changed while this was being written. Undo it, and only what this very
+        // answer wrote (the owner is checked at the moment of the deletion).
+        await deleteDraftIfOwned(meta.id, startedFor).catch(() => false);
         throw new DraftDiscardedError();
       }
       const draft = toDraft(record);
@@ -116,16 +121,29 @@ export function GeneratedDraftsProvider({ children }: { children: ReactNode }) {
     [toDraft],
   );
 
-  const removeDraft = useCallback(async (id: string) => {
-    await idbDelete(id);
-    setDrafts((prev) => {
-      const target = prev.find((d) => d.id === id);
-      if (target) {
-        URL.revokeObjectURL(target.url);
-        urls.current.delete(target.url);
-      }
-      return prev.filter((d) => d.id !== id);
-    });
+  const removeDraft = useCallback(async (id: string): Promise<boolean> => {
+    const startedFor = owner.current;
+    const mine = epoch.current;
+    if (!startedFor) return false;
+    let removed: boolean;
+    try {
+      // The owner is checked inside the deletion: another account's track, an unowned one or a missing
+      // one is never deleted, even by a call kept from an earlier session.
+      removed = await deleteDraftIfOwned(id, startedFor);
+    } catch {
+      return false;
+    }
+    if (removed && epoch.current === mine && owner.current === startedFor) {
+      setDrafts((prev) => {
+        const target = prev.find((d) => d.id === id);
+        if (target) {
+          URL.revokeObjectURL(target.url);
+          urls.current.delete(target.url);
+        }
+        return prev.filter((d) => d.id !== id);
+      });
+    }
+    return removed;
   }, []);
 
   const keepUrl = useCallback((url: string) => {
@@ -134,6 +152,14 @@ export function GeneratedDraftsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const eraseMine = useCallback(async () => {
+    // A recovery still being written is cancelled and waited for: it puts the tracks back to unassigned
+    // before this erases anything, so nothing is left attached to the account that is leaving and
+    // nothing that was never the member's own is lost.
+    const job = claiming.current;
+    if (job) {
+      job.cancelled = true;
+      await job.done.catch(() => undefined);
+    }
     const who = owner.current;
     epoch.current++; // from now on, any answer still on its way is discarded
     dropMemory();
@@ -144,27 +170,40 @@ export function GeneratedDraftsProvider({ children }: { children: ReactNode }) {
   const claimUnassigned = useCallback(async (): Promise<ClaimResult> => {
     const startedFor = owner.current;
     const mine = epoch.current;
-    if (!startedFor) return { moved: 0, failed: 0 };
-    const unowned = (await getAllDrafts()).filter((rec) => rec.ownerId === undefined);
-    const moved: GeneratedDraftRecord[] = [];
-    let failed = 0;
-    for (const rec of unowned) {
-      const attached = { ...rec, ownerId: startedFor };
+    if (!startedFor) return { moved: 0, failed: false, cancelled: false };
+    if (claiming.current) return claiming.current.done; // one recovery at a time
+    const job: { cancelled: boolean; done: Promise<ClaimResult> } = {
+      cancelled: false,
+      done: Promise.resolve({ moved: 0, failed: false, cancelled: false }),
+    };
+    job.done = (async (): Promise<ClaimResult> => {
+      let claimed: GeneratedDraftRecord[];
       try {
-        await putDraft(attached);
-        moved.push(attached);
+        // One transaction: every unowned track is attached to the account that confirmed, or none is.
+        claimed = await claimUnownedDrafts(startedFor);
       } catch {
-        failed++; // this one stays unassigned, as it was
+        return { moved: 0, failed: true, cancelled: false };
       }
-    }
-    // The tracks now belong to the account that confirmed. They are shown only if that account is still
-    // the one signed in; otherwise they simply wait, on the disk, for their owner's next visit.
-    if (epoch.current === mine && owner.current === startedFor) {
-      const added = moved.map(toDraft);
+      if (job.cancelled || epoch.current !== mine || owner.current !== startedFor) {
+        // The account changed (or signed out) while it was being written: the attachment is undone as a
+        // whole, so the tracks are neither attached to the account that left nor lost.
+        if (claimed.length > 0) {
+          await releaseDrafts(
+            claimed.map((r) => r.id),
+            startedFor,
+          ).catch(() => 0);
+        }
+        return { moved: 0, failed: false, cancelled: true };
+      }
+      const added = claimed.map(toDraft);
       setDrafts((prev) => [...added, ...prev].sort((a, b) => b.createdAt - a.createdAt));
-      setUnassignedCount(failed);
-    }
-    return { moved: moved.length, failed };
+      setUnassignedCount(0);
+      return { moved: claimed.length, failed: false, cancelled: false };
+    })().finally(() => {
+      if (claiming.current === job) claiming.current = null;
+    });
+    claiming.current = job;
+    return job.done;
   }, [toDraft]);
 
   const deleteUnassigned = useCallback(async () => {

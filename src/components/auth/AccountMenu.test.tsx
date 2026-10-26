@@ -30,6 +30,30 @@ vi.mock("@/library/generatedDrafts", () => ({
   putDraft: async (r: { id: string; ownerId?: string; blob: Blob }) =>
     void disk.records.set(r.id, r),
   deleteDraft: async (id: string) => void disk.records.delete(id),
+  claimUnownedDrafts: async (owner: string) => {
+    const claimed = [...disk.records.values()]
+      .filter((v) => (v as { id: string; ownerId?: string; blob: Blob }).ownerId === undefined)
+      .map((v) => ({ ...(v as { id: string; ownerId?: string; blob: Blob }), ownerId: owner }));
+    for (const r of claimed) disk.records.set(r.id, r);
+    return claimed;
+  },
+  releaseDrafts: async (ids: string[], owner: string) => {
+    let released = 0;
+    for (const id of ids) {
+      const v = disk.records.get(id) as { id: string; ownerId?: string; blob: Blob } | undefined;
+      if (v && v.ownerId === owner) {
+        disk.records.set(id, { ...v, ownerId: undefined });
+        released++;
+      }
+    }
+    return released;
+  },
+  deleteDraftIfOwned: async (id: string, owner: string) => {
+    const v = disk.records.get(id) as { id: string; ownerId?: string; blob: Blob } | undefined;
+    if (!v || v.ownerId !== owner) return false;
+    disk.records.delete(id);
+    return true;
+  },
   deleteUnownedDrafts: async () => 0,
   deleteDraftsOf: async (owner: string) => {
     disk.events.push("erase-disk");

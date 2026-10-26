@@ -15,11 +15,41 @@ vi.mock("@/auth/context", () => ({ useAuth: () => ({ status: auth.status, user: 
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 type Rec = { id: string; title: string; ownerId?: string; blob: Blob; [key: string]: unknown };
-const disk = vi.hoisted(() => ({ records: new Map<string, unknown>() }));
+const disk = vi.hoisted(() => ({
+  records: new Map<string, unknown>(),
+  failClaim: false,
+  claimGate: null as Promise<void> | null,
+}));
 vi.mock("@/library/generatedDrafts", () => ({
   getAllDrafts: async () => [...disk.records.values()],
   putDraft: async (record: { id: string }) => void disk.records.set(record.id, record),
   deleteDraft: async (id: string) => void disk.records.delete(id),
+  claimUnownedDrafts: async (owner: string) => {
+    if (disk.claimGate) await disk.claimGate;
+    if (disk.failClaim) throw new Error("transaction aborted");
+    const claimed = [...disk.records.values()]
+      .filter((v) => (v as Rec).ownerId === undefined)
+      .map((v) => ({ ...(v as Rec), ownerId: owner }));
+    for (const r of claimed) disk.records.set(r.id, r);
+    return claimed;
+  },
+  releaseDrafts: async (ids: string[], owner: string) => {
+    let released = 0;
+    for (const id of ids) {
+      const v = disk.records.get(id) as Rec | undefined;
+      if (v && v.ownerId === owner) {
+        disk.records.set(id, { ...v, ownerId: undefined });
+        released++;
+      }
+    }
+    return released;
+  },
+  deleteDraftIfOwned: async (id: string, owner: string) => {
+    const v = disk.records.get(id) as Rec | undefined;
+    if (!v || v.ownerId !== owner) return false;
+    disk.records.delete(id);
+    return true;
+  },
   deleteDraftsOf: async (owner: string) => {
     for (const [id, v] of disk.records) if ((v as Rec).ownerId === owner) disk.records.delete(id);
   },
@@ -75,6 +105,8 @@ beforeEach(() => {
   auth.status = "signedIn";
   auth.user = { id: "alice" };
   disk.records.clear();
+  disk.failClaim = false;
+  disk.claimGate = null;
   disk.records.set("old1", track("old1", undefined));
   disk.records.set("old2", track("old2", undefined));
   disk.records.set("mine", track("mine", "alice"));
@@ -232,5 +264,75 @@ describe("tracks from before accounts, in the studio", () => {
     await settle();
     expect(screen.queryByTestId("unassigned-titles")).toBeNull();
     expect(screen.queryByText("Title of old1")).toBeNull();
+  });
+});
+
+describe("the recovery and the deletion tell the truth when they cannot be done", () => {
+  it("a failed recovery attaches nothing, says so, and keeps the notice", async () => {
+    disk.failClaim = true;
+    render(tree());
+    await settle();
+    openClaim();
+    const dialog = await screen.findByRole("alertdialog");
+    await act(async () =>
+      fireEvent.click(within(dialog).getByRole("button", { name: en("studio.gen.claimConfirm") })),
+    );
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(en("studio.gen.unassignedClaimFailed")),
+    );
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(ownerOf("old1")).toBeUndefined();
+    expect(ownerOf("old2")).toBeUndefined();
+    expect(screen.getByTestId("unassigned-titles")).toBeTruthy();
+    expect(screen.queryByText("Title of old1")).toBeNull();
+  });
+
+  it("an account change while the recovery is being written cancels it as a whole and says so", async () => {
+    let open!: () => void;
+    disk.claimGate = new Promise<void>((resolve) => (open = resolve));
+    const view = render(tree());
+    await settle();
+    openClaim();
+    const dialog = await screen.findByRole("alertdialog");
+    await act(async () =>
+      fireEvent.click(within(dialog).getByRole("button", { name: en("studio.gen.claimConfirm") })),
+    );
+    auth.user = { id: "carol" }; // another account signs in while the write is under way
+    view.rerender(tree());
+    await settle();
+    await act(async () => open());
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(en("studio.gen.unassignedClaimCancelled")),
+    );
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(ownerOf("old1")).toBeUndefined(); // back to nobody's, not attached to Alice who left
+    expect(ownerOf("old2")).toBeUndefined();
+    expect(screen.queryByText("Title of old1")).toBeNull();
+  });
+
+  it("deleting one's own track says it was deleted; a track that is no longer one's own is not deleted and the failure is shown", async () => {
+    render(tree());
+    await settle();
+    // the track changes hands behind the screen's back (another tab, another session)
+    disk.records.set("mine", { ...(disk.records.get("mine") as Rec), ownerId: "bob" });
+    await act(async () =>
+      fireEvent.click(screen.getByRole("button", { name: en("studio.gen.delete") })),
+    );
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(en("studio.gen.deleteDraftFailed")),
+    );
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(disk.records.has("mine")).toBe(true); // Bob's track is still there
+  });
+
+  it("deleting one's own track works and says so", async () => {
+    render(tree());
+    await settle();
+    await act(async () =>
+      fireEvent.click(screen.getByRole("button", { name: en("studio.gen.delete") })),
+    );
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith(en("studio.gen.deleted")));
+    expect(disk.records.has("mine")).toBe(false);
+    expect(disk.records.has("theirs")).toBe(true);
   });
 });

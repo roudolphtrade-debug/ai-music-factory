@@ -311,9 +311,20 @@ préfixe `VITE_`), puis Publish puis Update ; pour refermer, supprimer la variab
   c'est irréversible et que, dans le doute, annuler les laisse masqués et intacts). Annuler, fermer la fenêtre ou ne
   rien faire ne change rien. Un titre qui ne peut pas être rattaché reste non attribué. Aucune confirmation ne prouve
   l'identité de l'auteur : ni le code, ni les textes (six langues) ne le prétendent, et des tests le vérifient.
+- **Récupération atomique, sûre face à un changement de compte** : le rattachement des titres non attribués se fait en
+  **une seule transaction IndexedDB** : tous ou aucun (un échec annule tout : il n'y a plus d'état à moitié rattaché). Si
+  le compte change, ou si le membre se déconnecte, pendant l'écriture, le rattachement est **annulé en bloc** : les
+  titres retournent à « non attribués », ni rattachés au compte parti ni perdus, et l'écran dit que l'opération a été
+  annulée. Une déconnexion volontaire annule la récupération en cours et attend son annulation avant d'effacer les
+  titres propres du compte.
+- **Suppression d'un titre vérifiée au moment de la suppression** : le propriétaire est contrôlé **dans la transaction de
+  suppression**. L'identifiant d'un titre d'un autre compte, d'un titre sans propriétaire ou inexistant n'est jamais
+  supprimé, même par un appel resté d'une session précédente ; sans compte connecté, rien n'est supprimé ; l'annulation
+  d'une écriture tardive ne supprime que ce que cette réponse a écrit. L'écran signale un échec.
 - **Réponse tardive** : une génération qui revient après une déconnexion, ou après qu'un autre compte s'est connecté,
-  n'affiche rien, ne garde rien, ne débite rien : ni dans le studio, ni dans le magasin (ce qu'elle aurait écrit sur
-  le disque est supprimé aussitôt). La liste lue sur le disque après une déconnexion n'est pas remise à l'écran.
+  n'affiche rien, ne garde rien et ne débite pas le **crédit local** (ce qu'elle aurait écrit sur le disque est supprimé
+  aussitôt, en vérifiant le propriétaire). La liste lue sur le disque après une déconnexion n'est pas remise à l'écran.
+  **Cela ne la rend pas gratuite : le fournisseur IA a déjà facturé l'appel au moment où il a été fait** (voir 13.4).
 - **Textes trompeurs corrigés** dans les six langues : plus de « chanté » (voix de synthèse), plus d'achat ni de
   recharge de crédits ; nouveaux textes de session, de reprise et d'erreur.
 - **Crédit local débité après l'enregistrement** ; un titre que l'appareil ne peut pas garder reste écoutable et
@@ -330,8 +341,8 @@ préfixe `VITE_`), puis Publish puis Update ; pour refermer, supprimer la variab
 | Contrôle | Résultat |
 |---|---|
 | `tsc --noEmit`, ESLint (fichiers modifiés), `vite build` | 0 erreur ; **0 avertissement** sur les fichiers modifiés ; succès |
-| Suite de tests | **1 086 sur 1 086**, 48 fichiers, deux passes complètes consécutives |
-| **Trente et une dégradations volontaires** du code (21 avant, 10 dans cette correction : titre sans propriétaire attribué à n'importe quel compte, récupération qui n'écrit pas le propriétaire, suppression qui vise les titres du compte, déconnexion qui efface aussi les titres non attribués, récupération ou suppression sans confirmation, avertissement d'appareil partagé ou phrase « ne vérifie pas qui les a créés » retirés, cinquième valeur qui ouvre les routes, écran du compte précédent après une récupération) | chacune détectée par au moins un test, fichiers rétablis à l'identique |
+| Suite de tests | **1 108 sur 1 108**, 50 fichiers, deux passes complètes consécutives avec la commande de la CI |
+| **Quarante-trois dégradations volontaires** du code (31 avant ; douze de plus dans l'audit de la PR #5, voir 13.5 ; parmi les 31 : titre sans propriétaire attribué à n'importe quel compte, récupération qui n'écrit pas le propriétaire, suppression qui vise les titres du compte, déconnexion qui efface aussi les titres non attribués, récupération ou suppression sans confirmation, avertissement d'appareil partagé ou phrase « ne vérifie pas qui les a créés » retirés, cinquième valeur qui ouvre les routes, écran du compte précédent après une récupération) | chacune détectée par au moins un test, fichiers rétablis à l'identique |
 | Pause locale, deux serveurs de développement, corps vides, aucune clé fournisseur | avec `AI_ROUTES_PAUSED=1` : 503 `ai_paused` sur les trois routes, même sans jeton ; sans variable (code d'avant la consolidation) : 401 |
 | IndexedDB réel (Chrome) | l'effacement à la déconnexion vide les titres du compte et laisse ceux d'un autre compte (parcours F2 ci-dessous) |
 | Navigateur réel, serveur local, adresse sans session | clic sur Générer d'un visiteur : aucune requête `/api/` |
@@ -355,13 +366,17 @@ préfixe `VITE_`), puis Publish puis Update ; pour refermer, supprimer la variab
   - *F6 annulation chez Google* : retour à la connexion avec un message simple, préparation et jeton intacts, nouvel
     essai réussi ;
   - *F7* bouton « Effacer la préparation » ; *F8* aucun débordement horizontal du studio à 375 px ;
-  - **Titres sans propriétaire, 19 contrôles sur 19** (vrai IndexedDB de Chrome, faux service d'authentification, aucune
+  - **Titres sans propriétaire, 27 contrôles sur 27** (dont huit qui appellent les trois fonctions du magasin dans la page) (vrai IndexedDB de Chrome, faux service d'authentification, aucune
     requête vers une route IA) : *U1* se connecter ne rattache rien et une déconnexion n'efface pas ces titres ; *U2* un
     deuxième compte voit le même avis, jamais les titres ; *U3* la récupération demande confirmation, avertit de
     l'appareil partagé et dit qu'elle ne vérifie pas qui les a créés, l'annulation (récupération puis suppression) ne
     change rien sur le disque ; *U4* la récupération confirmée les attache au compte et les liste, aussi après un
     rechargement ; *U5* un autre compte, sans déconnexion, ne les voit pas ; *U6* la suppression confirmée n'efface que
-    les titres non attribués, ceux du premier compte restent ; *U7* l'avis tient dans un écran de 375 px.
+    les titres non attribués, ceux du premier compte restent ; *U7* l'avis tient dans un écran de 375 px ; *U4.3* la suppression d'un titre depuis le studio n'efface que celui-là ;
+    *U8* les trois fonctions du magasin (rattachement, remise à « non attribué », suppression avec contrôle du
+    propriétaire) appelées dans la page sur le vrai IndexedDB, dont **une panne injectée au milieu de la transaction de
+    rattachement : aucun titre n'est rattaché**, ni à moitié ni autrement (la panne est la seule « erreur » du
+    navigateur de cette série, attendue).
 - Les routes IA, le garde, le magasin de titres, la fenêtre de déconnexion et le lecteur sont aussi testés (tests
   automatiques) avec un faux fournisseur, un faux service d'authentification et un faux disque : **rien de réel n'a été
   appelé**.
@@ -406,6 +421,12 @@ curl -s -i -X POST "https://<adresse du site>/api/studio/generate" \
   ne les efface ni ne les attribue avant. Tant qu'on n'y touche pas, ils occupent de la place sur l'appareil.
 - **Favoris et listes de lecture** qui citent un titre effacé gardent un identifiant sans titre derrière (aucune donnée
   du titre ne reste) ; non nettoyé ici.
+- **Coût d'une génération abandonnée** : l'appel au fournisseur IA part **avant** la réponse. Une génération que l'on
+  abandonne en se déconnectant, ou dont la réponse est écartée parce que le compte a changé, a **déjà été facturée
+  par le fournisseur**, même si le studio ne montre rien et si le **crédit local** n'est pas débité (ce portefeuille
+  local n'est de toute façon pas un plafond). Se déconnecter ne l'annule pas côté fournisseur. Pour le lot B : les quotas
+  par membre devront **compter l'appel à l'acceptation de la requête, avant l'appel au fournisseur**, et non au moment
+  où le client garde le résultat.
 - **Pas de plafond de dépense** : la session vérifiée ne limite pas ce qu'un membre connecté dépense une fois les
   routes ouvertes. Le compteur de 60 requêtes par minute est propre à une instance ; le portefeuille de crédits est
   local et modifiable. Quotas par membre, plafond vérifiable et crédits par compte restent le **lot B** (table,
@@ -420,3 +441,85 @@ curl -s -i -X POST "https://<adresse du site>/api/studio/generate" \
   `src/library/draftsContext.ts`, qui n'exporte aucun composant ; le fichier du fournisseur n'exporte plus que le
   composant. Résultat : 0 avertissement sur ces fichiers (il y en avait 2 au dernier commit). Les deux avertissements
   du même type de `PlayerProvider.tsx` (`usePlayer`, `formatTime`) existaient avant le lot et n'ont pas été touchés.
+
+### 13.5 Audit de la PR #5 : quatre réserves
+
+Chaque anomalie a été **reproduite par un test qui échouait sur le code du commit `72ca0d5`**, corrigée, puis le même test
+passe. Le résultat de chaque reproduction est celui observé.
+
+**1. `claimUnassigned()` et un changement de compte pendant les écritures.**
+- *Reproduction* : (a) un échec d'écriture sur le titre du milieu laissait `l1:alice, l2:none, l3:alice` : **un état à
+  moitié rattaché** ; (b) un autre compte qui se connecte, ou une déconnexion, pendant l'écriture laissait les trois
+  titres **rattachés au compte qui venait de partir** ; (c) en prime, une déconnexion juste après la validation de
+  l'écriture, avant le retour de sa réponse, aurait effacé avec elle des titres que le membre n'avait pas choisi de perdre.
+- *Correction* : le rattachement est **une seule transaction IndexedDB** (`claimUnownedDrafts` : tous ou aucun, une
+  panne annule tout). Si, à la fin, le compte a changé ou le membre s'est déconnecté, il est **défait en bloc**
+  (`releaseDrafts` : seuls les titres encore au nom de ce compte repassent à « non attribué ») et l'écran dit que
+  l'opération a été annulée. Une déconnexion volontaire **annule la récupération en cours et attend son annulation**
+  avant d'effacer les titres propres du compte : les titres non attribués ne sont ni rattachés au compte parti, ni perdus.
+- *Tests* : `GeneratedDraftsProvider.test.tsx` (« the recovery is atomic and safe against a change of account », quatre
+  cas dont la fenêtre « validé mais pas encore répondu »), `GeneratedDraftsSection.test.tsx` (échec, annulation par
+  changement de compte), parcours *U8* dans Chrome (panne injectée au milieu de la vraie transaction).
+
+**2. Les affirmations sur la facturation d'une réponse arrivée après une déconnexion.**
+- *Reproduction* : un commentaire du studio, la documentation et la description de la PR affirmaient qu'une génération
+  dont la réponse est écartée n'avait rien coûté. **Faux** : l'appel au fournisseur est parti avant, le fournisseur a
+  **déjà facturé l'appel**. Seul le **crédit local** n'est pas touché (et ce portefeuille n'est pas un plafond).
+- *Correction* : commentaire du code et documentation réécrits (voir 13.2 et 13.4) ; le coût d'une génération abandonnée
+  est une limite écrite, et les quotas du lot B devront compter l'appel à l'acceptation de la requête.
+- *Test* : `billing-claims.test.ts` refuse ce type de phrase dans le code et la documentation, et exige les phrases
+  vraies. **Reste à corriger, après autorisation** : la description de la PR #5 et le message du commit `2448c6e` (déjà
+  poussé, non réécrit) contiennent la formule fausse. Texte exact à mettre dans la PR : « une réponse de génération qui
+  arrive après une déconnexion est écartée : rien n'est montré ni gardé et le crédit local n'est pas débité, mais le
+  fournisseur IA a déjà facturé l'appel ».
+
+**3. `removeDraft(id)` et un titre d'un autre compte.**
+- *Reproduction* : une fonction de suppression gardée de la session d'Alice, appelée après la connexion de Bob,
+  **supprimait le titre d'Alice** (`removeDraft` effaçait par identifiant, sans propriétaire) ; de même pour un titre sans
+  propriétaire, un titre inexistant, ou sans aucun compte connecté.
+- *Correction* : `deleteDraftIfOwned` contrôle le propriétaire **dans la transaction de suppression** ; `removeDraft`
+  renvoie si quelque chose a été supprimé, et l'écran affiche l'échec au lieu d'un faux succès. L'annulation d'une
+  écriture tardive (`addDraft`) utilise la même fonction. L'ancienne `deleteDraft(id)` sans contrôle est supprimée.
+- *Tests* : `GeneratedDraftsProvider.test.tsx` (« removing a track never touches another account's track »),
+  `GeneratedDraftsSection.test.tsx`, parcours *U4.3* et *U8.4/U8.5* dans Chrome.
+
+**4. Intégration continue GitHub minimale** : `.github/workflows/ci.yml`.
+- Sur chaque PR et sur `main` : installation depuis `bun.lock` (`bun install --frozen-lockfile`), puis **TypeScript**
+  (`tsc --noEmit`), **ESLint** (`--max-warnings=16`, aucune erreur admise), **tests** (`vitest run`, délai de 30 s par
+  test) et **build** (`vite build`). Droits en lecture seule, aucun secret, aucun déploiement ni publication, actions
+  épinglées par version, annulation des exécutions précédentes de la même branche.
+- *Choix à connaître* : la règle de **mise en forme** de Prettier est désactivée dans ESLint pour la CI, car **65 fichiers
+  ne la respectent déjà pas (457 constats)** : la garder ferait échouer chaque exécution pour des raisons étrangères au
+  changement. Toutes les autres règles sont appliquées ; 16 avertissements existent aujourd'hui et ne peuvent que baisser.
+- *Validation* : le fichier est lu par un analyseur YAML ; **les quatre étapes sont rejouées depuis une copie propre du
+  dépôt** (installation de 511 paquets depuis le fichier de verrouillage, puis tsc, ESLint, build, 1 100 tests alors
+  existants), puis on a vérifié que la porte **refuse** un avertissement de plus (17 sur 16 : sortie 1) et une erreur de
+  type (sortie 2). `ci-workflow.test.ts` protège le contenu du fichier (lecture seule, ni secret ni déploiement, quatre
+  étapes dans l'ordre, porte d'avertissements, installation figée, versions épinglées).
+- *Constat sur la charge* : sur cette machine, très chargée pendant la validation (3 Go de mémoire libre sur 24, 64
+  processus Chrome ouverts), la suite complète lancée avec **autant de processus parallèles que de fichiers** (50) a
+  échoué de façon **aléatoire**, un test différent à chaque passe (délai d'attente de 1 s d'un `waitFor` ou arrêt
+  prématuré d'un processus), jamais le même deux fois. Avec **4 processus**, comme sur un exécuteur à 4 cœurs :
+  **1 108 sur 1 108, deux passes de suite, depuis la copie propre** (6 à 7 minutes ici, bien moins sur un exécuteur
+  normal). Un test qui dépendait de la vitesse (« saisie avant que la session soit connue ») a été rendu déterministe :
+  la session est retenue par le test lui-même. Les attentes de 1 s des autres tests restent sensibles à une machine
+  saturée ; le délai de 20 minutes du travail CI laisse de la marge.
+- **Non vérifié** : l'exécution réelle sur GitHub (Ubuntu, Node 22 ; ici Windows, Node 24) ; la durée sur un exécuteur
+  partagé ; et **la poussée du fichier** : pousser un fichier de workflow demande, selon le mode d'authentification, un
+  droit `workflow` que le jeton utilisé jusqu'ici n'a peut-être pas. Cette PR n'a ni workflow ni contrôle GitHub tant
+  que le fichier n'est pas poussé : « mergeable » reste « sans conflit », rien de plus.
+- Ce que le test de contenu ne remplace pas : le lot B n'a pas de test de dépense réelle. La CI ne le prétend pas.
+
+**Dégradations volontaires de l'audit** (douze, toutes détectées) : récupération non défaite quand le compte change ;
+changement de compte ignoré par la récupération ; déconnexion qui n'annule ni n'attend la récupération (détectée seulement
+après l'ajout du cas « validé mais pas encore répondu ») ; suppression sans contrôle du propriétaire ; suppression annoncée
+réussie à tort ; phrase « le fournisseur a déjà facturé » retirée ; écran qui cache l'annulation ; écran qui annonce une
+suppression réussie à tort ; workflow avec droit d'écriture ; porte d'avertissements retirée ; étape de déploiement
+ajoutée ; étape de tests retirée.
+
+**Défaut de mon propre test trouvé en chemin** : le test d'hygiène relisait chaque fichier pour chacun des neuf motifs (des
+milliers de lectures) ; sur une machine chargée il dépassait 30 s. Il lit maintenant chaque fichier une fois.
+
+**Limites résiduelles** : voir 13.4 ; en plus, la CI n'a pas tourné sur GitHub, le mécanisme IndexedDB n'est vu que dans
+Chrome, le coût d'une génération abandonnée n'est pas évitable côté client, et une annulation de récupération dont la
+remise à « non attribué » échouerait (disque plein) laisserait les titres rattachés à leur compte d'origine, jamais à un autre.

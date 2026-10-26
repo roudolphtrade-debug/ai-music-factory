@@ -100,8 +100,10 @@ export function GeneratedDraftsSection() {
                       type="button"
                       aria-label={t("studio.gen.delete")}
                       onClick={() => {
-                        void removeDraft(d.id);
-                        toast.success(t("studio.gen.deleted"));
+                        void removeDraft(d.id).then((removed) => {
+                          if (removed) toast.success(t("studio.gen.deleted"));
+                          else toast.error(t("studio.gen.deleteDraftFailed"));
+                        });
                       }}
                       className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"
                     >
@@ -146,7 +148,7 @@ function UnassignedTitles({
   remove,
 }: {
   count: number;
-  claim: () => Promise<{ moved: number; failed: number }>;
+  claim: () => Promise<{ moved: number; failed: boolean; cancelled: boolean }>;
   remove: () => Promise<number>;
 }) {
   const { t, lang } = useI18n();
@@ -166,9 +168,10 @@ function UnassignedTitles({
   const confirmClaim = () =>
     run(async () => {
       try {
-        const { moved, failed } = await claim();
+        const { moved, failed, cancelled } = await claim();
         if (moved > 0) toast.success(t("studio.gen.unassignedClaimed", { n: moved }));
-        if (failed > 0) toast.error(t("studio.gen.unassignedClaimFailed"));
+        if (failed) toast.error(t("studio.gen.unassignedClaimFailed"));
+        if (cancelled) toast.error(t("studio.gen.unassignedClaimCancelled"));
       } catch {
         toast.error(t("studio.gen.unassignedClaimFailed"));
       }

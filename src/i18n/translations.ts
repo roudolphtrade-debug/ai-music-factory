@@ -283,6 +283,10 @@ const fr: Dict = {
       unassignedClaimFailed: "Certains titres n'ont pas pu être rattachés. Ils restent non attribués, intacts.",
       unassignedDeleted: "{n} titre(s) non attribué(s) supprimé(s)",
       unassignedDeleteFailed: "La suppression n'a pas pu aboutir. Les titres restent en place.",
+      unassignedClaimCancelled:
+        "Le compte a changé pendant l'opération : elle a été annulée. Les titres restent non attribués, intacts.",
+      deleteDraftFailed:
+        "Ce titre n'a pas pu être supprimé : il n'appartient plus à la session en cours ou n'existe plus.",
     },
   },
   avatarLab: {
@@ -1006,6 +1010,10 @@ const en: Dict = {
       unassignedClaimFailed: "Some tracks could not be attached. They stay unassigned and untouched.",
       unassignedDeleted: "{n} unassigned track(s) deleted",
       unassignedDeleteFailed: "The deletion could not be completed. The tracks stay where they are.",
+      unassignedClaimCancelled:
+        "The account changed during the operation, so it was cancelled. The tracks stay unassigned and untouched.",
+      deleteDraftFailed:
+        "This track could not be deleted: it no longer belongs to the current session or no longer exists.",
     },
   },
   avatarLab: {
@@ -1723,6 +1731,10 @@ const es: Dict = {
       unassignedClaimFailed: "Algunos temas no se pudieron asociar. Siguen sin asignar e intactos.",
       unassignedDeleted: "{n} tema(s) sin asignar eliminado(s)",
       unassignedDeleteFailed: "No se pudo completar la eliminación. Los temas siguen en su sitio.",
+      unassignedClaimCancelled:
+        "La cuenta cambió durante la operación y se canceló. Los temas siguen sin asignar e intactos.",
+      deleteDraftFailed:
+        "No se pudo eliminar este tema: ya no pertenece a la sesión actual o ya no existe.",
     },
   },
   avatarLab: {
@@ -2408,6 +2420,8 @@ const zh: Dict = {
       unassignedClaimFailed: "部分曲目无法归入账号。它们仍未归属，原样保留。",
       unassignedDeleted: "已删除 {n} 首未归属的曲目",
       unassignedDeleteFailed: "删除未能完成。曲目仍保留在原处。",
+      unassignedClaimCancelled: "操作期间账号发生了变化，操作已取消。曲目仍未归属，原样保留。",
+      deleteDraftFailed: "无法删除这首曲目：它已不属于当前会话，或已不存在。",
     },
   },
   artists: {
@@ -2854,6 +2868,10 @@ const pt: Dict = {
       unassignedClaimFailed: "Algumas faixas não puderam ser vinculadas. Continuam sem dono e intactas.",
       unassignedDeleted: "{n} faixa(s) sem dono excluída(s)",
       unassignedDeleteFailed: "A exclusão não pôde ser concluída. As faixas continuam onde estão.",
+      unassignedClaimCancelled:
+        "A conta mudou durante a operação e ela foi cancelada. As faixas continuam sem dono e intactas.",
+      deleteDraftFailed:
+        "Não foi possível excluir esta faixa: ela não pertence mais à sessão atual ou não existe mais.",
     },
   },
   artists: {
@@ -3303,6 +3321,9 @@ const ar: Dict = {
       unassignedClaimFailed: "تعذّر ربط بعض المقاطع. تبقى غير منسوبة وكما هي.",
       unassignedDeleted: "تم حذف {n} مقطع غير منسوب",
       unassignedDeleteFailed: "تعذّر إكمال الحذف. تبقى المقاطع في مكانها.",
+      unassignedClaimCancelled:
+        "تغيّر الحساب أثناء العملية فأُلغيت. تبقى المقاطع غير منسوبة وكما هي.",
+      deleteDraftFailed: "تعذّر حذف هذا المقطع: لم يعد ينتمي إلى الجلسة الحالية أو لم يعد موجودًا.",
     },
   },
   artists: {

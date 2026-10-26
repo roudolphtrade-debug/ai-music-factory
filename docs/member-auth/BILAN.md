@@ -571,14 +571,18 @@ Détail, preuves et limites : `docs/member-auth/LOT-STUDIO-GENERER.md`, section 
   confirmation, sans génération automatique ; destination de reprise 24 h ; titres générés rattachés au compte et
   effacés à la déconnexion volontaire (disque, mémoire, adresses temporaires) ; réponse tardive jamais conservée ;
   textes trompeurs corrigés ; débordement à 375 px corrigé.
-- **Preuves locales** : `tsc`, ESLint (0 avertissement sur les fichiers modifiés), build, 1 086 tests sur 1 086
-  (fournisseurs simulés, hôtes réels refusés par le banc de test), trente et une dégradations volontaires toutes
+- **Preuves locales** : `tsc`, ESLint (0 avertissement sur les fichiers modifiés), build, 1 108 tests sur 1 108
+  (fournisseurs simulés, hôtes réels refusés par le banc de test), quarante-trois dégradations volontaires toutes
   détectées, IndexedDB réel dans Chrome.
 - **Titres d'avant les comptes** : plus d'attribution automatique ; ils restent masqués et intacts, avec une récupération
   et une suppression confirmées (avertissement d'appareil partagé ; la confirmation ne vérifie pas qui les a créés).
+- **Corrections d'audit** : rattachement des titres non attribués **atomique** (une transaction, tout ou rien, annulé en bloc
+  si le compte change) ; suppression d'un titre qui **contrôle le propriétaire au moment de la suppression** ; une génération
+  dont la réponse arrive après une déconnexion n'est ni montrée ni gardée et ne touche pas au crédit local, mais **le
+  fournisseur l'a déjà facturée** ; intégration continue GitHub minimale proposée (TypeScript, ESLint, tests, build).
 - **Pause** : quatre valeurs ouvrent les routes (`0`, `false`, `no`, `off`), tout le reste les laisse en pause ; une
   réponse 400 ou 401 d'un déploiement ne prouve pas, seule, une ancienne version.
-- **Simulations** : 37 contrôles sur 37, puis 19 sur 19 pour les titres sans propriétaire, dans Chrome réel contre un faux service d'authentification, un faux Google et
+- **Simulations** : 37 contrôles sur 37, puis 27 sur 27 pour les titres sans propriétaire et le magasin, dans Chrome réel contre un faux service d'authentification, un faux Google et
   une fausse boîte mail (Google, confirmation par e-mail, changement de compte, expiration, annulation).
 - **Vérifications distantes encore nécessaires** : la pause par défaut sur le site publié et sur l'aperçu (`curl` à corps
   vide, 503 `ai_paused` attendu), le parcours réel avec le vrai Google et les vrais e-mails, le contrôle de session

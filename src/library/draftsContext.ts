@@ -17,10 +17,17 @@ export class DraftDiscardedError extends Error {
   }
 }
 
-/** What a recovery of the unassigned titles did. `failed` titles stay unassigned, untouched. */
+/**
+ * What a recovery of the unassigned titles did. It is all or nothing:
+ *  - `moved` titles attached, none failed, not cancelled;
+ *  - `failed`: the write could not be completed and NOTHING was attached;
+ *  - `cancelled`: the account changed (or signed out) while it was being written, so everything was put back
+ *    to unassigned. Either way no title is ever left half attached, or attached to an account that has gone.
+ */
 export interface ClaimResult {
   moved: number;
-  failed: number;
+  failed: boolean;
+  cancelled: boolean;
 }
 
 export interface DraftsValue {
@@ -33,7 +40,8 @@ export interface DraftsValue {
    */
   unassignedCount: number;
   addDraft: (meta: GeneratedDraftMeta, blob: Blob) => Promise<GeneratedDraft>;
-  removeDraft: (id: string) => Promise<void>;
+  /** Deletes one of this account's tracks. Resolves to false (and deletes nothing) if it is not this account's. */
+  removeDraft: (id: string) => Promise<boolean>;
   /** Makes a temporary address (a track the device could not keep) subject to the same erasure. */
   keepUrl: (url: string) => string;
   /** Erases this account's drafts: disk, memory, temporary addresses. Late answers are discarded. */

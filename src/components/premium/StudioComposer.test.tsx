@@ -342,9 +342,19 @@ describe("a track the device cannot keep", () => {
 describe("typing before the session is known", () => {
   it("is not overwritten by the restoration", async () => {
     savePrep(ANON, { prompt: "stored idea", genre: "Trap", mood: "Warm", voice: "Alto" });
+    // The session check is held until the test lets it finish, so that "typed before the session is
+    // known" is a fact of the test and not a matter of timing on a busy machine.
+    let release!: () => void;
+    const held = new Promise<void>((resolve) => (release = resolve));
+    fake.client.auth.getSession.mockImplementation(async () => {
+      await held;
+      return { data: { session: null }, error: null };
+    });
     mount();
-    // typed at once, before the session check has had time to finish
     fireEvent.change(promptBox(), { target: { value: "typed first" } });
+    expect(promptBox().value).toBe("typed first");
+    expect(generateButton().hasAttribute("disabled")).toBe(true); // the session is still unknown
+    await act(async () => release());
     await ready();
     expect(promptBox().value).toBe("typed first");
     expect(readPrep(ANON)?.fields.prompt).toBe("typed first");
@@ -369,7 +379,7 @@ describe("an answer that comes back after the account changed", () => {
     return () => answer();
   }
 
-  it("after a sign-out: nothing is kept, shown, played or paid for", async () => {
+  it("after a sign-out: nothing is kept, shown or played and the local credit is untouched (the provider has already billed)", async () => {
     signIn("alice");
     mount();
     await ready();

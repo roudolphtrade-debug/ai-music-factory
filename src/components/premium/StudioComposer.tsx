@@ -208,7 +208,9 @@ export function StudioComposer() {
     setPhase("generating");
     const startedFor = signedInAs.current;
     // An answer that comes back after the member signed out, or after another account signed in, is
-    // dropped: nothing is shown, kept or paid for.
+    // dropped: nothing is shown or kept, and the LOCAL credit is not debited. The AI provider, however, has
+    // ALREADY BILLED that request when it was made: an abandoned generation is not free (see
+    // docs/member-auth/LOT-STUDIO-GENERER.md, section 13.4).
     const stale = () => signedInAs.current !== startedFor;
 
     try {
