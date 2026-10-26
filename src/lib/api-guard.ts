@@ -39,8 +39,11 @@ export { AI_LIMITS };
  * `AI_ROUTES_PAUSED=0` on purpose (see docs/member-auth/LOT-STUDIO-GENERER.md, section 13).
  */
 const AI_ROUTES_PAUSED_FALLBACK = true;
-/** The only values that open the routes. Anything else, or nothing at all, keeps them paused. */
-const OPEN_VALUES = ["0", "false", "no", "off"];
+/**
+ * The four values, and only these, that open the routes (compared trimmed and case-insensitively, so
+ * " OFF " is the same value as "off"). Anything else, or nothing at all, keeps them paused.
+ */
+export const AI_ROUTES_OPEN_VALUES = ["0", "false", "no", "off"] as const;
 /** Multipart framing around the audio file. */
 const MULTIPART_OVERHEAD_BYTES = 64 * 1024;
 
@@ -102,7 +105,7 @@ function sameOrigin(request: Request): boolean {
 function isPaused(env: Env): boolean {
   const value = env.AI_ROUTES_PAUSED;
   if (value === undefined) return AI_ROUTES_PAUSED_FALLBACK;
-  return !OPEN_VALUES.includes(value.trim().toLowerCase());
+  return !(AI_ROUTES_OPEN_VALUES as readonly string[]).includes(value.trim().toLowerCase());
 }
 
 export interface AiGuardOptions {

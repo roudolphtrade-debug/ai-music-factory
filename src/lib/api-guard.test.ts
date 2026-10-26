@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   AI_LIMITS,
+  AI_ROUTES_OPEN_VALUES,
   createAiGuard,
   readBodyLimited,
   readFormLimited,
@@ -213,10 +214,39 @@ describe("emergency pause", () => {
     expect(res?.status).toBe(503);
   });
 
-  it("opens only for an explicit 0, false, no or off, whatever the case", () => {
-    for (const value of ["0", "false", "FALSE", " off ", "No"]) {
+  it("opens for exactly four values, whatever the case or the spaces around them", () => {
+    expect([...AI_ROUTES_OPEN_VALUES]).toEqual(["0", "false", "no", "off"]);
+    for (const base of AI_ROUTES_OPEN_VALUES) {
+      for (const value of [base, base.toUpperCase(), ` ${base} `]) {
+        const h = setup({ AI_ROUTES_PAUSED: value });
+        for (const route of routes) expect(h.call(route), `${value}/${route}`).toBeNull();
+      }
+    }
+  });
+
+  it("stays paused for anything that only looks like one of the four", async () => {
+    const lookalikes = [
+      "00",
+      "0.0",
+      "-0",
+      "n",
+      "nope",
+      "none",
+      "null",
+      "of",
+      "offf",
+      "disabled",
+      "false1",
+      "f",
+      "no.",
+    ];
+    for (const value of lookalikes) {
       const h = setup({ AI_ROUTES_PAUSED: value });
-      for (const route of routes) expect(h.call(route), `${value}/${route}`).toBeNull();
+      for (const route of routes) {
+        const res = h.call(route);
+        expect(res?.status, `${value}/${route}`).toBe(503);
+        expect((await res!.json()).code).toBe("ai_paused");
+      }
     }
   });
 

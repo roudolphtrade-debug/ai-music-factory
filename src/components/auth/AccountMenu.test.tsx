@@ -30,6 +30,7 @@ vi.mock("@/library/generatedDrafts", () => ({
   putDraft: async (r: { id: string; ownerId?: string; blob: Blob }) =>
     void disk.records.set(r.id, r),
   deleteDraft: async (id: string) => void disk.records.delete(id),
+  deleteUnownedDrafts: async () => 0,
   deleteDraftsOf: async (owner: string) => {
     disk.events.push("erase-disk");
     for (const [id, v] of disk.records) if (v.ownerId === owner) disk.records.delete(id);
@@ -195,6 +196,28 @@ describe("signing out with generated tracks kept on the device", () => {
     await waitFor(() => expect(fake.client.auth.signOut).toHaveBeenCalled());
     expect(screen.queryByRole("alertdialog")).toBeNull();
     expect(disk.events).toEqual(["erase-disk", "sign-out"]);
+  });
+
+  it("never erases, nor warns about, tracks that belong to nobody: they are not the member's to erase", async () => {
+    disk.records.set("legacy", { id: "legacy", blob: new Blob(["l"]) }); // no owner
+    await pressSignOutWithTracks();
+    await waitFor(() => expect(fake.client.auth.signOut).toHaveBeenCalled());
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    expect(disk.records.has("legacy")).toBe(true);
+  });
+
+  it("erases the account's own tracks and still leaves the unassigned ones on the disk", async () => {
+    disk.records.set("legacy", { id: "legacy", blob: new Blob(["l"]) });
+    disk.records.set("t1", track("t1", "alice"));
+    await pressSignOutWithTracks();
+    await screen.findByRole("alertdialog");
+    await act(async () =>
+      fireEvent.click(
+        screen.getByRole("button", { name: authCopy.en.signOutPrepConfirm as string }),
+      ),
+    );
+    await waitFor(() => expect(fake.client.auth.signOut).toHaveBeenCalled());
+    expect([...disk.records.keys()]).toEqual(["legacy"]);
   });
 
   it("warns while the tracks are still being read: nothing is erased unannounced", async () => {

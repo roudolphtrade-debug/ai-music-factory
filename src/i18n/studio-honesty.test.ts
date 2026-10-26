@@ -93,3 +93,85 @@ describe("the new studio and session texts exist in the six languages", () => {
     }
   });
 });
+
+describe("the recovery of tracks that belong to nobody", () => {
+  const keys = [
+    "unassignedTitle",
+    "unassignedDesc",
+    "unassignedClaim",
+    "unassignedDelete",
+    "claimTitle",
+    "claimWarning",
+    "claimNoProof",
+    "claimConfirm",
+    "deleteTitle",
+    "deleteWarning",
+    "deleteConfirm",
+    "dialogCancel",
+    "unassignedClaimed",
+    "unassignedClaimFailed",
+    "unassignedDeleted",
+    "unassignedDeleteFailed",
+  ].map((k) => `studio.gen.${k}`);
+  const takesCount = [
+    "studio.gen.unassignedDesc",
+    "studio.gen.deleteWarning",
+    "studio.gen.unassignedClaimed",
+    "studio.gen.unassignedDeleted",
+  ];
+  const shared: Record<Lang, RegExp> = {
+    fr: /partagé/i,
+    en: /shared/i,
+    es: /compartido/i,
+    zh: /共用/,
+    pt: /compartilhado/i,
+    ar: /مشترك/,
+  };
+  const noProof: Record<Lang, RegExp> = {
+    fr: /ne vérifie pas/i,
+    en: /does not check/i,
+    es: /no comprueba/i,
+    zh: /不会核实/,
+    pt: /não verifica/i,
+    ar: /لا يتحقق/,
+  };
+
+  it.each(langs)("%s: every text exists, is its own, keeps its count and has no dash", (lang) => {
+    for (const key of keys) {
+      const value = t(lang, key);
+      expect(value, `${lang} ${key}`).not.toBe(key);
+      expect(value.length, `${lang} ${key}`).toBeGreaterThan(1);
+      expect(value, `${lang} ${key}`).not.toContain("\u2014");
+      if (lang !== "en") expect(value, `${lang} ${key}`).not.toBe(t("en", key));
+      if (takesCount.includes(key)) expect(value, `${lang} ${key}`).toContain("5");
+    }
+  });
+
+  it.each(langs)(
+    "%s: warns about a shared device, and never claims to prove who made the tracks",
+    (lang) => {
+      expect(t(lang, "studio.gen.claimWarning")).toMatch(shared[lang]);
+      expect(t(lang, "studio.gen.claimNoProof")).toMatch(noProof[lang]);
+      // nowhere does a text of this feature say the confirmation proves or verifies an identity
+      const all = keys.map((k) => t(lang, k)).join(" ");
+      expect(all).not.toMatch(
+        /\b(prouve|prove|proves|proven|certifie|certify|authentifi\w+|authenticat\w+)\b/i,
+      );
+    },
+  );
+
+  it.each(langs)(
+    "%s: the deletion text says it cannot be undone and that cancelling keeps everything",
+    (lang) => {
+      const irreversible: Record<Lang, RegExp> = {
+        fr: /irréversible/i,
+        en: /cannot be undone/i,
+        es: /no se puede deshacer/i,
+        zh: /无法撤销/,
+        pt: /não pode ser desfeito/i,
+        ar: /لا يمكن التراجع/,
+      };
+      expect(t(lang, "studio.gen.deleteWarning")).toMatch(irreversible[lang]);
+    },
+  );
+});

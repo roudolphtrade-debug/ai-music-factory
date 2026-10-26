@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { AI_ROUTES_OPEN_VALUES } from "@/lib/api-guard";
 
 // The delivered state cannot spend: with no server configuration the three paid routes are paused.
 // Every provider here is a fake (the AI gateway and the authentication service); the test set-up
@@ -88,12 +89,26 @@ describe.each(NAMES)("%s with no server configuration", (name) => {
     },
   );
 
-  it.each(["0", "false", "no", "off", " OFF "])(
-    "opens only on the explicit value %j",
+  it.each([...AI_ROUTES_OPEN_VALUES])("opens on the explicit value %j", async (value) => {
+    process.env.AI_ROUTES_PAUSED = value;
+    expect((await run(name)).status).toBe(200);
+    expect(provider).toHaveBeenCalled();
+  });
+
+  it.each([" OFF ", "False", " 0 ", "NO"])(
+    "opens on a spaced or capitalised form of the same four values: %j",
     async (value) => {
       process.env.AI_ROUTES_PAUSED = value;
       expect((await run(name)).status).toBe(200);
-      expect(provider).toHaveBeenCalled();
+    },
+  );
+
+  it.each(["00", "nope", "offf", "disabled", "none"])(
+    "stays paused for the look-alike %j",
+    async (value) => {
+      process.env.AI_ROUTES_PAUSED = value;
+      expect((await run(name)).status).toBe(503);
+      expect(provider).not.toHaveBeenCalled();
     },
   );
 
@@ -142,5 +157,19 @@ describe("the paid routes are guarded in the source itself", () => {
     expect(guard).toBeLessThan(code.indexOf("process.env.LOVABLE_API_KEY"));
     expect(guard).toBeLessThan(code.indexOf("fetch("));
     expect(code).toMatch(/if \(blocked\) return blocked;/);
+  });
+});
+
+describe("the documentation says what the code does", () => {
+  it("names exactly the four opening values, never another count", () => {
+    const doc = readFileSync(
+      join(process.cwd(), "docs", "member-auth", "LOT-STUDIO-GENERER.md"),
+      "utf8",
+    );
+    const sentence = /Seules les valeurs ([^.]*)\./.exec(doc)?.[1] ?? "";
+    expect([...sentence.matchAll(/`([^`]+)`/g)].map((m) => m[1])).toEqual([
+      ...AI_ROUTES_OPEN_VALUES,
+    ]);
+    expect(doc).not.toMatch(/cinq valeurs|quatre ou cinq|five values/i);
   });
 });

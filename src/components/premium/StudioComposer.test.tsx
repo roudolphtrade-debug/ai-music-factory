@@ -26,9 +26,8 @@ vi.mock("sonner", () => ({
 }));
 // The drafts store is a stand-in with a switch: the device can keep the track, or cannot.
 const drafts = vi.hoisted(() => ({ fail: false, added: 0, kept: [] as string[] }));
-vi.mock("@/library/GeneratedDraftsProvider", () => ({
+vi.mock("@/library/draftsContext", () => ({
   DraftDiscardedError: class DraftDiscardedError extends Error {},
-  GeneratedDraftsProvider: ({ children }: { children: unknown }) => children as never,
   useGeneratedDrafts: () => ({
     drafts: [],
     ready: true,

@@ -26,7 +26,7 @@ import { AUTH_PATHS } from "@/auth/redirects";
 import { useAuthCopy } from "@/i18n/auth";
 import { useI18n } from "@/i18n/context";
 import { RTL_LANGS } from "@/i18n/translations";
-import { useGeneratedDraftsOptional } from "@/library/GeneratedDraftsProvider";
+import { useGeneratedDraftsOptional } from "@/library/draftsContext";
 import { clearPrep, hasPrep, memberOwner } from "@/studio/prep";
 import { MemberMonogram } from "./ProfileParts";
 

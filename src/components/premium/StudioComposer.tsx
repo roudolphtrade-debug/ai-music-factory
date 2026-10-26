@@ -18,7 +18,7 @@ import { LikeButton } from "@/components/premium/LikeButton";
 import { Equalizer } from "@/components/premium/Equalizer";
 import { usePlayer } from "@/audio/PlayerProvider";
 import type { PlayableTrack } from "@/audio/tracks";
-import { DraftDiscardedError, useGeneratedDrafts } from "@/library/GeneratedDraftsProvider";
+import { DraftDiscardedError, useGeneratedDrafts } from "@/library/draftsContext";
 import { useCredits } from "@/library/CreditsProvider";
 import { COSTS } from "@/library/credits";
 import { artistImages, moods, type ArtistId } from "@/data/mock";

@@ -1,13 +1,26 @@
-import { Trash2, Download, GitBranch, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { Trash2, Download, GitBranch, ShieldAlert, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/premium/SectionHeading";
 import { GoldBadge } from "@/components/premium/Chips";
 import { PlayButton } from "@/components/audio/PlayButton";
 import { LikeButton } from "@/components/premium/LikeButton";
-import { useGeneratedDrafts, type GeneratedDraft } from "@/library/GeneratedDraftsProvider";
+import { useGeneratedDrafts, type GeneratedDraft } from "@/library/draftsContext";
 import type { PlayableTrack } from "@/audio/tracks";
 import { artistImages, type ArtistId, type RelTime } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
+import { RTL_LANGS } from "@/i18n/translations";
 
 const COVER: ArtistId = "art-1";
 
@@ -37,7 +50,8 @@ function draftToTrack(d: GeneratedDraft, t: (k: string) => string): PlayableTrac
 
 export function GeneratedDraftsSection() {
   const { t, relTime } = useI18n();
-  const { drafts, ready, removeDraft } = useGeneratedDrafts();
+  const { drafts, ready, unassignedCount, removeDraft, claimUnassigned, deleteUnassigned } =
+    useGeneratedDrafts();
 
   if (!ready) return null;
 
@@ -113,6 +127,138 @@ export function GeneratedDraftsSection() {
           })}
         </div>
       )}
+
+      {unassignedCount > 0 && (
+        <UnassignedTitles count={unassignedCount} claim={claimUnassigned} remove={deleteUnassigned} />
+      )}
     </section>
+  );
+}
+
+/**
+ * Tracks made on this device before accounts existed. They belong to nobody, so they are not in the list:
+ * they stay hidden and untouched until the member chooses, after a confirmation, to attach them to their
+ * account or to delete them. The confirmation does not prove who made them, and says so.
+ */
+function UnassignedTitles({
+  count,
+  claim,
+  remove,
+}: {
+  count: number;
+  claim: () => Promise<{ moved: number; failed: number }>;
+  remove: () => Promise<number>;
+}) {
+  const { t, lang } = useI18n();
+  const [asking, setAsking] = useState<"claim" | "delete" | null>(null);
+  const [busy, setBusy] = useState(false);
+  const dir = RTL_LANGS.includes(lang) ? "rtl" : "ltr";
+
+  const run = async (action: () => Promise<void>) => {
+    setBusy(true);
+    try {
+      await action();
+    } finally {
+      setBusy(false);
+      setAsking(null);
+    }
+  };
+  const confirmClaim = () =>
+    run(async () => {
+      try {
+        const { moved, failed } = await claim();
+        if (moved > 0) toast.success(t("studio.gen.unassignedClaimed", { n: moved }));
+        if (failed > 0) toast.error(t("studio.gen.unassignedClaimFailed"));
+      } catch {
+        toast.error(t("studio.gen.unassignedClaimFailed"));
+      }
+    });
+  const confirmDelete = () =>
+    run(async () => {
+      try {
+        const removed = await remove();
+        toast.success(t("studio.gen.unassignedDeleted", { n: removed }));
+      } catch {
+        toast.error(t("studio.gen.unassignedDeleteFailed"));
+      }
+    });
+  const close = (open: boolean) => {
+    if (!open && !busy) setAsking(null);
+  };
+
+  return (
+    <div
+      role="region"
+      aria-label={t("studio.gen.unassignedTitle")}
+      data-testid="unassigned-titles"
+      className="space-y-4 rounded-2xl border border-[color-mix(in_oklab,var(--gold)_30%,transparent)] bg-card/60 p-5"
+    >
+      <div className="flex items-start gap-3">
+        <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-gold" aria-hidden="true" />
+        <div className="min-w-0">
+          <h3 className="font-display text-lg font-semibold text-foreground">
+            {t("studio.gen.unassignedTitle")}
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t("studio.gen.unassignedDesc", { n: count })}
+          </p>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" variant="ghost-gold" size="sm" onClick={() => setAsking("claim")}>
+          {t("studio.gen.unassignedClaim")}
+        </Button>
+        <Button type="button" variant="ghost" size="sm" onClick={() => setAsking("delete")}>
+          <Trash2 className="h-4 w-4" aria-hidden="true" /> {t("studio.gen.unassignedDelete")}
+        </Button>
+      </div>
+
+      <AlertDialog open={asking === "claim"} onOpenChange={close}>
+        <AlertDialogContent dir={dir}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("studio.gen.claimTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              <span className="block">{t("studio.gen.claimWarning")}</span>
+              <span className="mt-2 block">{t("studio.gen.claimNoProof")}</span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busy}>{t("studio.gen.dialogCancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={busy}
+              onClick={(event) => {
+                event.preventDefault();
+                void confirmClaim();
+              }}
+            >
+              {t("studio.gen.claimConfirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={asking === "delete"} onOpenChange={close}>
+        <AlertDialogContent dir={dir}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("studio.gen.deleteTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("studio.gen.deleteWarning", { n: count })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busy}>{t("studio.gen.dialogCancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={busy}
+              onClick={(event) => {
+                event.preventDefault();
+                void confirmDelete();
+              }}
+            >
+              {t("studio.gen.deleteConfirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }

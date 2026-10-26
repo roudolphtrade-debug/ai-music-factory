@@ -16,6 +16,8 @@ const disk = vi.hoisted(() => ({
   loadGate: null as Promise<void> | null,
   writeGate: null as Promise<void> | null,
   deletedFor: [] as string[],
+  puts: [] as string[],
+  failPut: null as string | null,
 }));
 vi.mock("@/library/generatedDrafts", () => ({
   getAllDrafts: async () => {
@@ -24,7 +26,19 @@ vi.mock("@/library/generatedDrafts", () => ({
   },
   putDraft: async (record: { id: string }) => {
     if (disk.writeGate) await disk.writeGate;
+    if (disk.failPut === record.id) throw new Error("quota");
+    disk.puts.push(record.id);
     disk.records.set(record.id, record);
+  },
+  deleteUnownedDrafts: async () => {
+    let removed = 0;
+    for (const [id, value] of disk.records) {
+      if ((value as Rec).ownerId === undefined) {
+        disk.records.delete(id);
+        removed++;
+      }
+    }
+    return removed;
   },
   deleteDraft: async (id: string) => void disk.records.delete(id),
   deleteDraftsOf: async (owner: string) => {
@@ -35,11 +49,8 @@ vi.mock("@/library/generatedDrafts", () => ({
   },
 }));
 
-import {
-  DraftDiscardedError,
-  GeneratedDraftsProvider,
-  useGeneratedDrafts,
-} from "./GeneratedDraftsProvider";
+import { GeneratedDraftsProvider } from "./GeneratedDraftsProvider";
+import { DraftDiscardedError, useGeneratedDrafts } from "./draftsContext";
 import { onDraftsErased } from "./draftEvents";
 
 const rec = (id: string, ownerId: string | undefined, title = id): Rec => ({
@@ -90,6 +101,8 @@ beforeEach(() => {
   disk.loadGate = null;
   disk.writeGate = null;
   disk.deletedFor = [];
+  disk.puts = [];
+  disk.failPut = null;
   created = [];
   revoked = [];
   erasedNotices = [];
@@ -133,12 +146,15 @@ describe("whose drafts these are", () => {
     expect(created).toHaveLength(0);
   });
 
-  it("hands drafts from before accounts to the first account, and writes the owner on disk", async () => {
+  it("leaves a track from before accounts alone: not attached, not shown, not written, no address made", async () => {
     disk.records.set("old", rec("old", undefined));
     mount();
     await settle();
-    expect(api.drafts.map((d) => d.id)).toEqual(["old"]);
-    expect((disk.records.get("old") as Rec).ownerId).toBe("alice");
+    expect(api.drafts).toEqual([]);
+    expect(api.unassignedCount).toBe(1);
+    expect((disk.records.get("old") as Rec).ownerId).toBeUndefined();
+    expect(disk.puts).toEqual([]); // nothing was written for it
+    expect(created).toHaveLength(0); // and no temporary address was made for its audio
   });
 
   it("another account taking over drops the first account's drafts from memory and revokes their addresses", async () => {
@@ -274,5 +290,124 @@ describe("a late answer does not bring anything back", () => {
     expect(draft.url).toBe("blob:test-0");
     expect(api.drafts.map((d) => d.id)).toEqual(["fresh"]);
     expect((disk.records.get("fresh") as Rec).ownerId).toBe("alice");
+  });
+});
+
+describe("tracks from before accounts", () => {
+  const withLegacy = () => {
+    disk.records.set("l1", rec("l1", undefined));
+    disk.records.set("l2", rec("l2", undefined));
+  };
+  const remount = (view: ReturnType<typeof mount>) =>
+    view.rerender(
+      <GeneratedDraftsProvider>
+        <Probe />
+      </GeneratedDraftsProvider>,
+    );
+
+  it("are attached to no account by simply signing in, whoever signs in, however often", async () => {
+    withLegacy();
+    const view = mount();
+    await settle();
+    expect(api.unassignedCount).toBe(2);
+    for (const id of ["bob", "carol", "alice"]) {
+      auth.user = { id };
+      remount(view);
+      await settle();
+      expect(api.drafts).toEqual([]);
+      expect(api.unassignedCount).toBe(2);
+    }
+    expect([...disk.records.values()].every((r) => (r as Rec).ownerId === undefined)).toBe(true);
+    expect(disk.puts).toEqual([]);
+  });
+
+  it("stay where they are when nothing is confirmed, including after a sign-out", async () => {
+    withLegacy();
+    disk.records.set("a1", rec("a1", "alice"));
+    mount();
+    await settle();
+    await act(async () => api.eraseMine());
+    expect([...disk.records.keys()].sort()).toEqual(["l1", "l2"]); // only Alice's own went
+    expect(disk.records.get("l1")).toBeTruthy();
+  });
+
+  it("are shown to nobody at all while nobody is signed in", async () => {
+    withLegacy();
+    auth.status = "signedOut";
+    auth.user = null;
+    mount();
+    await settle();
+    expect(api.drafts).toEqual([]);
+    expect(api.unassignedCount).toBe(0);
+  });
+
+  it("are attached to the account that confirms, and to that account only", async () => {
+    withLegacy();
+    const view = mount();
+    await settle();
+    let result!: Awaited<ReturnType<typeof api.claimUnassigned>>;
+    await act(async () => {
+      result = await api.claimUnassigned();
+    });
+    expect(result).toEqual({ moved: 2, failed: 0 });
+    expect(api.drafts.map((d) => d.id).sort()).toEqual(["l1", "l2"]);
+    expect(api.unassignedCount).toBe(0);
+    expect((disk.records.get("l1") as Rec).ownerId).toBe("alice");
+
+    // another account on the same device finds neither the tracks nor anything left to take
+    auth.user = { id: "bob" };
+    remount(view);
+    await settle();
+    expect(api.drafts).toEqual([]);
+    expect(api.unassignedCount).toBe(0);
+    expect((disk.records.get("l2") as Rec).ownerId).toBe("alice");
+  });
+
+  it("a track that cannot be attached stays unassigned and untouched", async () => {
+    withLegacy();
+    mount();
+    await settle();
+    disk.failPut = "l2";
+    let result!: Awaited<ReturnType<typeof api.claimUnassigned>>;
+    await act(async () => {
+      result = await api.claimUnassigned();
+    });
+    expect(result).toEqual({ moved: 1, failed: 1 });
+    expect(api.drafts.map((d) => d.id)).toEqual(["l1"]);
+    expect(api.unassignedCount).toBe(1);
+    expect((disk.records.get("l2") as Rec).ownerId).toBeUndefined();
+  });
+
+  it("an account that changed while the attachment was being written does not receive the tracks on screen", async () => {
+    withLegacy();
+    const view = mount();
+    await settle();
+    const hold = gate();
+    disk.writeGate = hold.promise;
+    const claiming = api.claimUnassigned();
+    auth.user = { id: "bob" };
+    remount(view);
+    await settle();
+    hold.open();
+    await act(async () => void (await claiming));
+    await settle();
+    expect(api.drafts).toEqual([]); // Bob sees nothing of what Alice confirmed
+    expect((disk.records.get("l1") as Rec).ownerId).toBe("alice");
+  });
+
+  it("are deleted, and only they, when the deletion is confirmed", async () => {
+    withLegacy();
+    disk.records.set("a1", rec("a1", "alice"));
+    disk.records.set("b1", rec("b1", "bob"));
+    mount();
+    await settle();
+    let removed = -1;
+    await act(async () => {
+      removed = await api.deleteUnassigned();
+    });
+    expect(removed).toBe(2);
+    expect([...disk.records.keys()].sort()).toEqual(["a1", "b1"]);
+    expect(api.unassignedCount).toBe(0);
+    expect(api.drafts.map((d) => d.id)).toEqual(["a1"]);
   });
 });

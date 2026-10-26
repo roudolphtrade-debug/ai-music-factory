@@ -16,8 +16,9 @@ export interface GeneratedDraftMeta {
   createdAt: number;
   /**
    * The account the draft belongs to. The prompt, the lyrics and the audio are the member's own data:
-   * only that account sees them, and they are erased when it signs out. Older drafts have no owner;
-   * the first account to open the studio takes them over (see GeneratedDraftsProvider).
+   * only that account sees them, and they are erased when it signs out. Drafts from before accounts
+   * existed have no owner. They are never attached to an account automatically: they stay hidden and
+   * untouched until a member confirms, on purpose, to take them over or to delete them.
    */
   ownerId?: string;
 }
@@ -91,6 +92,31 @@ export async function deleteDraftsOf(ownerId: string): Promise<void> {
     tx.onerror = () => reject(tx.error);
   });
   db.close();
+}
+
+/** Deletes every draft that belongs to nobody, in a single transaction. Returns how many went. */
+export async function deleteUnownedDrafts(): Promise<number> {
+  if (!hasIDB()) return 0;
+  const db = await openDB();
+  let removed = 0;
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(STORE, "readwrite");
+    const cursorRequest = tx.objectStore(STORE).openCursor();
+    cursorRequest.onsuccess = () => {
+      const cursor = cursorRequest.result;
+      if (!cursor) return;
+      if ((cursor.value as GeneratedDraftMeta).ownerId === undefined) {
+        cursor.delete();
+        removed++;
+      }
+      cursor.continue();
+    };
+    cursorRequest.onerror = () => reject(cursorRequest.error);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+  db.close();
+  return removed;
 }
 
 export async function deleteDraft(id: string): Promise<void> {

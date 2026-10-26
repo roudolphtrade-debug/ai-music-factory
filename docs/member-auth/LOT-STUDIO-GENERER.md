@@ -263,8 +263,9 @@ seule la plateforme réelle peut dire).*
 
 **Règle livrée (`src/lib/api-guard.ts`) : les routes sont en pause, sauf si le serveur dit explicitement le
 contraire.** Variable absente, vide, environnement que la plateforme ne transmet pas, ou valeur inconnue : **503
-`ai_paused`**, avant tout contrôle de session et tout appel fournisseur. Seules les valeurs `0`, `false`, `no` et
-`off` (insensibles à la casse) ouvrent les routes. Ouvrir est donc un geste volontaire, à ne faire qu'après le lot B
+`ai_paused`**, avant tout contrôle de session et tout appel fournisseur. Seules les valeurs `0`, `false`, `no` et `off` (quatre, insensibles à la casse et aux espaces autour : « OFF » vaut
+off) ouvrent les routes. Une valeur qui leur ressemble (`00`, `nope`, `offf`, `disabled`) laisse la pause. Le
+code (`AI_ROUTES_OPEN_VALUES`), les tests et ce texte disent la même chose, et un test lit ce paragraphe pour le vérifier. Ouvrir est donc un geste volontaire, à ne faire qu'après le lot B
 (quotas serveur, plafond de dépense vérifiable). L'ordre du garde : origine, **pause**, session, limite, corps.
 
 Conséquence assumée : dans l'état livré, la génération, la lecture à voix haute et la dictée répondent « momentanément
@@ -298,10 +299,18 @@ préfixe `VITE_`), puis Publish puis Update ; pour refermer, supprimer la variab
   retour, aucune génération automatique** : bandeau « Préparation reprise » et bouton Effacer.
 - **Brouillons audio générés** (consolidation) : ils contiennent le prompt, les paroles et l'audio de l'utilisateur, donc
   des données personnelles. Ils appartiennent désormais à un compte (`ownerId`) ; un autre compte ne les voit pas, même
-  si la première session s'est terminée sans déconnexion ; ceux d'avant les comptes sont repris par le premier compte
-  qui ouvre le studio. **À la déconnexion volontaire, ils sont effacés** : disque (IndexedDB, ce compte seulement),
+  si la première session s'est terminée sans déconnexion. **À la déconnexion volontaire, ils sont effacés** : disque (IndexedDB, ce compte seulement),
   références en mémoire, **adresses temporaires révoquées**, et le lecteur s'arrête et oublie ces titres. La fenêtre
   d'avertissement cite aussi les titres générés ; elle s'affiche même pendant que la liste se charge.
+- **Titres d'avant les comptes : plus aucune attribution automatique.** Ils n'appartiennent à aucun compte : ils
+  restent **sur le disque, intacts et masqués** (aucune adresse temporaire, aucune écriture, aucune liste) quel que soit
+  le compte qui se connecte, et une déconnexion ne les efface pas. Le studio annonce seulement leur nombre. Deux
+  actions, **chacune derrière une confirmation** : *Récupérer ces titres* (avertit que l'appareil est peut-être partagé
+  et que ces titres ont pu être créés par quelqu'un d'autre, et dit que **la confirmation ne vérifie pas qui les a
+  créés** : elle ne fait que les rattacher au compte connecté, sur cet appareil) et *Supprimer ces titres* (dit que
+  c'est irréversible et que, dans le doute, annuler les laisse masqués et intacts). Annuler, fermer la fenêtre ou ne
+  rien faire ne change rien. Un titre qui ne peut pas être rattaché reste non attribué. Aucune confirmation ne prouve
+  l'identité de l'auteur : ni le code, ni les textes (six langues) ne le prétendent, et des tests le vérifient.
 - **Réponse tardive** : une génération qui revient après une déconnexion, ou après qu'un autre compte s'est connecté,
   n'affiche rien, ne garde rien, ne débite rien : ni dans le studio, ni dans le magasin (ce qu'elle aurait écrit sur
   le disque est supprimé aussitôt). La liste lue sur le disque après une déconnexion n'est pas remise à l'écran.
@@ -320,12 +329,13 @@ préfixe `VITE_`), puis Publish puis Update ; pour refermer, supprimer la variab
 
 | Contrôle | Résultat |
 |---|---|
-| `tsc --noEmit`, ESLint (fichiers modifiés), `vite build` | 0 erreur, 0 erreur (1 avertissement de plus du même type que ceux qui existaient : un second hook exporté à côté d'un composant), succès |
-| Suite de tests | **1 023 sur 1 023**, 47 fichiers, deux passes complètes. Une première passe a vu deux tests qui parcourent tout le dépôt dépasser leur délai de 5 s sous charge ; le mien a reçu un délai explicite, l'autre (`credits-free`) est connu et passe seul |
-| **Vingt et une dégradations volontaires** du code (neuf du premier temps, douze de la consolidation : routes ouvertes sans configuration, valeur inconnue ou vide qui ouvre, disque non effacé, réponse tardive gardée, tous les comptes voient tous les titres, adresses non révoquées, lecteur qui continue, mots d'un compte recopiés chez le suivant, avertissement qui ignore les titres) | chacune détectée par au moins un test, fichiers rétablis à l'identique |
+| `tsc --noEmit`, ESLint (fichiers modifiés), `vite build` | 0 erreur ; **0 avertissement** sur les fichiers modifiés ; succès |
+| Suite de tests | **1 086 sur 1 086**, 48 fichiers, deux passes complètes consécutives |
+| **Trente et une dégradations volontaires** du code (21 avant, 10 dans cette correction : titre sans propriétaire attribué à n'importe quel compte, récupération qui n'écrit pas le propriétaire, suppression qui vise les titres du compte, déconnexion qui efface aussi les titres non attribués, récupération ou suppression sans confirmation, avertissement d'appareil partagé ou phrase « ne vérifie pas qui les a créés » retirés, cinquième valeur qui ouvre les routes, écran du compte précédent après une récupération) | chacune détectée par au moins un test, fichiers rétablis à l'identique |
 | Pause locale, deux serveurs de développement, corps vides, aucune clé fournisseur | avec `AI_ROUTES_PAUSED=1` : 503 `ai_paused` sur les trois routes, même sans jeton ; sans variable (code d'avant la consolidation) : 401 |
 | IndexedDB réel (Chrome) | l'effacement à la déconnexion vide les titres du compte et laisse ceux d'un autre compte (parcours F2 ci-dessous) |
 | Navigateur réel, serveur local, adresse sans session | clic sur Générer d'un visiteur : aucune requête `/api/` |
+| IndexedDB réel (Chrome), titres sans propriétaire | voir *U1 à U7* plus bas : suppression des seuls titres non attribués par le vrai curseur IndexedDB |
 
 **Simulations (un faux service à la place du vrai)**
 
@@ -344,7 +354,14 @@ préfixe `VITE_`), puis Publish puis Update ; pour refermer, supprimer la variab
     préparation intacte, aucune génération ;
   - *F6 annulation chez Google* : retour à la connexion avec un message simple, préparation et jeton intacts, nouvel
     essai réussi ;
-  - *F7* bouton « Effacer la préparation » ; *F8* aucun débordement horizontal du studio à 375 px.
+  - *F7* bouton « Effacer la préparation » ; *F8* aucun débordement horizontal du studio à 375 px ;
+  - **Titres sans propriétaire, 19 contrôles sur 19** (vrai IndexedDB de Chrome, faux service d'authentification, aucune
+    requête vers une route IA) : *U1* se connecter ne rattache rien et une déconnexion n'efface pas ces titres ; *U2* un
+    deuxième compte voit le même avis, jamais les titres ; *U3* la récupération demande confirmation, avertit de
+    l'appareil partagé et dit qu'elle ne vérifie pas qui les a créés, l'annulation (récupération puis suppression) ne
+    change rien sur le disque ; *U4* la récupération confirmée les attache au compte et les liste, aussi après un
+    rechargement ; *U5* un autre compte, sans déconnexion, ne les voit pas ; *U6* la suppression confirmée n'efface que
+    les titres non attribués, ceux du premier compte restent ; *U7* l'avis tient dans un écran de 375 px.
 - Les routes IA, le garde, le magasin de titres, la fenêtre de déconnexion et le lecteur sont aussi testés (tests
   automatiques) avec un faux fournisseur, un faux service d'authentification et un faux disque : **rien de réel n'a été
   appelé**.
@@ -360,8 +377,12 @@ curl -s -i -X POST "https://<adresse du site>/api/studio/generate" \
 ```
 
    Refaire sur `/api/voice/speak` et `/api/voice/transcribe`. Ne jamais envoyer de prompt ni de texte pour ce test.
-   Tant que ce n'est pas fait, la garantie vaut pour le code livré, pas pour le déploiement. (Si le site publié est
-   encore sur la version d'avant ce lot, la réponse sera 400 ou 401 : c'est la preuve qu'il faut publier ce lot.)
+   Tant que ce n'est pas fait, la garantie vaut pour le code livré, pas pour le déploiement. **Une réponse 400 ou 401 ne
+   prouve pas, à elle seule, que le site est resté sur une ancienne version** : elle peut aussi venir de ce code avec la
+   variable ouverte volontairement (`AI_ROUTES_PAUSED=0`) sur la plateforme, ou d'un intermédiaire placé devant le site.
+   Pour trancher, lire le `code` de la réponse (`ai_paused` : pause active), vérifier la valeur de la variable côté
+   plateforme et la date de la dernière publication. Toute réponse autre que `503` avec `ai_paused`, variable absente,
+   est une anomalie à examiner : ce n'est pas la preuve de la pause.
 2. **L'aperçu et le site Lovable avec le vrai projet** : connexion Google dans un onglet séparé, inscription et
    confirmation par e-mail réelles jusqu'au studio, préparation restaurée. Seuls des faux services ont été exercés.
 3. **Le Worker joint-il le vrai service d'authentification ?** Le contrôle de session part du Worker vers le projet
@@ -379,8 +400,10 @@ curl -s -i -X POST "https://<adresse du site>/api/studio/generate" \
   déconnexion volontaire du compte (les titres), lisibles seulement par leur compte dans l'application. Rien ne quitte
   le navigateur : un autre appareil ou navigateur repart à vide, et un lien de confirmation ouvert ailleurs ne
   retrouve ni préparation ni destination. Navigation privée ou stockage bloqué : rien n'est gardé.
-- **Titres d'avant les comptes** : le premier compte qui ouvre le studio les reprend. Sur un appareil partagé, ce n'est
-  pas forcément leur auteur.
+- **Titres d'avant les comptes** : ils ne sont rattachés à personne tant qu'un membre ne confirme pas. Une confirmation
+  **ne prouve pas** que ce membre en est l'auteur : sur un appareil partagé, quelqu'un peut récupérer ou supprimer des
+  titres qui ne sont pas les siens. Le texte le dit, la décision reste celle de la personne devant l'écran, et rien
+  ne les efface ni ne les attribue avant. Tant qu'on n'y touche pas, ils occupent de la place sur l'appareil.
 - **Favoris et listes de lecture** qui citent un titre effacé gardent un identifiant sans titre derrière (aucune donnée
   du titre ne reste) ; non nettoyé ici.
 - **Pas de plafond de dépense** : la session vérifiée ne limite pas ce qu'un membre connecté dépense une fois les
@@ -391,5 +414,9 @@ curl -s -i -X POST "https://<adresse du site>/api/studio/generate" \
   la génération est refusée (voulu).
 - Non fait : libellés de voix (« Ténor chaud », « Soprano »), message sur les droits, relecture native des textes ZH, PT
   et AR (premiers jets), nettoyage des listes de lecture.
-- Un avertissement de lint de plus (`react-refresh/only-export-components`) : le magasin de titres exporte maintenant
-  deux hooks à côté de son composant, comme le lecteur en exporte déjà deux.
+- **Avertissement ESLint** (`react-refresh/only-export-components`) : le nouveau venu était `useGeneratedDraftsOptional`,
+  un second hook exporté à côté du composant dans `GeneratedDraftsProvider.tsx` (le premier, `useGeneratedDrafts`,
+  existait déjà). Corrigé **sans désactiver la règle** : le contexte, les deux hooks et l'erreur passent dans
+  `src/library/draftsContext.ts`, qui n'exporte aucun composant ; le fichier du fournisseur n'exporte plus que le
+  composant. Résultat : 0 avertissement sur ces fichiers (il y en avait 2 au dernier commit). Les deux avertissements
+  du même type de `PlayerProvider.tsx` (`usePlayer`, `formatTime`) existaient avant le lot et n'ont pas été touchés.

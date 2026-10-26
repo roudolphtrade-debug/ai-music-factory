@@ -1,52 +1,22 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useAuth } from "@/auth/context";
 import {
   deleteDraft as idbDelete,
   deleteDraftsOf,
+  deleteUnownedDrafts,
   getAllDrafts,
   putDraft,
   type GeneratedDraftMeta,
   type GeneratedDraftRecord,
 } from "@/library/generatedDrafts";
 import { emitDraftsErased } from "@/library/draftEvents";
-
-/** A draft with a live object URL for playback. */
-export interface GeneratedDraft extends GeneratedDraftMeta {
-  url: string;
-}
-
-/**
- * Thrown by `addDraft` when the answer comes too late: the member signed out (or another account took
- * over) while the track was being generated. Nothing is kept, in memory or on disk.
- */
-export class DraftDiscardedError extends Error {
-  constructor() {
-    super("draft discarded: the account changed while it was being generated");
-    this.name = "DraftDiscardedError";
-  }
-}
-
-interface DraftsValue {
-  drafts: GeneratedDraft[];
-  ready: boolean;
-  addDraft: (meta: GeneratedDraftMeta, blob: Blob) => Promise<GeneratedDraft>;
-  removeDraft: (id: string) => Promise<void>;
-  /** Makes a temporary address (a track the device could not keep) subject to the same erasure. */
-  keepUrl: (url: string) => string;
-  /** Erases this account's drafts: disk, memory, temporary addresses. Late answers are discarded. */
-  eraseMine: () => Promise<void>;
-}
-
-const DraftsContext = createContext<DraftsValue | null>(null);
+import {
+  DraftDiscardedError,
+  DraftsContext,
+  type ClaimResult,
+  type DraftsValue,
+  type GeneratedDraft,
+} from "@/library/draftsContext";
 
 /**
  * The member's generated tracks (prompt, lyrics, audio), kept on this device and belonging to the
@@ -54,13 +24,18 @@ const DraftsContext = createContext<DraftsValue | null>(null);
  *  - another account never sees them, even when the first session ended without a sign-out;
  *  - a deliberate sign-out erases them (`eraseMine`), with their in-memory references and their
  *    temporary object URLs, and tells the player to let those tracks go;
- *  - an answer that arrives after the account changed is dropped, and what it had written is deleted.
+ *  - an answer that arrives after the account changed is dropped, and what it had written is deleted;
+ *  - tracks made before accounts existed belong to nobody. They are NEVER attached to an account by
+ *    themselves: they stay on the disk, untouched and hidden, and only an explicit, confirmed action
+ *    of the member (`claimUnassigned`, `deleteUnassigned`) changes them. A device may be shared:
+ *    that confirmation does not prove who made them.
  * Limit: it is the application that separates accounts, not the browser (see studio/prep.ts).
  */
 export function GeneratedDraftsProvider({ children }: { children: ReactNode }) {
   const { status, user } = useAuth();
   const userId = status === "signedIn" ? (user?.id ?? null) : null;
   const [drafts, setDrafts] = useState<GeneratedDraft[]>([]);
+  const [unassignedCount, setUnassignedCount] = useState(0);
   const [ready, setReady] = useState(false);
   // Every temporary address created here, so that all of them can be revoked.
   const urls = useRef<Set<string>>(new Set());
@@ -82,6 +57,7 @@ export function GeneratedDraftsProvider({ children }: { children: ReactNode }) {
     gone.forEach((u) => URL.revokeObjectURL(u));
     urls.current.clear();
     setDrafts([]);
+    setUnassignedCount(0);
     emitDraftsErased(gone);
   }, []);
 
@@ -100,24 +76,12 @@ export function GeneratedDraftsProvider({ children }: { children: ReactNode }) {
     }
     setReady(false);
     getAllDrafts()
-      .then(async (records) => {
+      .then((records) => {
         if (epoch.current !== mine) return;
-        const own: GeneratedDraftRecord[] = [];
-        for (const rec of records) {
-          if (rec.ownerId === userId) own.push(rec);
-          else if (rec.ownerId === undefined) {
-            // A draft from before accounts existed on this device: the first account takes it over.
-            const adopted = { ...rec, ownerId: userId };
-            try {
-              await putDraft(adopted);
-            } catch {
-              /* kept in memory only */
-            }
-            own.push(adopted);
-          }
-        }
-        if (epoch.current !== mine) return;
-        setDrafts(own.map(toDraft));
+        // Only this account's tracks are kept in memory. A track with no owner is only counted: no
+        // address is made for it and it is not written to, so it stays exactly as it was.
+        setDrafts(records.filter((rec) => rec.ownerId === userId).map(toDraft));
+        setUnassignedCount(records.filter((rec) => rec.ownerId === undefined).length);
       })
       .catch(() => {})
       .finally(() => {
@@ -173,24 +137,68 @@ export function GeneratedDraftsProvider({ children }: { children: ReactNode }) {
     const who = owner.current;
     epoch.current++; // from now on, any answer still on its way is discarded
     dropMemory();
+    // Only this account's tracks. The unassigned ones are not the member's to erase: they stay.
     if (who) await deleteDraftsOf(who).catch(() => {});
   }, [dropMemory]);
 
+  const claimUnassigned = useCallback(async (): Promise<ClaimResult> => {
+    const startedFor = owner.current;
+    const mine = epoch.current;
+    if (!startedFor) return { moved: 0, failed: 0 };
+    const unowned = (await getAllDrafts()).filter((rec) => rec.ownerId === undefined);
+    const moved: GeneratedDraftRecord[] = [];
+    let failed = 0;
+    for (const rec of unowned) {
+      const attached = { ...rec, ownerId: startedFor };
+      try {
+        await putDraft(attached);
+        moved.push(attached);
+      } catch {
+        failed++; // this one stays unassigned, as it was
+      }
+    }
+    // The tracks now belong to the account that confirmed. They are shown only if that account is still
+    // the one signed in; otherwise they simply wait, on the disk, for their owner's next visit.
+    if (epoch.current === mine && owner.current === startedFor) {
+      const added = moved.map(toDraft);
+      setDrafts((prev) => [...added, ...prev].sort((a, b) => b.createdAt - a.createdAt));
+      setUnassignedCount(failed);
+    }
+    return { moved: moved.length, failed };
+  }, [toDraft]);
+
+  const deleteUnassigned = useCallback(async () => {
+    const startedFor = owner.current;
+    const mine = epoch.current;
+    const removed = await deleteUnownedDrafts();
+    if (epoch.current === mine && owner.current === startedFor) setUnassignedCount(0);
+    return removed;
+  }, []);
+
   const value = useMemo<DraftsValue>(
-    () => ({ drafts, ready, addDraft, removeDraft, keepUrl, eraseMine }),
-    [drafts, ready, addDraft, removeDraft, keepUrl, eraseMine],
+    () => ({
+      drafts,
+      ready,
+      unassignedCount,
+      addDraft,
+      removeDraft,
+      keepUrl,
+      eraseMine,
+      claimUnassigned,
+      deleteUnassigned,
+    }),
+    [
+      drafts,
+      ready,
+      unassignedCount,
+      addDraft,
+      removeDraft,
+      keepUrl,
+      eraseMine,
+      claimUnassigned,
+      deleteUnassigned,
+    ],
   );
 
   return <DraftsContext.Provider value={value}>{children}</DraftsContext.Provider>;
-}
-
-export function useGeneratedDrafts() {
-  const ctx = useContext(DraftsContext);
-  if (!ctx) throw new Error("useGeneratedDrafts must be used within GeneratedDraftsProvider");
-  return ctx;
-}
-
-/** The same store, or `null` where there is none (the account menu is rendered in tests without it). */
-export function useGeneratedDraftsOptional() {
-  return useContext(DraftsContext);
 }
