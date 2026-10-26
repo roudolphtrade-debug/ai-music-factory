@@ -19,11 +19,26 @@ export const AI_LIMITS = {
 /** The microphone stops by itself after this long. */
 export const DICTATION_MAX_SECONDS = 120;
 
-/** Translation key for a failed call to one of the AI routes. */
-export function aiErrorKey(status: number): string {
+/**
+ * Translation key for a failed call to one of the AI routes. `code` is the route's own `code` field
+ * (never shown): a 503 is either the manual pause or the sign-in check being out of reach.
+ */
+export function aiErrorKey(status: number, code?: string): string {
+  if (status === 401) return "aiErrors.session";
   if (status === 402) return "aiErrors.credits";
   if (status === 429) return "aiErrors.rate";
-  if (status === 503) return "aiErrors.paused";
+  if (status === 503)
+    return code === "auth_unavailable" ? "aiErrors.authUnavailable" : "aiErrors.paused";
   if (status === 413) return "aiErrors.tooLarge";
   return "aiErrors.generic";
+}
+
+/** The `code` of an AI route's JSON error answer, if it has one (the body is otherwise ignored). */
+export async function aiErrorCode(response: Response): Promise<string | undefined> {
+  try {
+    const body = (await response.clone().json()) as { code?: unknown };
+    return typeof body?.code === "string" ? body.code : undefined;
+  } catch {
+    return undefined;
+  }
 }

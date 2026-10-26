@@ -100,7 +100,7 @@ function StudioPage() {
             return (
               <article
                 key={p.id}
-                className="group rounded-2xl border border-border bg-card p-5 card-hover"
+                className="group min-w-0 rounded-2xl border border-border bg-card p-5 card-hover"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-3">

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AI_LIMITS, guardAiRequest, readJsonLimited, textField } from "@/lib/api-guard";
+import { AI_LIMITS, guardMemberRequest, readJsonLimited, textField } from "@/lib/api-guard";
 
 /**
  * Text-to-speech endpoint.
@@ -12,7 +12,7 @@ export const Route = createFileRoute("/api/voice/speak")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const blocked = guardAiRequest(request, "speak");
+        const blocked = await guardMemberRequest(request, "speak");
         if (blocked) return blocked;
 
         const apiKey = process.env.LOVABLE_API_KEY;

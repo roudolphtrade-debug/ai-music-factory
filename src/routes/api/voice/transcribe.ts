@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AI_LIMITS, guardAiRequest, readFormLimited, tooLargeResponse } from "@/lib/api-guard";
+import { AI_LIMITS, guardMemberRequest, readFormLimited, tooLargeResponse } from "@/lib/api-guard";
 
 /**
  * Speech-to-text endpoint.
@@ -10,7 +10,7 @@ export const Route = createFileRoute("/api/voice/transcribe")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const blocked = guardAiRequest(request, "transcribe");
+        const blocked = await guardMemberRequest(request, "transcribe");
         if (blocked) return blocked;
 
         const apiKey = process.env.LOVABLE_API_KEY;

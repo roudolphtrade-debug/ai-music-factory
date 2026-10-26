@@ -42,6 +42,7 @@ export function createFakeSupabase() {
     signUp: { data: { user: { id: "new" }, session: null }, error: null },
     signInWithPassword: { data: {}, error: null },
     signOut: { error: null },
+    refreshSession: { data: { session: null }, error: null },
     resend: { data: {}, error: null },
     resetPasswordForEmail: { data: {}, error: null },
     updateUser: { data: {}, error: null },
@@ -82,6 +83,7 @@ export function createFakeSupabase() {
       resetPasswordForEmail: vi.fn(async () => reply.resetPasswordForEmail),
       updateUser: vi.fn(async () => reply.updateUser),
       getSession: vi.fn(async () => ({ data: { session: state.session }, error: null })),
+      refreshSession: vi.fn(async () => reply.refreshSession),
       onAuthStateChange: vi.fn((cb: Listener) => {
         listeners.add(cb);
         return { data: { subscription: { unsubscribe: () => listeners.delete(cb) } } };

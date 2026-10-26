@@ -1,5 +1,16 @@
-import { useEffect, useRef, useState } from "react";
-import { Wand2, Sparkles, Loader2, Download, RotateCcw, Music4, ShieldCheck } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import {
+  Wand2,
+  Sparkles,
+  Loader2,
+  Download,
+  RotateCcw,
+  Music4,
+  ShieldCheck,
+  History,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { PlayButton } from "@/components/audio/PlayButton";
@@ -7,13 +18,28 @@ import { LikeButton } from "@/components/premium/LikeButton";
 import { Equalizer } from "@/components/premium/Equalizer";
 import { usePlayer } from "@/audio/PlayerProvider";
 import type { PlayableTrack } from "@/audio/tracks";
-import { useGeneratedDrafts } from "@/library/GeneratedDraftsProvider";
+import { DraftDiscardedError, useGeneratedDrafts } from "@/library/draftsContext";
 import { useCredits } from "@/library/CreditsProvider";
 import { COSTS } from "@/library/credits";
 import { artistImages, moods, type ArtistId } from "@/data/mock";
 import { composeFinalTrack } from "@/audio/mixTrack";
 import { useI18n } from "@/i18n/context";
-import { aiErrorKey } from "@/lib/ai-limits";
+import { aiErrorCode, aiErrorKey } from "@/lib/ai-limits";
+import { aiFetch, SignInRequiredError } from "@/lib/ai-fetch";
+import { useAuth } from "@/auth/context";
+import { AUTH_PATHS } from "@/auth/redirects";
+import { rememberReturnTo } from "@/auth/returnTo";
+import {
+  ANON,
+  PREP_PROMPT_MAX,
+  adoptAnonymousPrep,
+  clearPrep,
+  memberOwner,
+  purgeExpiredPreps,
+  readPrep,
+  savePrep,
+  type PrepFields,
+} from "@/studio/prep";
 
 const genres = [
   "Hip-Hop",
@@ -27,6 +53,9 @@ const genres = [
 ];
 const voiceKeys = ["Instrumental", "Warm tenor", "Soprano", "Alto", "Custom voice"];
 const GEN_COVER: ArtistId = "art-1";
+const STUDIO_PATH = "/studio";
+const DEFAULT_PROMPT =
+  "Cinematic ambient pop with golden-hour pads, warm analogue tape saturation, and a slow euphoric build toward a wordless choir.";
 
 type Phase = "idle" | "generating" | "done";
 
@@ -49,15 +78,32 @@ function decodeLyrics(b64: string | null): string {
 export function StudioComposer() {
   const { t } = useI18n();
   const { play } = usePlayer();
-  const { addDraft } = useGeneratedDrafts();
+  const { addDraft, keepUrl } = useGeneratedDrafts();
   const { canAfford, spend } = useCredits();
+  const { status, user } = useAuth();
+  const navigate = useNavigate();
 
-  const [prompt, setPrompt] = useState(
-    "Cinematic ambient pop with golden-hour pads, warm analogue tape saturation, and a slow euphoric build toward a wordless choir.",
-  );
+  const [prompt, setPrompt] = useState(DEFAULT_PROMPT);
   const [genre, setGenre] = useState(genres[0]);
   const [mood, setMood] = useState(moods[0]);
   const [voice, setVoice] = useState(voiceKeys[1]);
+  // The preparation is kept on this device (see studio/prep.ts). "restored" turns true once the
+  // session is known and the stored preparation, if any, has been put back in the form.
+  const userId = user?.id;
+  const owner = useMemo(
+    () => (status === "signedIn" && userId ? memberOwner(userId) : ANON),
+    [status, userId],
+  );
+  // Who is signed in right now, readable from an answer that comes back later.
+  const signedInAs = useRef<string | null>(null);
+  signedInAs.current = status === "signedIn" && userId ? userId : null;
+  const [restored, setRestored] = useState(false);
+  const [resumed, setResumed] = useState(false);
+  // Typing before the session is known (a few hundred ms at load) must not be overwritten by the
+  // restoration: the member's own words win.
+  const touched = useRef(false);
+  const latest = useRef<PrepFields>({ prompt, genre, mood, voice });
+  latest.current = { prompt, genre, mood, voice };
 
   const [phase, setPhase] = useState<Phase>("idle");
   const [result, setResult] = useState<GenResult | null>(null);
@@ -65,6 +111,59 @@ export function StudioComposer() {
 
   const stepTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const phaseLabels = t("studio.gen.phases").split("|");
+
+  // Put the stored preparation back once the session is known. A member who has just signed in
+  // through the Generate click takes over the anonymous preparation; nobody else can.
+  useEffect(() => {
+    if (status === "loading") return;
+    const now = Date.now();
+    purgeExpiredPreps(now);
+    // Only the very first time: after that, an account change must never carry the previous
+    // account's words into the next one's form or slot.
+    if (touched.current && !restored) {
+      savePrep(owner, latest.current, { now });
+      touched.current = false;
+      setRestored(true);
+      return;
+    }
+    touched.current = false;
+    let stored = null;
+    if (status === "signedIn" && userId) {
+      stored = adoptAnonymousPrep(userId, now) ?? readPrep(memberOwner(userId), now);
+    } else {
+      stored = readPrep(ANON, now);
+    }
+    const f = stored?.fields;
+    setPrompt(f ? f.prompt.slice(0, PREP_PROMPT_MAX) : DEFAULT_PROMPT);
+    setGenre(f && genres.includes(f.genre) ? f.genre : genres[0]);
+    setMood(f && (moods as readonly string[]).includes(f.mood) ? f.mood : moods[0]);
+    setVoice(f && voiceKeys.includes(f.voice) ? f.voice : voiceKeys[1]);
+    setResumed(Boolean(stored));
+    setRestored(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, userId]);
+
+  // Every change is kept at once, for the owner of the form (an account, or the visitor).
+  const current: PrepFields = { prompt, genre, mood, voice };
+  const change = (patch: Partial<PrepFields>) => {
+    touched.current = true;
+    if (patch.prompt !== undefined) setPrompt(patch.prompt);
+    if (patch.genre !== undefined) setGenre(patch.genre);
+    if (patch.mood !== undefined) setMood(patch.mood);
+    if (patch.voice !== undefined) setVoice(patch.voice);
+    setResumed(false);
+    if (restored) savePrep(owner, { ...current, ...patch });
+  };
+  const clearPreparation = () => {
+    clearPrep(owner);
+    touched.current = false;
+    setPrompt(DEFAULT_PROMPT);
+    setGenre(genres[0]);
+    setMood(moods[0]);
+    setVoice(voiceKeys[1]);
+    setResumed(false);
+    toast.success(t("studio.gen.prepCleared"));
+  };
 
   // Cycle phase labels while generating for a lively "forging" feel.
   useEffect(() => {
@@ -88,14 +187,34 @@ export function StudioComposer() {
       toast.error(t("studio.gen.emptyPrompt"));
       return;
     }
+    // Without an account nothing is sent: the preparation is kept, the way back is remembered, and
+    // the visitor goes to sign in. Coming back never starts a generation by itself.
+    if (status !== "signedIn") {
+      if (status === "unconfigured") {
+        toast.error(t("studio.gen.accountsOff"));
+        return;
+      }
+      savePrep(ANON, current, { claim: true });
+      rememberReturnTo(STUDIO_PATH);
+      toast.message(t("studio.gen.signInFirst"));
+      void navigate({ to: AUTH_PATHS.signIn, search: { redirect: STUDIO_PATH } });
+      return;
+    }
     if (!canAfford("track")) {
       toast.error(t("studio.gen.noCredits", { n: COSTS.track }));
       return;
     }
+    savePrep(owner, current);
     setPhase("generating");
+    const startedFor = signedInAs.current;
+    // An answer that comes back after the member signed out, or after another account signed in, is
+    // dropped: nothing is shown or kept, and the LOCAL credit is not debited. The AI provider, however, has
+    // ALREADY BILLED that request when it was made: an abandoned generation is not free (see
+    // docs/member-auth/LOT-STUDIO-GENERER.md, section 13.4).
+    const stale = () => signedInAs.current !== startedFor;
 
     try {
-      const res = await fetch("/api/studio/generate", {
+      const res = await aiFetch("/api/studio/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -106,22 +225,34 @@ export function StudioComposer() {
         }),
       });
       if (!res.ok) {
+        const code = await aiErrorCode(res);
         let key = "studio.gen.errorGeneric";
         if (res.status === 402) key = "studio.gen.errorCredits";
         else if (res.status === 429) key = "studio.gen.errorRate";
-        else if (res.status === 503 || res.status === 413) key = aiErrorKey(res.status);
+        else if ([401, 503, 413].includes(res.status)) key = aiErrorKey(res.status, code);
         toast.error(t(key));
         setPhase(result ? "done" : "idle");
+        if (res.status === 401) {
+          // The session is gone: sign in again, the preparation is waiting under this account.
+          rememberReturnTo(STUDIO_PATH);
+          void navigate({ to: AUTH_PATHS.signIn, search: { redirect: STUDIO_PATH } });
+        }
         return;
       }
       const lyrics = decodeLyrics(res.headers.get("X-Lyrics"));
       const vocalBlob = await res.blob();
+      if (stale()) {
+        setPhase("idle");
+        return;
+      }
       // Compose an original instrumental bed (drums/bass/pad, synthesized on
       // the fly — no samples, no API, no cost) and mix it under the vocal
       // performance. Falls back to the vocal-only take if mixing fails.
       const blob = await composeFinalTrack(vocalBlob, genre, mood);
-      // Track generated successfully — debit the wallet.
-      spend("track");
+      if (stale()) {
+        setPhase("idle");
+        return;
+      }
 
       const id = `gen-${Date.now()}`;
       const title =
@@ -131,37 +262,62 @@ export function StudioComposer() {
           .slice(0, 42) || t("studio.gen.newTrack");
       const duration = "0:20";
 
-      // Persist the draft (audio Blob + metadata) — provider owns the object URL.
-      const draft = await addDraft(
-        {
-          id,
-          title,
-          prompt: clean,
-          genre,
-          mood,
-          voice,
-          lyrics,
-          duration,
-          createdAt: Date.now(),
-        },
-        blob,
-      );
+      // Persist the draft (audio Blob + metadata) — provider owns the object URL. The wallet is
+      // debited only once the track is kept; if the device cannot keep it, the track is still
+      // playable and downloadable from this page, and the member is told it was not saved.
+      let draftUrl: string;
+      try {
+        const draft = await addDraft(
+          {
+            id,
+            title,
+            prompt: clean,
+            genre,
+            mood,
+            voice,
+            lyrics,
+            duration,
+            createdAt: Date.now(),
+          },
+          blob,
+        );
+        draftUrl = draft.url;
+        spend("track");
+      } catch (saveError) {
+        if (saveError instanceof DraftDiscardedError || stale()) {
+          setPhase("idle");
+          return;
+        }
+        draftUrl = keepUrl(URL.createObjectURL(blob));
+        toast.warning(t("studio.gen.notKept"));
+      }
+      if (stale()) {
+        setPhase("idle");
+        return;
+      }
 
       const track: PlayableTrack = {
         id,
         title,
         artist: `${genre} · ${t(`studio.voices.${voice}`)}`,
         artistId: GEN_COVER,
-        src: draft.url,
+        src: draftUrl,
         cover: artistImages[GEN_COVER],
         duration,
       };
 
-      setResult({ track, lyrics, url: draft.url });
+      setResult({ track, lyrics, url: draftUrl });
       setPhase("done");
       play(track);
       toast.success(t("studio.gen.saved"));
-    } catch {
+    } catch (error) {
+      if (error instanceof SignInRequiredError) {
+        rememberReturnTo(STUDIO_PATH);
+        toast.error(t("aiErrors.session"));
+        setPhase(result ? "done" : "idle");
+        void navigate({ to: AUTH_PATHS.signIn, search: { redirect: STUDIO_PATH } });
+        return;
+      }
       toast.error(t("studio.gen.errorGeneric"));
       setPhase(result ? "done" : "idle");
     }
@@ -174,11 +330,33 @@ export function StudioComposer() {
         <span className="eyebrow text-gold">{t("studio.newComposition")}</span>
       </div>
 
+      {resumed && (
+        <div
+          role="status"
+          className="flex flex-col gap-2 rounded-xl border border-[color-mix(in_oklab,var(--gold)_30%,transparent)] bg-secondary/30 px-4 py-3 text-sm text-foreground sm:flex-row sm:items-center sm:gap-3"
+        >
+          <p className="flex min-w-0 flex-1 items-start gap-2">
+            <History className="mt-0.5 h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
+            <span className="min-w-0">{t("studio.gen.prepResumed")}</span>
+          </p>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="self-start sm:self-auto"
+            onClick={clearPreparation}
+          >
+            <X className="h-4 w-4" aria-hidden="true" /> {t("studio.gen.prepClear")}
+          </Button>
+        </div>
+      )}
+
       <Field label={t("studio.prompt")}>
         <textarea
           rows={3}
+          maxLength={PREP_PROMPT_MAX}
           value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
+          onChange={(e) => change({ prompt: e.target.value })}
           className="w-full resize-none rounded-xl border border-input bg-secondary/30 p-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-[color-mix(in_oklab,var(--gold)_45%,transparent)]"
         />
       </Field>
@@ -187,21 +365,21 @@ export function StudioComposer() {
         <Field label={t("studio.genre")}>
           <Select
             value={genre}
-            onChange={setGenre}
+            onChange={(value) => change({ genre: value })}
             options={genres.map((g) => ({ value: g, label: g }))}
           />
         </Field>
         <Field label={t("studio.mood")}>
           <Select
             value={mood}
-            onChange={setMood}
+            onChange={(value) => change({ mood: value })}
             options={moods.slice(0, 6).map((m) => ({ value: m, label: t(`moods.${m}`) }))}
           />
         </Field>
         <Field label={t("studio.voice")}>
           <Select
             value={voice}
-            onChange={setVoice}
+            onChange={(value) => change({ voice: value })}
             options={voiceKeys.map((v) => ({ value: v, label: t(`studio.voices.${v}`) }))}
           />
         </Field>
@@ -213,7 +391,7 @@ export function StudioComposer() {
           <button
             key={m}
             type="button"
-            onClick={() => setMood(m)}
+            onClick={() => change({ mood: m })}
             className={
               "rounded-full border px-3 py-1 text-xs transition-colors " +
               (mood === m
@@ -227,7 +405,11 @@ export function StudioComposer() {
       </div>
 
       <div className="flex flex-wrap items-center gap-3 border-t border-border pt-5">
-        <Button variant="gold" onClick={generate} disabled={phase === "generating"}>
+        <Button
+          variant="gold"
+          onClick={generate}
+          disabled={phase === "generating" || status === "loading"}
+        >
           {phase === "generating" ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (

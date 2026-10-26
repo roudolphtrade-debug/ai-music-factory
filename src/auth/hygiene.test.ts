@@ -29,6 +29,17 @@ const scanned = [
     !/\.test\.tsx?$/.test(f),
 );
 
+// Each file is read once, then tested against every pattern: the scan touches a few hundred files.
+const contents = new Map<string, string>();
+const contentOf = (file: string) => {
+  let text = contents.get(file);
+  if (text === undefined) {
+    text = readFileSync(file, "utf8");
+    contents.set(file, text);
+  }
+  return text;
+};
+
 const FORBIDDEN: [string, RegExp][] = [
   ["a Supabase secret key", /sb_secret_[A-Za-z0-9_-]{8,}/],
   [
@@ -51,9 +62,7 @@ describe("secrets stay out of the repository", { timeout: 30_000 }, () => {
   });
 
   it.each(FORBIDDEN)("contains no %s", (_label, pattern) => {
-    const hits = scanned
-      .filter((f) => pattern.test(readFileSync(f, "utf8")))
-      .map((f) => f.replace(root, ""));
+    const hits = scanned.filter((f) => pattern.test(contentOf(f))).map((f) => f.replace(root, ""));
     expect(hits).toEqual([]);
   });
 

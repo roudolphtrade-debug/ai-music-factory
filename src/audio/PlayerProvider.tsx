@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { onDraftsErased } from "@/library/draftEvents";
 import type { PlayableTrack } from "./tracks";
 import {
   indexAfterMove,
@@ -48,6 +49,8 @@ interface PlayerContextValue {
   toggleShuffle: () => void;
   cycleRepeat: () => void;
   retry: () => void;
+  /** Drops the tracks whose temporary address is gone (erased drafts); stops playback if one is playing. */
+  forgetSources: (sources: readonly string[]) => void;
   seekRatio: (ratio: number) => void;
   setVolume: (v: number) => void;
   toggleMute: () => void;
@@ -268,6 +271,36 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     if (current) load(current);
   }, [current, load]);
 
+  const forgetSources = useCallback((sources: readonly string[]) => {
+    const gone = new Set(sources);
+    const q = queueRef.current;
+    const playing = q[indexRef.current];
+    const keep = q.filter((t) => !gone.has(t.src));
+    originalRef.current = originalRef.current.filter((t) => !gone.has(t.src));
+    if (playing && gone.has(playing.src)) {
+      const audio = audioRef.current;
+      if (audio) {
+        audio.pause();
+        audio.removeAttribute("src");
+        audio.load();
+      }
+      setCurrent(null);
+      setIsPlaying(false);
+      setStatus("idle");
+      setCurrentTime(0);
+      setDuration(0);
+      setPos(keep, 0);
+    } else if (keep.length !== q.length) {
+      setPos(
+        keep,
+        Math.max(0, keep.findIndex((t) => t.id === playing?.id)),
+      );
+    }
+  }, []);
+
+  // Erased drafts (a member signed out): their addresses are revoked, so the player lets them go.
+  useEffect(() => onDraftsErased(forgetSources), [forgetSources]);
+
   const seekRatio = useCallback(
     (ratio: number) => {
       const audio = audioRef.current;
@@ -307,14 +340,14 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     () => ({
       current, queue, index, isPlaying, status, shuffle, repeat, currentTime, duration, volume, muted, hasStarted,
       play, toggle, next, prev, playAt, moveInQueue, removeFromQueue, toggleShuffle, cycleRepeat, retry,
-      seekRatio, setVolume, toggleMute,
+      forgetSources, seekRatio, setVolume, toggleMute,
       isActive: (id: string) => current?.id === id,
       isTrackPlaying: (id: string) => current?.id === id && isPlaying,
     }),
     [
       current, queue, index, isPlaying, status, shuffle, repeat, currentTime, duration, volume, muted, hasStarted,
       play, toggle, next, prev, playAt, moveInQueue, removeFromQueue, toggleShuffle, cycleRepeat, retry,
-      seekRatio, setVolume, toggleMute,
+      forgetSources, seekRatio, setVolume, toggleMute,
     ],
   );
 

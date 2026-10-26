@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AI_LIMITS, guardAiRequest, readJsonLimited, textField } from "@/lib/api-guard";
+import { AI_LIMITS, guardMemberRequest, readJsonLimited, textField } from "@/lib/api-guard";
 
 /**
  * Studio track generator.
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/api/studio/generate")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const blocked = guardAiRequest(request, "generate");
+        const blocked = await guardMemberRequest(request, "generate");
         if (blocked) return blocked;
 
         const apiKey = process.env.LOVABLE_API_KEY;

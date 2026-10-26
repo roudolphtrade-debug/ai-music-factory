@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   AI_LIMITS,
+  AI_ROUTES_OPEN_VALUES,
   createAiGuard,
   readBodyLimited,
   readFormLimited,
@@ -11,8 +12,10 @@ import {
 // Every test builds its own guard, clock and environment: no counter is shared between tests.
 const T0 = 1_700_000_000_000;
 type Env = Record<string, string | undefined>;
+// The routes are paused unless the server says "0": every test that is not about the pause opens them.
+const OPEN: Env = { AI_ROUTES_PAUSED: "0" };
 
-function setup(env: Env = {}) {
+function setup(env: Env = { ...OPEN }) {
   let clock = T0;
   const guard = createAiGuard({ now: () => clock, env: () => env });
   return {
@@ -159,9 +162,12 @@ describe("no caller identification", () => {
   });
 
   it.each([
-    ["no setting", {}],
-    ["a leftover AI_GUARD_TRUSTED_IP_HEADER", { AI_GUARD_TRUSTED_IP_HEADER: "x-real-ip" }],
-    ["that setting naming x-forwarded-for", { AI_GUARD_TRUSTED_IP_HEADER: "x-forwarded-for" }],
+    ["no setting", { ...OPEN }],
+    ["a leftover AI_GUARD_TRUSTED_IP_HEADER", { ...OPEN, AI_GUARD_TRUSTED_IP_HEADER: "x-real-ip" }],
+    [
+      "that setting naming x-forwarded-for",
+      { ...OPEN, AI_GUARD_TRUSTED_IP_HEADER: "x-forwarded-for" },
+    ],
   ])("uses no header to tell callers apart, with %s", (_label, env) => {
     const headersFor = (address: string) => ({
       "x-real-ip": address,
@@ -187,10 +193,60 @@ describe("no caller identification", () => {
 describe("emergency pause", () => {
   const routes: AiRoute[] = ["generate", "speak", "transcribe"];
 
-  it("is off by default and for falsy values", () => {
-    for (const value of [undefined, "", "0", "false", "off", "no"]) {
+  it("is ON by default: a missing variable, an empty one or an unknown value keep the routes paused", async () => {
+    for (const value of [undefined, "", "   ", "maybe", "2", "enabled", "null"]) {
       const h = setup({ AI_ROUTES_PAUSED: value });
-      for (const route of routes) expect(h.call(route), `${value}/${route}`).toBeNull();
+      for (const route of routes) {
+        const res = h.call(route);
+        expect(res?.status, `${String(value)}/${route}`).toBe(503);
+        expect((await res!.json()).code).toBe("ai_paused");
+      }
+    }
+    // an environment the platform never handed over at all: same answer
+    const noEnv = createAiGuard({ now: () => T0, env: () => ({}) });
+    const res = noEnv(
+      new Request("http://app.test/api/x", {
+        method: "POST",
+        headers: { "sec-fetch-site": "same-origin" },
+      }),
+      "generate",
+    );
+    expect(res?.status).toBe(503);
+  });
+
+  it("opens for exactly four values, whatever the case or the spaces around them", () => {
+    expect([...AI_ROUTES_OPEN_VALUES]).toEqual(["0", "false", "no", "off"]);
+    for (const base of AI_ROUTES_OPEN_VALUES) {
+      for (const value of [base, base.toUpperCase(), ` ${base} `]) {
+        const h = setup({ AI_ROUTES_PAUSED: value });
+        for (const route of routes) expect(h.call(route), `${value}/${route}`).toBeNull();
+      }
+    }
+  });
+
+  it("stays paused for anything that only looks like one of the four", async () => {
+    const lookalikes = [
+      "00",
+      "0.0",
+      "-0",
+      "n",
+      "nope",
+      "none",
+      "null",
+      "of",
+      "offf",
+      "disabled",
+      "false1",
+      "f",
+      "no.",
+    ];
+    for (const value of lookalikes) {
+      const h = setup({ AI_ROUTES_PAUSED: value });
+      for (const route of routes) {
+        const res = h.call(route);
+        expect(res?.status, `${value}/${route}`).toBe(503);
+        expect((await res!.json()).code).toBe("ai_paused");
+      }
     }
   });
 
@@ -226,7 +282,7 @@ describe("emergency pause", () => {
 describe("origin check (kept; not sufficient against a scripted client)", () => {
   it("refuses a request without Origin or Sec-Fetch-Site, and does not count it", () => {
     const h = setup();
-    const guard = createAiGuard({ now: () => T0, env: () => ({}) });
+    const guard = createAiGuard({ now: () => T0, env: () => OPEN });
     for (let i = 0; i < 100; i++) {
       expect(guard(new Request("http://app.test/x", { method: "POST" }), "speak")?.status).toBe(
         403,
@@ -236,7 +292,7 @@ describe("origin check (kept; not sufficient against a scripted client)", () => 
   });
 
   it("accepts a same-host Origin and refuses a foreign one", () => {
-    const guard = createAiGuard({ now: () => T0, env: () => ({}) });
+    const guard = createAiGuard({ now: () => T0, env: () => OPEN });
     const make = (origin: string) =>
       new Request("http://app.test/x", { method: "POST", headers: { host: "app.test", origin } });
     expect(guard(make("http://app.test"), "speak")).toBeNull();

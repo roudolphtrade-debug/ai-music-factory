@@ -32,6 +32,13 @@ export class FakeAudio extends EventTarget {
     this.dispatchEvent(new Event("pause"));
   }
 
+  /** What `removeAttribute("src")` then `load()` do to a real element: it lets go of its media. */
+  removeAttribute(name: string) {
+    if (name === "src") this.src = "";
+  }
+
+  load() {}
+
   fire(name: string) {
     this.dispatchEvent(new Event(name));
   }
