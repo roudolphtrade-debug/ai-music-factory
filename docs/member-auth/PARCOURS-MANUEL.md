@@ -285,5 +285,7 @@ Rapporté par le propriétaire le 2026-10-25 : les quatre étapes réussies. Rel
 compte Google et un seul profil de plus qu'avant, aucun utilisateur sans profil (détail : `BILAN.md`, section 14). Le
 maintien après rechargement et la déconnexion restent déclaratifs.
 
+Recette du 2026-10-26 sur l'aperçu Lovable (rapportée par le propriétaire, **inscription du 26 à confirmer** : non corroborée par les journaux) : voir `BILAN.md`, section 16. **Tester Google dans un onglet séparé** (adresse de l'aperçu ouverte directement) : dans l'aperçu intégré à l'éditeur, un 403 de Google a été observé, cause non établie.
+
 Si Google renvoie une erreur de redirection : vérifier que l'adresse de la page figure dans Authentication, URL
 Configuration (motif `.../**`) et dans les origines autorisées du client Google.

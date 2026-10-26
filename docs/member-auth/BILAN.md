@@ -517,3 +517,47 @@ ignoré) ont été essayées : chacune fait échouer le test.
 
 **Aussi corrigé** : le commentaire d'en-tête de la migration disait « NOT APPLIED » alors qu'elle est appliquée
 sur aimf-dev ; seul ce commentaire change, pas une ligne de SQL.
+
+## 16. Recette sur l'aperçu Lovable (2026-10-26)
+
+Après la fusion de la PR #4 (commit de fusion `b61e131`), le propriétaire a fait la recette sur **l'aperçu Lovable**,
+branché sur aimf-dev. **Tout ce qui suit est rapporté par le propriétaire** : je n'ai pas conduit ces essais. Je les
+ai seulement confrontés, en lecture seule, aux journaux Auth et à la base du projet (aucune adresse, aucune IP,
+aucun identifiant de compte n'est reproduit ; heures en UTC).
+
+| Parcours | Rapporté par le propriétaire | Ce que les journaux du 26 octobre montrent |
+|---|---|---|
+| Inscription et confirmation par e-mail | rapporté comme réussi : **À CONFIRMER** | **Non corroboré ce jour : les essais rapportés ne se retrouvent pas dans les journaux.** Aucune requête d'inscription et aucun envoi de mail de confirmation le 26 ; les 3 comptes du projet datent tous du 25. L'inscription et la confirmation ont été corroborées le 25 (PR #4, section 10), pas le 26. Classement : à confirmer, tant que le propriétaire n'a pas précisé s'il a réutilisé un compte du 25 ou si l'essai n'est pas visible dans ces journaux. |
+| Connexion e-mail | réussi | Sur `/token`, un refus (HTTP 400) à 12:10:47 puis une réussite (HTTP 200) à 12:10:51. La raison du refus n'a pas été relevée. |
+| Connexion Google | réussi, **dans un onglet séparé** | 4 départs vers Google, 3 retours, puis lectures de la session en 200. Cohérent avec un essai sans retour dans l'aperçu intégré, sans le prouver. |
+| Maintien de la session après F5 | réussi | **Déclaratif** : un rechargement ne se lit pas dans les journaux. |
+| Déconnexion | réussi | 2 déconnexions (HTTP 204) à 12:09 et 12:10. |
+| Reconnexion | réussi | Voir la ligne de la connexion e-mail et celle de Google. |
+| Récupération du mot de passe | réussi | Demande à 12:38, lien ouvert à 12:39, nouveau mot de passe enregistré à 12:40 (HTTP 200). |
+
+Légende : les autres lignes sont rapportées par le propriétaire, avec ou sans trace dans les journaux comme indiqué ; seule l'inscription du 26 est classée **à confirmer**.
+
+État de la base après la recette, en lecture seule : 3 utilisateurs, 3 identités dont 1 Google, 3 profils, aucun
+utilisateur sans profil, 3 sessions. Aucun compte n'a été créé le 26.
+
+### Le 403 de Google dans l'aperçu intégré
+
+- **Observé** par le propriétaire : un 403 de Google quand la connexion est lancée dans l'**aperçu intégré** à
+  l'éditeur Lovable. La même connexion **a réussi dans un onglet séparé**.
+- **Cause exacte non établie.** Aucune réponse 403 de Supabase ce jour sur les adresses d'authentification : si le
+  refus vient de Google, il ne passe pas par les journaux Supabase.
+- **Hypothèse, non vérifiée** (déjà avancée avant l'essai) : Google n'accepte pas d'afficher son écran de connexion
+  dans un cadre intégré à une autre page. Une autre cause n'est pas exclue (réglage du client Google, adresse de
+  l'aperçu). Aucun changement de code n'est décidé à ce stade.
+- **Consigne de test en attendant** : tester la connexion Google dans un onglet séparé (adresse de l'aperçu ouverte
+  directement).
+
+### Limites restantes (reprises de la section 13 et de la PR #4)
+
+- Refus côté serveur lors de la réinitialisation du mot de passe : **non testé séparément** (la recette montre que le
+  parcours de récupération aboutit, pas que le service refuse un mot de passe faible à cette étape).
+- Filtrage des mots de passe compromis : **inactif** (plan Free).
+- Google : l'adresse publiée, le refus ou l'annulation chez Google, la liaison avec un compte e-mail de même adresse
+  et un autre appareil ne sont pas couverts par cette recette.
+- Un GET isolé sans clé sur l'adresse d'inscription, refusé en 401 à 05:29, apparaît dans les journaux du 26 ; il ne
+  correspond à aucun essai connu. Il a été refusé et n'a rien créé.
