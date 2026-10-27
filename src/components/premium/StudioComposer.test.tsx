@@ -279,7 +279,6 @@ describe("generation errors keep the preparation and never show server text", ()
   it.each([
     [402, undefined, "studio.gen.errorCredits"],
     [429, undefined, "studio.gen.errorRate"],
-    [503, "ai_paused", "aiErrors.paused"],
     [503, "auth_unavailable", "aiErrors.authUnavailable"],
     [413, undefined, "aiErrors.tooLarge"],
     [500, undefined, "studio.gen.errorGeneric"],
@@ -323,6 +322,143 @@ describe("generation errors keep the preparation and never show server text", ()
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith(en("aiErrors.session")));
     expect(route).not.toHaveBeenCalled();
     expect(peekReturnTo()).toBe("/studio");
+  });
+});
+
+describe("the AI is paused on the server (503 ai_paused)", () => {
+  const PAUSED_BODY = { error: "AI features are temporarily paused.", code: "ai_paused" };
+  const notice = () => en("studio.gen.pausedNotice");
+  const visibleText = () => document.body.textContent ?? "";
+
+  async function clickOnceWhilePaused(prompt = "Keep my words") {
+    signIn("alice");
+    route.mockResolvedValue(Response.json(PAUSED_BODY, { status: 503 }));
+    mount();
+    await ready();
+    fireEvent.change(promptBox(), { target: { value: prompt } });
+    fireEvent.click(generateButton());
+    await screen.findByText(notice());
+  }
+
+  it("says in plain words that generation is unavailable and that the preparation is kept", async () => {
+    await clickOnceWhilePaused();
+    expect(notice()).toBe(
+      "AI generation is temporarily unavailable. Your preparation is kept. You can try again later.",
+    );
+    expect(screen.getByRole("status").textContent).toContain(notice());
+    expect(screen.getByText(en("studio.gen.pausedStatus"))).toBeTruthy();
+    // a calm notice, not a red toast
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("shows no code, no status number, no raw JSON and no server text", async () => {
+    await clickOnceWhilePaused();
+    const text = visibleText();
+    expect(text).not.toContain("ai_paused");
+    expect(text).not.toContain("503");
+    expect(text).not.toContain("{");
+    expect(text).not.toContain("AI features are temporarily paused");
+    expect(JSON.stringify(vi.mocked(toast.error).mock.calls)).not.toContain("ai_paused");
+  });
+
+  it("keeps the prompt, genre, mood, voice and the stored preparation, and creates no track", async () => {
+    signIn("alice");
+    route.mockResolvedValue(Response.json(PAUSED_BODY, { status: 503 }));
+    mount();
+    await ready();
+    const [genre, mood, voice] = screen.getAllByRole("combobox") as HTMLSelectElement[];
+    fireEvent.change(promptBox(), { target: { value: "Keep my words" } });
+    fireEvent.change(genre, { target: { value: "Amapiano" } });
+    fireEvent.change(voice, { target: { value: "Soprano" } });
+    const chosen = { genre: genre.value, mood: mood.value, voice: voice.value };
+    fireEvent.click(generateButton());
+    await screen.findByText(notice());
+
+    expect(promptBox().value).toBe("Keep my words");
+    expect({ genre: genre.value, mood: mood.value, voice: voice.value }).toEqual(chosen);
+    const kept = readPrep(memberOwner("alice"))?.fields;
+    expect(kept).toEqual({ prompt: "Keep my words", ...chosen });
+    expect(drafts.added).toBe(0); // no draft, no invented track
+    expect(screen.queryByText(en("studio.gen.resultTitle"))).toBeNull();
+    expect(wallet().balance ?? 20).toBe(20); // the local credit is untouched
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  it("gives the button back, and one click is one request, with no retry of any kind", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      await clickOnceWhilePaused();
+      expect(generateButton().hasAttribute("disabled")).toBe(false);
+      // time passes: nothing is sent by itself
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(120_000);
+      });
+      expect(route).toHaveBeenCalledTimes(1);
+      expect(route.mock.calls.every(([url]) => url === "/api/studio/generate")).toBe(true);
+      // a second click is a second request, and only that
+      fireEvent.click(generateButton());
+      await settle();
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(120_000);
+      });
+      expect(route).toHaveBeenCalledTimes(2);
+      expect(generateButton().hasAttribute("disabled")).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("stops saying the engine is connected once the pause is known, and never before", async () => {
+    signIn("alice");
+    route.mockResolvedValue(Response.json(PAUSED_BODY, { status: 503 }));
+    mount();
+    await ready();
+    expect(screen.getByText(en("studio.gen.ready"))).toBeTruthy();
+    expect(visibleText()).not.toMatch(/connected/i);
+    fireEvent.click(generateButton());
+    await screen.findByText(notice());
+    expect(screen.queryByText(en("studio.gen.ready"))).toBeNull();
+    expect(screen.getByText(en("studio.gen.pausedStatus"))).toBeTruthy();
+  });
+
+  it("clears the notice when the next click goes through", async () => {
+    await clickOnceWhilePaused();
+    route.mockResolvedValue(
+      new Response(new Uint8Array([1, 2, 3]), { status: 200, headers: { "X-Lyrics": btoa("la") } }),
+    );
+    fireEvent.click(generateButton());
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith(en("studio.gen.saved")));
+    expect(screen.queryByText(notice())).toBeNull();
+  });
+
+  it("does not turn other 503 answers, or other errors, into the pause notice", async () => {
+    for (const [status, code] of [
+      [503, "auth_unavailable"],
+      [503, undefined],
+      [500, "ai_paused"],
+      [429, undefined],
+    ] as const) {
+      cleanup();
+      vi.mocked(toast.error).mockClear();
+      signIn("alice");
+      route.mockResolvedValue(Response.json({ error: "x", code }, { status }));
+      mount();
+      await ready();
+      fireEvent.click(generateButton());
+      await waitFor(() => expect(toast.error).toHaveBeenCalled());
+      expect(screen.queryByText(notice()), `${status} ${code}`).toBeNull();
+      expect(screen.queryByText(en("studio.gen.pausedStatus"))).toBeNull();
+    }
+  });
+
+  it("has the notice in every language, never a raw key", () => {
+    for (const lang of ["fr", "es", "zh", "pt", "ar"] as const) {
+      expect(translate(lang, "studio.gen.pausedNotice")).not.toBe("studio.gen.pausedNotice");
+      expect(translate(lang, "studio.gen.pausedStatus")).not.toBe("studio.gen.pausedStatus");
+    }
+    expect(translate("fr", "studio.gen.pausedNotice")).toBe(
+      "La génération IA est temporairement indisponible. Votre préparation est conservée. Vous pourrez réessayer plus tard.",
+    );
   });
 });
 

@@ -240,7 +240,9 @@ const fr: Dict = {
       "Custom voice": "Voix personnalisée",
     },
     gen: {
-      ready: "Moteur IA connecté : générez un aperçu avec une voix de synthèse",
+      ready: "Génération IA sécurisée via le Studio, avec une voix de synthèse",
+      pausedStatus: "Génération IA temporairement indisponible",
+      pausedNotice: "La génération IA est temporairement indisponible. Votre préparation est conservée. Vous pourrez réessayer plus tard.",
       phases:
         "Analyse du prompt|Écriture du refrain|Interprétation vocale|Composition de l'instrumentale|Mastering",
       generating: "Création de votre titre…",
@@ -967,7 +969,9 @@ const en: Dict = {
       "Custom voice": "Custom voice",
     },
     gen: {
-      ready: "AI engine connected: generate a preview with a synthetic voice",
+      ready: "Secure AI generation through the Studio, with a synthetic voice",
+      pausedStatus: "AI generation temporarily unavailable",
+      pausedNotice: "AI generation is temporarily unavailable. Your preparation is kept. You can try again later.",
       phases:
         "Reading the prompt|Writing the hook|Performing vocals|Composing the instrumental|Mastering",
       generating: "Creating your track…",
@@ -1688,7 +1692,9 @@ const es: Dict = {
       "Custom voice": "Voz personalizada",
     },
     gen: {
-      ready: "Motor IA conectado: genera un adelanto con una voz sintética",
+      ready: "Generación de IA segura a través del Studio, con una voz sintética",
+      pausedStatus: "Generación de IA temporalmente no disponible",
+      pausedNotice: "La generación de IA no está disponible temporalmente. Tu preparación se conserva. Podrás volver a intentarlo más tarde.",
       phases:
         "Analizando el prompt|Escribiendo el estribillo|Interpretación vocal|Composición del instrumental|Masterización",
       generating: "Creando tu tema…",
@@ -2379,7 +2385,9 @@ const zh: Dict = {
     quickMoods: "快速氛围：",
     rightsNotice: "歌词由 AI 撰写，人声和伴奏均在本设备上生成。你保留对在此创作内容的权利。",
     gen: {
-      ready: "AI 引擎已连接：用合成人声生成预览",
+      ready: "通过 Studio 进行安全的 AI 生成，使用合成人声",
+      pausedStatus: "AI 生成暂时不可用",
+      pausedNotice: "AI 生成暂时不可用。你的准备内容已保留。你可以稍后再试。",
       phases: "分析提示词|创作副歌|演唱表现|编排伴奏|母带处理",
       generating: "正在创作你的曲目…",
       resultTitle: "已生成预览",
@@ -2826,7 +2834,9 @@ const pt: Dict = {
     rightsNotice:
       "A letra é escrita por IA, e o vocal e o instrumental são gerados neste mesmo dispositivo. Você mantém os direitos sobre o que cria aqui.",
     gen: {
-      ready: "Motor de IA conectado: gere uma prévia com voz sintética",
+      ready: "Geração de IA segura pelo Studio, com voz sintética",
+      pausedStatus: "Geração de IA temporariamente indisponível",
+      pausedNotice: "A geração de IA está temporariamente indisponível. Sua preparação foi mantida. Você poderá tentar novamente mais tarde.",
       phases:
         "Analisando o prompt|Escrevendo o refrão|Interpretação vocal|Composição do instrumental|Masterização",
       generating: "Criando sua faixa…",
@@ -3280,7 +3290,9 @@ const ar: Dict = {
     rightsNotice:
       "الكلمات مكتوبة بواسطة الذكاء الاصطناعي، ويتم توليد الصوت والموسيقى مباشرة على هذا الجهاز. تحتفظ بحقوق ما تنشئه هنا.",
     gen: {
-      ready: "محرك الذكاء الاصطناعي متصل: ولّد معاينة بصوت اصطناعي",
+      ready: "توليد آمن بالذكاء الاصطناعي عبر الاستوديو، بصوت اصطناعي",
+      pausedStatus: "التوليد بالذكاء الاصطناعي غير متاح مؤقتًا",
+      pausedNotice: "التوليد بالذكاء الاصطناعي غير متاح مؤقتًا. تحضيرك محفوظ. يمكنك المحاولة مرة أخرى لاحقًا.",
       phases: "تحليل الفكرة|كتابة اللازمة|الأداء الصوتي|توليف الموسيقى|الماسترينغ",
       generating: "جارٍ إنشاء مقطعك…",
       resultTitle: "معاينة مولّدة",
