@@ -9,6 +9,7 @@ import {
   Music4,
   ShieldCheck,
   History,
+  Info,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -108,6 +109,9 @@ export function StudioComposer() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [result, setResult] = useState<GenResult | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
+  // True once the server has answered "paused" to the last click. It is only a notice: the form, the
+  // preparation and the button are untouched, and nothing is retried.
+  const [paused, setPaused] = useState(false);
 
   const stepTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const phaseLabels = t("studio.gen.phases").split("|");
@@ -205,6 +209,7 @@ export function StudioComposer() {
       return;
     }
     savePrep(owner, current);
+    setPaused(false);
     setPhase("generating");
     const startedFor = signedInAs.current;
     // An answer that comes back after the member signed out, or after another account signed in, is
@@ -226,6 +231,13 @@ export function StudioComposer() {
       });
       if (!res.ok) {
         const code = await aiErrorCode(res);
+        if (res.status === 503 && code === "ai_paused") {
+          // The pause is deliberate, not a failure: a calm notice next to the button instead of a red
+          // toast. The form and the stored preparation are not touched, and the button is usable again.
+          if (!stale()) setPaused(true);
+          setPhase(result ? "done" : "idle");
+          return;
+        }
         let key = "studio.gen.errorGeneric";
         if (res.status === 402) key = "studio.gen.errorCredits";
         else if (res.status === 429) key = "studio.gen.errorRate";
@@ -420,13 +432,31 @@ export function StudioComposer() {
         <Button variant="noir" disabled={phase === "generating"}>
           {t("studio.saveDraft")}
         </Button>
-        {phase === "idle" && !result && (
+        {paused ? (
           <span className="inline-flex items-center gap-1.5 text-xs text-gold/80">
-            <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse-gold" />
-            {t("studio.gen.ready")}
+            <span className="h-1.5 w-1.5 rounded-full bg-gold/60" />
+            {t("studio.gen.pausedStatus")}
           </span>
+        ) : (
+          phase === "idle" &&
+          !result && (
+            <span className="inline-flex items-center gap-1.5 text-xs text-gold/80">
+              <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse-gold" />
+              {t("studio.gen.ready")}
+            </span>
+          )
         )}
       </div>
+
+      {paused && (
+        <p
+          role="status"
+          className="flex items-start gap-2 rounded-xl border border-[color-mix(in_oklab,var(--gold)_30%,transparent)] bg-secondary/30 px-4 py-3 text-sm text-foreground"
+        >
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
+          <span className="min-w-0">{t("studio.gen.pausedNotice")}</span>
+        </p>
+      )}
 
       <p className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground/80">
         <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold/70" />

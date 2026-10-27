@@ -49,9 +49,40 @@ describe("the studio does not promise what it does not do", () => {
   });
 });
 
+describe("the pause texts are calm, truthful and free of technical detail", () => {
+  it.each(langs)("%s: no code, no status number, no claim that the engine is connected", (lang) => {
+    for (const key of ["studio.gen.ready", "studio.gen.pausedStatus", "studio.gen.pausedNotice"]) {
+      expect(t(lang, key), `${lang} ${key}`).not.toMatch(/\b(ai_paused|503|json)\b/i);
+    }
+    const connected: Record<Lang, RegExp> = {
+      fr: /connect[ée]/i,
+      en: /connected/i,
+      es: /conectado/i,
+      zh: /已连接/,
+      pt: /conectado/i,
+      ar: /متصل/,
+    };
+    expect(t(lang, "studio.gen.ready")).not.toMatch(connected[lang]);
+  });
+
+  it.each(langs)("%s: the notice says the preparation is kept", (lang) => {
+    const kept: Record<Lang, RegExp> = {
+      fr: /conservée/,
+      en: /is kept/,
+      es: /se conserva/,
+      zh: /已保留/,
+      pt: /foi mantida/,
+      ar: /محفوظ/,
+    };
+    expect(t(lang, "studio.gen.pausedNotice")).toMatch(kept[lang]);
+  });
+});
+
 describe("the new studio and session texts exist in the six languages", () => {
   const keys = [
     "studio.gen.ready",
+    "studio.gen.pausedStatus",
+    "studio.gen.pausedNotice",
     "studio.gen.errorCredits",
     "studio.gen.errorRate",
     "studio.gen.errorGeneric",
