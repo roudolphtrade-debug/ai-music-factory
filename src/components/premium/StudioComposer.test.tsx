@@ -912,6 +912,41 @@ describe("Lot A.1: the preparation of a visitor who signs in without clicking Ge
     expect(notice()).not.toBeNull(); // still offered
   });
 
+  it.each([["throws", "throw"], ["silently does nothing", "noop"]] as const)(
+    "failure: an erase of the anonymous slot that %s after the copy is a failure: nothing moves and the offer stays",
+    async (_name, mode) => {
+      fromAnonymous();
+      signIn("alice");
+      mount();
+      await waitFor(() => expect(notice()).not.toBeNull());
+      click(en("studio.gen.anonPrepClaim"));
+      const box = await dialog();
+      const original = Storage.prototype.removeItem;
+      const refuse = vi.spyOn(Storage.prototype, "removeItem").mockImplementation(function (
+        this: Storage,
+        key: string,
+      ) {
+        if (key === PREP_PREFIX + "anon") {
+          if (mode === "throw") throw new Error("locked");
+          return; // silently ignored
+        }
+        return original.call(this, key);
+      });
+      try {
+        fireEvent.click(within(box).getByRole("button", { name: en("studio.gen.anonClaimConfirm") }));
+      } finally {
+        refuse.mockRestore();
+      }
+      await closed();
+      expect(toast.error).toHaveBeenCalledWith(en("studio.gen.anonClaimFailed"));
+      expect(toast.success).not.toHaveBeenCalled();
+      expect(peekAnonymousPrep()?.fields.prompt).toBe(TYPED.prompt); // still anonymous, still offered
+      expect(readPrep(memberOwner("alice"))).toBeNull(); // no second copy on the account
+      expect(promptBox().value).toContain(DEFAULT_PROMPT_START); // the form was not changed
+      expect(notice()).not.toBeNull();
+    },
+  );
+
   it("failure: an erase the storage refuses keeps the preparation and says so", async () => {
     fromAnonymous();
     signIn("alice");

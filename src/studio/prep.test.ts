@@ -281,3 +281,153 @@ describe("the confirmed recovery of an anonymous preparation", () => {
     expect(discardAnonymousPrep(null)).toBe(false);
   });
 });
+
+/** A storage that can be told to alter, refuse or silently ignore operations, to play a misbehaving browser. */
+class ScriptedStorage extends MemoryStorage {
+  /** May return another value to store instead (a write that does not store what it was given). */
+  onSet: ((key: string, value: string, self: ScriptedStorage) => string | void) | null = null;
+  blockSet: ((key: string) => "throw" | undefined) | null = null;
+  blockRemove: ((key: string) => "throw" | "noop" | undefined) | null = null;
+  override setItem(key: string, value: string) {
+    if (this.blockSet?.(key) === "throw") throw new Error("quota");
+    super.setItem(key, this.onSet?.(key, value, this) ?? value);
+  }
+  override removeItem(key: string) {
+    const mode = this.blockRemove?.(key);
+    if (mode === "throw") throw new Error("locked");
+    if (mode === "noop") return;
+    super.removeItem(key);
+  }
+  /** What another tab would do: write without going through the hooks. */
+  raw(key: string, value: string) {
+    MemoryStorage.prototype.setItem.call(this, key, value);
+  }
+}
+
+describe("the recovery keeps the storage consistent when the browser misbehaves", () => {
+  const ANON_KEY = PREP_PREFIX + "anon";
+  const slot = (id: string) => PREP_PREFIX + "u:" + id;
+  const anon: PrepFields = { prompt: "made before the account", genre: "Trap", mood: "Warm", voice: "Alto" };
+  const own: PrepFields = { prompt: "alice's own words", genre: "Neo-Soul", mood: "Hypnotic", voice: "Soprano" };
+  const NOW = T0 + 1000;
+  let s: ScriptedStorage;
+  const keys = () => Array.from({ length: s.length }, (_, i) => s.key(i)).sort();
+
+  beforeEach(() => {
+    s = new ScriptedStorage();
+    savePrep(ANON, anon, { storage: s, now: T0, claim: true });
+  });
+
+  // ------------------------------------------------------------ the check compared the prompt only
+  it.each([
+    ["genre", '"genre":"Trap"', '"genre":"Hip-Hop"'],
+    ["mood", '"mood":"Warm"', '"mood":"Calm"'],
+    ["voice", '"voice":"Alto"', '"voice":"Tenor"'],
+  ])("a write that keeps the prompt but changes the %s is refused, and the anonymous words stay", (_f, from, to) => {
+    s.onSet = (key, value) => (key === slot("alice") ? value.replace(from, to) : undefined);
+    const result = recoverAnonymousPrep("alice", NOW, s);
+    expect(result.status).toBe("failed");
+    expect(readPrep(ANON, NOW, s)?.fields).toEqual(anon); // nothing lost
+    expect(s.getItem(slot("alice"))).toBeNull(); // nothing attached
+  });
+
+  it("a time that is not the anonymous one (another writer got there) is refused too", () => {
+    s.onSet = (key, value) => (key === slot("alice") ? value.replace(/"savedAt":\d+/, '"savedAt":' + (T0 + 5)) : undefined);
+    expect(recoverAnonymousPrep("alice", NOW, s).status).toBe("failed");
+    expect(readPrep(ANON, NOW, s)?.fields).toEqual(anon);
+    expect(s.getItem(slot("alice"))).toBeNull();
+  });
+
+  it("puts the account's own earlier preparation back exactly when it refuses", () => {
+    savePrep(memberOwner("alice"), own, { storage: s, now: T0 });
+    const before = s.getItem(slot("alice"));
+    s.onSet = (key, value) => (key === slot("alice") ? value.replace('"genre":"Trap"', '"genre":"Hip-Hop"') : undefined);
+    expect(recoverAnonymousPrep("alice", NOW, s).status).toBe("failed");
+    expect(s.getItem(slot("alice"))).toBe(before);
+    expect(readPrep(ANON, NOW, s)?.fields).toEqual(anon);
+  });
+
+  // ------------------------------------------------------------ the erase of the anonymous slot failed silently
+  it.each([["throws", "throw"], ["silently does nothing", "noop"]] as const)(
+    "an erase of the anonymous slot that %s after the write is a failure, not a success: nothing moves",
+    (_name, mode) => {
+      s.blockRemove = (key) => (key === ANON_KEY ? mode : undefined);
+      expect(recoverAnonymousPrep("alice", NOW, s).status).toBe("failed");
+      expect(readPrep(ANON, NOW, s)?.fields).toEqual(anon); // still there, still anonymous
+      expect(s.getItem(slot("alice"))).toBeNull(); // no second copy attached to the account
+    },
+  );
+
+  it("an erase refused after the write puts the account's own earlier preparation back exactly", () => {
+    savePrep(memberOwner("alice"), own, { storage: s, now: T0 });
+    const before = s.getItem(slot("alice"));
+    s.blockRemove = (key) => (key === ANON_KEY ? "noop" : undefined);
+    expect(recoverAnonymousPrep("alice", NOW, s).status).toBe("failed");
+    expect(s.getItem(slot("alice"))).toBe(before);
+    expect(readPrep(memberOwner("alice"), NOW, s)?.fields).toEqual(own);
+  });
+
+  it("if even the rollback is refused, the anonymous words are still not lost", () => {
+    s.blockRemove = () => "noop"; // nothing can be erased: neither the anonymous slot nor the copy
+    const result = recoverAnonymousPrep("alice", NOW, s);
+    expect(result.status).toBe("failed");
+    expect(readPrep(ANON, NOW, s)?.fields).toEqual(anon);
+  });
+
+  it("words typed in another tab between the copy and the erase are never erased", () => {
+    const newer = new ScriptedStorage();
+    savePrep(ANON, { ...anon, prompt: "newer words from another tab" }, { storage: newer, now: T0 + 500 });
+    s.onSet = (key, _value, self) => {
+      if (key === slot("alice")) self.raw(ANON_KEY, newer.getItem(ANON_KEY) as string); // the other tab writes now
+    };
+    expect(recoverAnonymousPrep("alice", NOW, s).status).toBe("failed");
+    expect(readPrep(ANON, NOW, s)?.fields.prompt).toBe("newer words from another tab");
+    expect(s.getItem(slot("alice"))).toBeNull();
+  });
+
+  // ------------------------------------------------------------ the receiving account
+  it.each([[""], ["   "]])("refuses a missing or blank account identity (%j) and writes nothing", (id) => {
+    const before = keys();
+    expect(recoverAnonymousPrep(id, NOW, s).status).toBe("failed");
+    expect(keys()).toEqual(before);
+    expect(readPrep(ANON, NOW, s)?.fields).toEqual(anon);
+  });
+
+  it("writes only the intended account's slot, and touches no other account", () => {
+    savePrep(memberOwner("bob"), own, { storage: s, now: T0 });
+    const bobBefore = s.getItem(slot("bob"));
+    const result = recoverAnonymousPrep("alice", NOW, s);
+    expect(result.status).toBe("recovered");
+    expect(keys()).toEqual([slot("alice"), slot("bob")].sort()); // the anonymous slot is gone, nothing else appeared
+    expect(s.getItem(slot("bob"))).toBe(bobBefore);
+    expect(readPrep(memberOwner("alice"), NOW, s)?.fields).toEqual(anon);
+    expect(readPrep(memberOwner("alice"), NOW, s)?.savedAt).toBe(T0);
+  });
+
+  it("a recovery that goes through returns exactly the four fields that were stored", () => {
+    const result = recoverAnonymousPrep("alice", NOW, s);
+    expect(result.status === "recovered" && result.prep.fields).toEqual(anon);
+  });
+
+  // ------------------------------------------------------------ the claimed path (Generate click) has the same duty
+  it("a claimed preparation whose erase fails is not handed over: nothing moves, the claim stays", () => {
+    s.blockRemove = (key) => (key === ANON_KEY ? "noop" : undefined);
+    expect(adoptAnonymousPrep("alice", NOW, s)).toBeNull();
+    expect(s.getItem(slot("alice"))).toBeNull();
+    expect(readPrep(ANON, NOW, s)?.claimUntil).toBeGreaterThan(NOW);
+  });
+
+  it("a claimed preparation that cannot be moved reports nothing moved, even when the account has its own", () => {
+    savePrep(memberOwner("alice"), own, { storage: s, now: T0 });
+    s.blockRemove = (key) => (key === ANON_KEY ? "noop" : undefined);
+    expect(adoptAnonymousPrep("alice", NOW, s)).toBeNull(); // not the account's own words passed off as the result
+    expect(readPrep(memberOwner("alice"), NOW, s)?.fields).toEqual(own);
+  });
+
+  it("a claimed preparation that is written wrongly is not handed over either", () => {
+    s.onSet = (key, value) => (key === slot("alice") ? value.replace('"voice":"Alto"', '"voice":"Tenor"') : undefined);
+    expect(adoptAnonymousPrep("alice", NOW, s)).toBeNull();
+    expect(readPrep(ANON, NOW, s)?.fields).toEqual(anon);
+    expect(s.getItem(slot("alice"))).toBeNull();
+  });
+});
