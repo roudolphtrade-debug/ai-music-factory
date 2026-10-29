@@ -21,6 +21,7 @@ import { usePasswordMessage } from "@/auth/passwordText";
 import { showFailure } from "@/auth/showFailure";
 import { signUpSchema } from "@/auth/validation";
 import { PENDING_EMAIL_KEY } from "@/auth/pendingEmail";
+import { peekAnonymousPrep } from "@/studio/prep";
 import { useAuthCopy, type AuthKey } from "@/i18n/auth";
 
 export const Route = createFileRoute("/auth/sign-up")({ component: SignUpPage });
@@ -81,6 +82,7 @@ function SignUpPage() {
       >
         <div className="space-y-4">
           <FormNotice tone="info">{t("checkSpam")}</FormNotice>
+          {peekAnonymousPrep() && <FormNotice tone="info">{t("checkPrepHint")}</FormNotice>}
           <ResendButton
             email={sentTo}
             send={resendConfirmation}

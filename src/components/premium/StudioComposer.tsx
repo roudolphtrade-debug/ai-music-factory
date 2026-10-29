@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { PlayButton } from "@/components/audio/PlayButton";
 import { LikeButton } from "@/components/premium/LikeButton";
+import { AnonymousPrepRecovery } from "@/components/premium/AnonymousPrepRecovery";
 import { Equalizer } from "@/components/premium/Equalizer";
 import { usePlayer } from "@/audio/PlayerProvider";
 import type { PlayableTrack } from "@/audio/tracks";
@@ -99,7 +100,12 @@ export function StudioComposer() {
   const signedInAs = useRef<string | null>(null);
   signedInAs.current = status === "signedIn" && userId ? userId : null;
   const [restored, setRestored] = useState(false);
+  // The same fact, readable at once: between the end of the restoration and the next render, an edit must
+  // already be saved (a fast typist, or a test), not wait for a render that will not repeat it.
+  const restoredRef = useRef(false);
   const [resumed, setResumed] = useState(false);
+  // A visitor's preparation is stored on this device: said plainly, with its limits, next to the form.
+  const [visitorKept, setVisitorKept] = useState(false);
   // Typing before the session is known (a few hundred ms at load) must not be overwritten by the
   // restoration: the member's own words win.
   const touched = useRef(false);
@@ -116,6 +122,19 @@ export function StudioComposer() {
   const stepTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const phaseLabels = t("studio.gen.phases").split("|");
 
+  const applyFields = (f: PrepFields | undefined) => {
+    setPrompt(f ? f.prompt.slice(0, PREP_PROMPT_MAX) : DEFAULT_PROMPT);
+    setGenre(f && genres.includes(f.genre) ? f.genre : genres[0]);
+    setMood(f && (moods as readonly string[]).includes(f.mood) ? f.mood : moods[0]);
+    setVoice(f && voiceKeys.includes(f.voice) ? f.voice : voiceKeys[1]);
+  };
+  // The signed-in member took over an anonymous preparation, after confirming (never by itself).
+  const recovered = (fields: PrepFields) => {
+    touched.current = false;
+    applyFields(fields);
+    setResumed(true);
+  };
+
   // Put the stored preparation back once the session is known. A member who has just signed in
   // through the Generate click takes over the anonymous preparation; nobody else can.
   useEffect(() => {
@@ -124,12 +143,20 @@ export function StudioComposer() {
     purgeExpiredPreps(now);
     // Only the very first time: after that, an account change must never carry the previous
     // account's words into the next one's form or slot.
-    if (touched.current && !restored) {
-      savePrep(owner, latest.current, { now });
+    if (touched.current && !restoredRef.current) {
+      const kept = savePrep(owner, latest.current, { now });
+      if (status === "signedOut" && kept) {
+        setVisitorKept(true);
+        rememberReturnTo(STUDIO_PATH);
+      }
       touched.current = false;
+      restoredRef.current = true;
       setRestored(true);
       return;
     }
+    // Words typed as a visitor are never carried into a member's form by a change of session (another
+    // tab signing in, a new account on a shared browser): they stay in the anonymous slot, where the
+    // signed-in member is offered them, and only takes them over after a confirmation.
     touched.current = false;
     let stored = null;
     if (status === "signedIn" && userId) {
@@ -137,12 +164,10 @@ export function StudioComposer() {
     } else {
       stored = readPrep(ANON, now);
     }
-    const f = stored?.fields;
-    setPrompt(f ? f.prompt.slice(0, PREP_PROMPT_MAX) : DEFAULT_PROMPT);
-    setGenre(f && genres.includes(f.genre) ? f.genre : genres[0]);
-    setMood(f && (moods as readonly string[]).includes(f.mood) ? f.mood : moods[0]);
-    setVoice(f && voiceKeys.includes(f.voice) ? f.voice : voiceKeys[1]);
+    applyFields(stored?.fields);
     setResumed(Boolean(stored));
+    setVisitorKept(status !== "signedIn" && Boolean(stored));
+    restoredRef.current = true;
     setRestored(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, userId]);
@@ -151,12 +176,23 @@ export function StudioComposer() {
   const current: PrepFields = { prompt, genre, mood, voice };
   const change = (patch: Partial<PrepFields>) => {
     touched.current = true;
+    // What the restoration may have to save must already hold this edit, before the next render.
+    latest.current = { ...latest.current, ...patch };
     if (patch.prompt !== undefined) setPrompt(patch.prompt);
     if (patch.genre !== undefined) setGenre(patch.genre);
     if (patch.mood !== undefined) setMood(patch.mood);
     if (patch.voice !== undefined) setVoice(patch.voice);
     setResumed(false);
-    if (restored) savePrep(owner, { ...current, ...patch });
+    if (restoredRef.current) {
+      const kept = savePrep(owner, { ...current, ...patch });
+      if (status === "signedOut") {
+        setVisitorKept(kept);
+        // A visitor who has started a preparation comes back to the studio after signing in or up, by
+        // whatever door: the header, the sign-in page or Generate. Only the Generate click lets the
+        // account take the words over by itself; the others are offered a confirmed recovery.
+        if (kept) rememberReturnTo(STUDIO_PATH);
+      }
+    }
   };
   const clearPreparation = () => {
     clearPrep(owner);
@@ -166,6 +202,7 @@ export function StudioComposer() {
     setMood(moods[0]);
     setVoice(voiceKeys[1]);
     setResumed(false);
+    setVisitorKept(false);
     toast.success(t("studio.gen.prepCleared"));
   };
 
@@ -363,6 +400,15 @@ export function StudioComposer() {
         </div>
       )}
 
+      {status === "signedIn" && userId && restored && (
+        <AnonymousPrepRecovery
+          userId={userId}
+          signedInAs={signedInAs}
+          current={current}
+          onRecovered={recovered}
+        />
+      )}
+
       <Field label={t("studio.prompt")}>
         <textarea
           rows={3}
@@ -455,6 +501,16 @@ export function StudioComposer() {
         >
           <Info className="mt-0.5 h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
           <span className="min-w-0">{t("studio.gen.pausedNotice")}</span>
+        </p>
+      )}
+
+      {visitorKept && status === "signedOut" && (
+        <p
+          data-testid="anon-limits"
+          className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground"
+        >
+          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold/70" aria-hidden="true" />
+          {t("studio.gen.anonLimits")}
         </p>
       )}
 

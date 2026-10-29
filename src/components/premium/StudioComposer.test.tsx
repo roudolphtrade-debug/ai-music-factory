@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { toast } from "sonner";
 import { AllProviders } from "@/test/providers";
 import { installFakeAudio } from "@/test/fakeAudio";
@@ -11,7 +11,15 @@ import type { AuthHolder } from "@/test/clientMock";
 import { CreditsProvider } from "@/library/CreditsProvider";
 import { translate } from "@/i18n/translations";
 import { peekReturnTo } from "@/auth/returnTo";
-import { ANON, memberOwner, readPrep, savePrep, PREP_TTL_MS } from "@/studio/prep";
+import {
+  ANON,
+  PREP_PREFIX,
+  PREP_TTL_MS,
+  memberOwner,
+  peekAnonymousPrep,
+  readPrep,
+  savePrep,
+} from "@/studio/prep";
 import { StudioComposer } from "./StudioComposer";
 
 const holder = vi.hoisted(
@@ -567,5 +575,388 @@ describe("an answer that comes back after the account changed", () => {
     await waitFor(() => expect(toast.warning).toHaveBeenCalledWith(en("studio.gen.notKept")));
     expect(drafts.kept).toEqual(createdUrls);
     expect(drafts.kept).toHaveLength(1);
+  });
+});
+
+describe("Lot A.1: the preparation of a visitor who signs in without clicking Generate", () => {
+  const TYPED = { prompt: "S2 an afro-soul lullaby", genre: "Neo-Soul", mood: "Euphoric", voice: "Soprano" };
+  const notice = () => screen.queryByTestId("anon-prep");
+  const click = (name: string) => fireEvent.click(screen.getByRole("button", { name }));
+  const dialog = () => screen.findByRole("alertdialog");
+  const closed = () => waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+  const form = () => ({
+    prompt: promptBox().value,
+    genre: (screen.getAllByRole("combobox")[0] as HTMLSelectElement).value,
+    voice: (screen.getAllByRole("combobox")[2] as HTMLSelectElement).value,
+  });
+  const fromAnonymous = (claim = false) => savePrep(ANON, TYPED, claim ? { claim: true } : {});
+
+  beforeEach(() => {
+    localStorage.removeItem("afm-return-to");
+  });
+
+  // ---------------------------------------------------------------- the way back (S2, the cause)
+  it("a visitor who types remembers the way back to the studio, whatever door is taken, and no claim", async () => {
+    mount();
+    await ready();
+    expect(peekReturnTo()).toBeUndefined(); // only looking at the studio remembers nothing
+    expect(screen.queryByTestId("anon-limits")).toBeNull();
+
+    fireEvent.change(promptBox(), { target: { value: "S2 typed, never submitted" } });
+    expect(peekReturnTo()).toBe("/studio");
+    expect(readPrep(ANON)?.claimUntil).toBeUndefined(); // typing alone never lets an account take it
+    expect(route).not.toHaveBeenCalled();
+    expect(navigations()).toHaveLength(0);
+  });
+
+  it("a signed-in member's typing does not set a destination", async () => {
+    signIn("alice");
+    mount();
+    await ready();
+    fireEvent.change(promptBox(), { target: { value: "typed by a member" } });
+    expect(peekReturnTo()).toBeUndefined();
+  });
+
+  it("tells the visitor, next to the form, where the preparation lives and where it does not follow", async () => {
+    mount();
+    await ready();
+    fireEvent.change(promptBox(), { target: { value: "something to keep" } });
+    const note = screen.getByTestId("anon-limits");
+    expect(note.textContent).toBe(en("studio.gen.anonLimits"));
+    expect(note.textContent).toMatch(/another browser, a private window, another profile or another device/i);
+    // a preparation that was already stored is announced as well, on the next visit
+    cleanup();
+    mount();
+    await waitFor(() => expect(screen.getByTestId("anon-limits")).toBeTruthy());
+  });
+
+  it("does not show that note to a member", async () => {
+    fromAnonymous();
+    signIn("alice");
+    mount();
+    await ready();
+    expect(screen.queryByTestId("anon-limits")).toBeNull();
+  });
+
+  // ---------------------------------------------------------------- S2: nothing by itself, then a confirmed recovery
+  it("S2: after the sign-in the preparation is offered, hidden from nobody, attached to nobody, and nothing is generated", async () => {
+    fromAnonymous();
+    signIn("alice");
+    mount();
+    await ready();
+    await waitFor(() => expect(notice()).not.toBeNull());
+    expect(promptBox().value).toContain(DEFAULT_PROMPT_START); // the form is not touched
+    expect(readPrep(memberOwner("alice"))).toBeNull(); // attached to no one
+    expect(peekAnonymousPrep()?.fields.prompt).toBe(TYPED.prompt); // intact
+    expect(route).not.toHaveBeenCalled();
+    expect(wallet().balance ?? 20).toBe(20);
+  });
+
+  it("S2: cancelling the confirmation changes nothing", async () => {
+    fromAnonymous();
+    signIn("alice");
+    mount();
+    await waitFor(() => expect(notice()).not.toBeNull());
+    click(en("studio.gen.anonPrepClaim"));
+    const box = await dialog();
+    // the warning says the device may be shared and that the confirmation proves nothing
+    expect(within(box).getByText(en("studio.gen.anonClaimWarning"))).toBeTruthy();
+    expect(within(box).getByText(en("studio.gen.anonClaimNoProof"))).toBeTruthy();
+    fireEvent.click(within(box).getByRole("button", { name: en("studio.gen.dialogCancel") }));
+    await closed();
+    expect(readPrep(memberOwner("alice"))).toBeNull();
+    expect(peekAnonymousPrep()?.fields.prompt).toBe(TYPED.prompt);
+    expect(promptBox().value).toContain(DEFAULT_PROMPT_START);
+    expect(notice()).not.toBeNull();
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  it("S2: confirming puts the words in the form, in the account's slot, and empties the anonymous one", async () => {
+    fromAnonymous();
+    signIn("alice");
+    mount();
+    await waitFor(() => expect(notice()).not.toBeNull());
+    click(en("studio.gen.anonPrepClaim"));
+    fireEvent.click(within(await dialog()).getByRole("button", { name: en("studio.gen.anonClaimConfirm") }));
+    await closed();
+    expect(form()).toEqual({ prompt: TYPED.prompt, genre: "Neo-Soul", voice: "Soprano" });
+    expect(screen.getByText(en("studio.gen.prepResumed"))).toBeTruthy();
+    expect(readPrep(memberOwner("alice"))?.fields.prompt).toBe(TYPED.prompt);
+    expect(peekAnonymousPrep()).toBeNull();
+    expect(notice()).toBeNull();
+    expect(toast.success).toHaveBeenCalledWith(en("studio.gen.anonClaimed"));
+    await settle();
+    expect(route).not.toHaveBeenCalled(); // resuming never generates
+    expect(wallet().balance ?? 20).toBe(20);
+  });
+
+  it("S2: the member can erase it instead, after a confirmation that says it cannot be undone", async () => {
+    fromAnonymous();
+    signIn("alice");
+    mount();
+    await waitFor(() => expect(notice()).not.toBeNull());
+    click(en("studio.gen.anonPrepDelete"));
+    let box = await dialog();
+    expect(within(box).getByText(en("studio.gen.anonDeleteWarning"))).toBeTruthy();
+    fireEvent.click(within(box).getByRole("button", { name: en("studio.gen.dialogCancel") }));
+    await closed();
+    expect(peekAnonymousPrep()).not.toBeNull(); // cancelled: kept
+
+    click(en("studio.gen.anonPrepDelete"));
+    box = await dialog();
+    fireEvent.click(within(box).getByRole("button", { name: en("studio.gen.anonDeleteConfirm") }));
+    await closed();
+    expect(peekAnonymousPrep()).toBeNull();
+    expect(notice()).toBeNull();
+    expect(promptBox().value).toContain(DEFAULT_PROMPT_START); // the form is untouched
+    expect(toast.success).toHaveBeenCalledWith(en("studio.gen.anonDeleted"));
+  });
+
+  // ---------------------------------------------------------------- S1: the Generate click keeps working
+  it("S1: with the claim of a Generate click, nothing is offered: the account takes it over as before", async () => {
+    fromAnonymous(true);
+    signIn("alice");
+    mount();
+    await waitFor(() => expect(promptBox().value).toBe(TYPED.prompt));
+    expect(screen.getByText(en("studio.gen.prepResumed"))).toBeTruthy();
+    expect(notice()).toBeNull();
+    expect(peekAnonymousPrep()).toBeNull();
+    expect(readPrep(memberOwner("alice"))?.fields.prompt).toBe(TYPED.prompt);
+  });
+
+  // ---------------------------------------------------------------- S3: another browser, profile, private window, device
+  it("S3: a device that holds nothing offers nothing and invents nothing", async () => {
+    signIn("carol");
+    mount();
+    await ready();
+    expect(notice()).toBeNull();
+    expect(promptBox().value).toContain(DEFAULT_PROMPT_START);
+    expect(screen.queryByText(en("studio.gen.prepResumed"))).toBeNull();
+    expect(readPrep(memberOwner("carol"))).toBeNull();
+    expect(peekReturnTo()).toBeUndefined();
+  });
+
+  // ---------------------------------------------------------------- S4: words typed while the session becomes a member's
+  it("S4: words typed in an open studio tab are never carried into the member's form by the sign-in: they are offered, and nothing is attributed", async () => {
+    mount();
+    await ready();
+    fireEvent.change(promptBox(), { target: { value: "S4 typed in the open tab" } });
+    await act(async () => fake.emit("SIGNED_IN", makeSession("alice", "alice@example.test")));
+    await waitFor(() => expect(generateButton().hasAttribute("disabled")).toBe(false));
+    await waitFor(() => expect(notice()).not.toBeNull());
+    expect(promptBox().value).toContain(DEFAULT_PROMPT_START); // the member's form starts clean
+    expect(readPrep(memberOwner("alice"))).toBeNull(); // not attributed by the sign-in
+    expect(peekAnonymousPrep()?.fields.prompt).toBe("S4 typed in the open tab"); // not lost either
+    // a member's edit to another field saves the member's own form, never the visitor's words
+    fireEvent.change(screen.getAllByRole("combobox")[0], { target: { value: "Amapiano" } });
+    expect(readPrep(memberOwner("alice"))?.fields.prompt).toContain(DEFAULT_PROMPT_START);
+    expect(readPrep(memberOwner("alice"))?.fields.prompt).not.toContain("S4 typed");
+    // and the words come back only through the confirmation
+    click(en("studio.gen.anonPrepClaim"));
+    fireEvent.click(within(await dialog()).getByRole("button", { name: en("studio.gen.anonClaimConfirm") }));
+    await closed();
+    expect(promptBox().value).toBe("S4 typed in the open tab");
+    expect(readPrep(memberOwner("alice"))?.fields.prompt).toBe("S4 typed in the open tab");
+  });
+
+  it("S4: an account that signs in over a visitor's words, then another one, never inherits them silently", async () => {
+    mount();
+    await ready();
+    fireEvent.change(promptBox(), { target: { value: "visitor words" } });
+    await act(async () => fake.emit("SIGNED_IN", makeSession("alice", "alice@example.test")));
+    await waitFor(() => expect(notice()).not.toBeNull());
+    await act(async () => fake.emit("SIGNED_IN", makeSession("bob", "bob@example.test")));
+    await settle();
+    expect(promptBox().value).toContain(DEFAULT_PROMPT_START);
+    expect(readPrep(memberOwner("alice"))).toBeNull();
+    expect(readPrep(memberOwner("bob"))).toBeNull();
+    expect(peekAnonymousPrep()?.fields.prompt).toBe("visitor words");
+  });
+
+  it("S4: a stored preparation of the member wins over words typed before the session, which stay offered", async () => {
+    savePrep(memberOwner("alice"), { ...TYPED, prompt: "alice's own stored words" });
+    mount();
+    await ready();
+    fireEvent.change(promptBox(), { target: { value: "typed as a visitor" } });
+    await act(async () => fake.emit("SIGNED_IN", makeSession("alice", "alice@example.test")));
+    await waitFor(() => expect(promptBox().value).toBe("alice's own stored words"));
+    await waitFor(() => expect(notice()).not.toBeNull()); // the visitor's words are not lost
+    expect(peekAnonymousPrep()?.fields.prompt).toBe("typed as a visitor");
+  });
+
+  // ---------------------------------------------------------------- protections between accounts
+  it("refusal: once Alice has recovered it, Bob sees nothing and never gets her words", async () => {
+    fromAnonymous();
+    signIn("alice");
+    const first = mount();
+    await waitFor(() => expect(notice()).not.toBeNull());
+    click(en("studio.gen.anonPrepClaim"));
+    fireEvent.click(within(await dialog()).getByRole("button", { name: en("studio.gen.anonClaimConfirm") }));
+    await closed();
+    first.unmount();
+
+    signIn("bob");
+    mount();
+    await ready();
+    await waitFor(() => expect(promptBox().value).toContain(DEFAULT_PROMPT_START));
+    expect(notice()).toBeNull();
+    expect(readPrep(memberOwner("bob"))).toBeNull();
+    expect(readPrep(memberOwner("alice"))?.fields.prompt).toBe(TYPED.prompt); // still hers
+  });
+
+  it("refusal: left alone by Alice, it belongs to nobody, Bob is warned about a shared device, and Alice's slot is never touched", async () => {
+    savePrep(memberOwner("alice"), { ...TYPED, prompt: "alice's own" });
+    fromAnonymous();
+    signIn("bob");
+    mount();
+    await waitFor(() => expect(notice()).not.toBeNull());
+    click(en("studio.gen.anonPrepClaim"));
+    const box = await dialog();
+    expect(within(box).getByText(en("studio.gen.anonClaimWarning"))).toBeTruthy();
+    expect(box.textContent).not.toMatch(/\b(proves?|verified|authenticat\w+)\b/i);
+    fireEvent.click(within(box).getByRole("button", { name: en("studio.gen.anonClaimConfirm") }));
+    await closed();
+    expect(readPrep(memberOwner("bob"))?.fields.prompt).toBe(TYPED.prompt);
+    expect(readPrep(memberOwner("alice"))?.fields.prompt).toBe("alice's own");
+  });
+
+  it("refusal: if the account changes while the confirmation is open, nothing moves", async () => {
+    fromAnonymous();
+    signIn("alice");
+    mount();
+    await waitFor(() => expect(notice()).not.toBeNull());
+    click(en("studio.gen.anonPrepClaim"));
+    const box = await dialog();
+    await act(async () => fake.emit("SIGNED_IN", makeSession("bob", "bob@example.test")));
+    const confirm = screen.queryByRole("button", { name: en("studio.gen.anonClaimConfirm") });
+    if (confirm) fireEvent.click(confirm);
+    await settle();
+    expect(box).toBeTruthy();
+    expect(readPrep(memberOwner("alice"))).toBeNull();
+    expect(readPrep(memberOwner("bob"))).toBeNull();
+    expect(peekAnonymousPrep()?.fields.prompt).toBe(TYPED.prompt); // still nobody's
+  });
+
+  it("refusal: a sign-out while the confirmation is open closes it and moves nothing", async () => {
+    fromAnonymous();
+    signIn("alice");
+    mount();
+    await waitFor(() => expect(notice()).not.toBeNull());
+    click(en("studio.gen.anonPrepClaim"));
+    await dialog();
+    await act(async () => fake.emit("SIGNED_OUT", null));
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+    expect(readPrep(memberOwner("alice"))).toBeNull();
+    expect(peekAnonymousPrep()?.fields.prompt).toBe(TYPED.prompt);
+  });
+
+  // ---------------------------------------------------------------- expirations and failures
+  it("expiry: a preparation older than seven days is neither offered nor kept", async () => {
+    savePrep(ANON, TYPED, { now: Date.now() - PREP_TTL_MS - 1000 });
+    signIn("alice");
+    mount();
+    await ready();
+    await settle();
+    expect(notice()).toBeNull();
+    expect(peekAnonymousPrep()).toBeNull();
+    expect(localStorage.getItem(PREP_PREFIX + "anon")).toBeNull();
+  });
+
+  it("expiry: if it expires between the offer and the confirmation, nothing moves and the member is told", async () => {
+    savePrep(ANON, TYPED, { now: Date.now() - PREP_TTL_MS + 60_000 });
+    signIn("alice");
+    mount();
+    await waitFor(() => expect(notice()).not.toBeNull());
+    click(en("studio.gen.anonPrepClaim"));
+    const box = await dialog();
+    const real = Date.now();
+    const clock = vi.spyOn(Date, "now").mockReturnValue(real + 5 * 60_000);
+    try {
+      fireEvent.click(within(box).getByRole("button", { name: en("studio.gen.anonClaimConfirm") }));
+    } finally {
+      clock.mockRestore();
+    }
+    await closed();
+    expect(toast.error).toHaveBeenCalledWith(en("studio.gen.anonClaimGone"));
+    expect(readPrep(memberOwner("alice"))).toBeNull();
+    expect(promptBox().value).toContain(DEFAULT_PROMPT_START);
+    await waitFor(() => expect(notice()).toBeNull()); // nothing left to offer
+  });
+
+  it("failure: a storage that refuses the account's slot leaves the preparation intact and says so", async () => {
+    fromAnonymous();
+    signIn("alice");
+    mount();
+    await waitFor(() => expect(notice()).not.toBeNull());
+    click(en("studio.gen.anonPrepClaim"));
+    const box = await dialog();
+    const original = Storage.prototype.setItem;
+    const refuse = vi.spyOn(Storage.prototype, "setItem").mockImplementation(function (
+      this: Storage,
+      key: string,
+      value: string,
+    ) {
+      if (key.startsWith(PREP_PREFIX + "u:")) throw new Error("quota");
+      return original.call(this, key, value);
+    });
+    try {
+      fireEvent.click(within(box).getByRole("button", { name: en("studio.gen.anonClaimConfirm") }));
+    } finally {
+      refuse.mockRestore();
+    }
+    await closed();
+    expect(toast.error).toHaveBeenCalledWith(en("studio.gen.anonClaimFailed"));
+    expect(peekAnonymousPrep()?.fields.prompt).toBe(TYPED.prompt);
+    expect(readPrep(memberOwner("alice"))).toBeNull();
+    expect(promptBox().value).toContain(DEFAULT_PROMPT_START);
+    expect(notice()).not.toBeNull(); // still offered
+  });
+
+  it("failure: an erase the storage refuses keeps the preparation and says so", async () => {
+    fromAnonymous();
+    signIn("alice");
+    mount();
+    await waitFor(() => expect(notice()).not.toBeNull());
+    click(en("studio.gen.anonPrepDelete"));
+    const box = await dialog();
+    const original = Storage.prototype.removeItem;
+    const refuse = vi.spyOn(Storage.prototype, "removeItem").mockImplementation(function (
+      this: Storage,
+      key: string,
+    ) {
+      if (key === PREP_PREFIX + "anon") throw new Error("locked");
+      return original.call(this, key);
+    });
+    try {
+      fireEvent.click(within(box).getByRole("button", { name: en("studio.gen.anonDeleteConfirm") }));
+    } finally {
+      refuse.mockRestore();
+    }
+    await closed();
+    expect(toast.error).toHaveBeenCalledWith(en("studio.gen.anonDeleteFailed"));
+    expect(peekAnonymousPrep()?.fields.prompt).toBe(TYPED.prompt);
+    expect(notice()).not.toBeNull();
+  });
+
+  it("a visitor is never offered a recovery, even when the anonymous slot differs from the form", async () => {
+    mount();
+    await ready();
+    expect(promptBox().value).toContain(DEFAULT_PROMPT_START);
+    savePrep(ANON, TYPED); // another tab of the same browser wrote words that are not in this form
+    await act(async () => void window.dispatchEvent(new Event("storage")));
+    await settle();
+    expect(notice()).toBeNull(); // only a signed-in member can take words over
+    expect(screen.queryByRole("button", { name: en("studio.gen.anonPrepClaim") })).toBeNull();
+    expect(readPrep(memberOwner("visitor"))).toBeNull();
+  });
+
+  it("an anonymous preparation identical to the form is not offered", async () => {
+    fromAnonymous(true); // taken over, so identical to the form
+    signIn("alice");
+    mount();
+    await waitFor(() => expect(promptBox().value).toBe(TYPED.prompt));
+    savePrep(ANON, TYPED); // the same words appear again in the anonymous slot
+    await act(async () => void window.dispatchEvent(new Event("storage")));
+    expect(notice()).toBeNull();
   });
 });

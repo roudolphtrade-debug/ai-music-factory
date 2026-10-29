@@ -7,11 +7,14 @@ import {
   PREP_TTL_MS,
   adoptAnonymousPrep,
   clearPrep,
+  discardAnonymousPrep,
   hasPrep,
   memberOwner,
   parsePrep,
+  peekAnonymousPrep,
   purgeExpiredPreps,
   readPrep,
+  recoverAnonymousPrep,
   savePrep,
   type PrepFields,
 } from "./prep";
@@ -198,5 +201,83 @@ describe("storage that cannot be used", () => {
       },
     };
     expect(savePrep(ANON, fields(), { storage: full })).toBe(false);
+  });
+});
+
+describe("the confirmed recovery of an anonymous preparation", () => {
+  const fields: PrepFields = { prompt: "made before the account", genre: "Trap", mood: "Warm", voice: "Alto" };
+  let storage: MemoryStorage;
+  beforeEach(() => {
+    storage = new MemoryStorage();
+  });
+
+  it("peeks without moving anything, and ignores an expired one", () => {
+    expect(peekAnonymousPrep(Date.now(), storage)).toBeNull();
+    savePrep(ANON, fields, { storage });
+    expect(peekAnonymousPrep(Date.now(), storage)?.fields.prompt).toBe("made before the account");
+    expect(readPrep(ANON, Date.now(), storage)).not.toBeNull(); // still there
+    const old = new MemoryStorage();
+    savePrep(ANON, fields, { storage: old, now: Date.now() - PREP_TTL_MS - 1 });
+    expect(peekAnonymousPrep(Date.now(), old)).toBeNull();
+  });
+
+  it("hands an unclaimed preparation to the member who confirms, and empties the anonymous slot", () => {
+    savePrep(ANON, fields, { storage }); // no claim: the visitor never clicked Generate
+    expect(adoptAnonymousPrep("alice", Date.now(), storage)).toBeNull(); // nothing moves by itself
+    const result = recoverAnonymousPrep("alice", Date.now(), storage);
+    expect(result.status).toBe("recovered");
+    expect(readPrep(memberOwner("alice"), Date.now(), storage)?.fields).toEqual(fields);
+    expect(readPrep(ANON, Date.now(), storage)).toBeNull();
+  });
+
+  it("does not extend the seven days, and gives nothing to anyone else", () => {
+    const savedAt = Date.now() - 3 * 24 * 3_600_000;
+    savePrep(ANON, fields, { storage, now: savedAt });
+    recoverAnonymousPrep("alice", Date.now(), storage);
+    expect(readPrep(memberOwner("alice"), Date.now(), storage)?.savedAt).toBe(savedAt);
+    expect(readPrep(memberOwner("bob"), Date.now(), storage)).toBeNull();
+    // the slot is empty now: a second account has nothing to take
+    expect(recoverAnonymousPrep("bob", Date.now(), storage).status).toBe("gone");
+  });
+
+  it("says 'gone' when there is nothing, when it expired, or when there is no storage", () => {
+    expect(recoverAnonymousPrep("alice", Date.now(), storage).status).toBe("gone");
+    savePrep(ANON, fields, { storage, now: Date.now() - PREP_TTL_MS - 1 });
+    expect(recoverAnonymousPrep("alice", Date.now(), storage).status).toBe("gone");
+    expect(readPrep(memberOwner("alice"), Date.now(), storage)).toBeNull();
+    expect(recoverAnonymousPrep("alice", Date.now(), null).status).toBe("gone");
+  });
+
+  it("expires between the offer and the confirmation: nothing moves", () => {
+    const now = Date.now();
+    savePrep(ANON, fields, { storage, now: now - PREP_TTL_MS + 1000 });
+    expect(peekAnonymousPrep(now, storage)).not.toBeNull(); // offered
+    expect(recoverAnonymousPrep("alice", now + 5000, storage).status).toBe("gone"); // confirmed too late
+    expect(readPrep(memberOwner("alice"), now + 5000, storage)).toBeNull();
+  });
+
+  it("fails without losing anything when the storage refuses the member's slot", () => {
+    savePrep(ANON, fields, { storage });
+    const refusing = Object.create(storage) as MemoryStorage;
+    refusing.setItem = (key: string, value: string) => {
+      if (key.startsWith(PREP_PREFIX + "u:")) throw new Error("quota");
+      storage.setItem(key, value);
+    };
+    expect(recoverAnonymousPrep("alice", Date.now(), refusing).status).toBe("failed");
+    expect(readPrep(ANON, Date.now(), storage)?.fields).toEqual(fields); // intact
+    expect(readPrep(memberOwner("alice"), Date.now(), storage)).toBeNull();
+  });
+
+  it("an erase refused by the storage reports failure and keeps the preparation", () => {
+    savePrep(ANON, fields, { storage });
+    const refusing = Object.create(storage) as MemoryStorage;
+    refusing.removeItem = () => {
+      throw new Error("locked");
+    };
+    expect(discardAnonymousPrep(refusing)).toBe(false);
+    expect(readPrep(ANON, Date.now(), storage)).not.toBeNull();
+    expect(discardAnonymousPrep(storage)).toBe(true);
+    expect(readPrep(ANON, Date.now(), storage)).toBeNull();
+    expect(discardAnonymousPrep(null)).toBe(false);
   });
 });

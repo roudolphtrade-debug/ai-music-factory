@@ -14,6 +14,7 @@ import {
 } from "@/test/authHarness";
 import type { AuthHolder } from "@/test/clientMock";
 import { authCopy } from "@/i18n/auth";
+import { ANON, savePrep } from "@/studio/prep";
 
 const holder = vi.hoisted(
   () => ({ fake: null, configured: true, startWithClient: true, snapshot: null }) as AuthHolder,
@@ -93,6 +94,24 @@ describe("sign-up", () => {
     expect(sessionStorage.getItem("afm-pending-email")).toBe("amina@example.test");
     // The member is not signed in until the link is opened.
     expect(navigations()).toEqual([]);
+  });
+
+  it("tells a visitor who has a studio preparation to open the link in this browser, and only then", async () => {
+    mountPage(SignUp);
+    fillSignUp();
+    await submit("Create my account");
+    await screen.findByRole("heading", { name: "Check your inbox" });
+    expect(screen.queryByText(authCopy.en.checkPrepHint)).toBeNull(); // nothing to keep: nothing said
+    cleanup();
+
+    savePrep(ANON, { prompt: "kept", genre: "Trap", mood: "Warm", voice: "Alto" });
+    mountPage(SignUp);
+    fillSignUp();
+    await submit("Create my account");
+    await screen.findByRole("heading", { name: "Check your inbox" });
+    expect(screen.getByText(authCopy.en.checkPrepHint)).toBeTruthy();
+    expect(authCopy.en.checkPrepHint).toMatch(/this browser/);
+    expect(authCopy.en.checkPrepHint).toMatch(/private window/);
   });
 
   it("makes the member wait before asking for the link again, then allows it", async () => {

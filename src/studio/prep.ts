@@ -7,6 +7,10 @@
  *    account that signs in or up through the Generate click that set the claim (valid 24 hours).
  *  - Erased on a deliberate sign-out, after a warning (see AccountMenu).
  *
+ *  - A preparation made without an account and never submitted (no claim) is never attached to anyone by
+ *    itself. A signed-in member may take it over, or erase it, only through an explicit confirmation
+ *    (`recoverAnonymousPrep` / `discardAnonymousPrep`); until then it stays untouched in the anonymous slot.
+ *
  * LIMITS of local storage, said plainly: this separation is applicative, not a security boundary.
  * Anyone with the browser's developer tools on the same profile can read every slot. A session that
  * ends without a deliberate sign-out (expired, signed out from another tab) leaves the slot in place
@@ -158,6 +162,51 @@ export function adoptAnonymousPrep(
   if (!moved) return null;
   clearPrep(ANON, storage);
   return readPrep(memberOwner(userId), now, storage);
+}
+
+/** The anonymous preparation as it stands (younger than seven days), or `null`. Reads only, moves nothing. */
+export function peekAnonymousPrep(now = Date.now(), storage = defaultStorage()): StoredPrep | null {
+  return read(keyOf(ANON), now, storage);
+}
+
+export type RecoverResult =
+  | { status: "recovered"; prep: StoredPrep }
+  /** Nothing to take any more: it expired, or someone erased it, since it was offered. Nothing moved. */
+  | { status: "gone" }
+  /** The storage refused the write. Nothing moved: the anonymous preparation is intact. */
+  | { status: "failed" };
+
+/**
+ * The explicit, confirmed recovery of the anonymous preparation by a signed-in member. It is the only way
+ * an unclaimed preparation changes hands, and it is called from a confirmation the member has just given:
+ * never from a sign-in. The member's slot is written first and checked; only then is the anonymous slot
+ * emptied, so a failure in the middle can lose nothing. The seven days keep counting from the last edit.
+ */
+export function recoverAnonymousPrep(
+  userId: string,
+  now = Date.now(),
+  storage = defaultStorage(),
+): RecoverResult {
+  const anon = read(keyOf(ANON), now, storage);
+  if (!anon) return { status: "gone" };
+  if (!storage) return { status: "failed" };
+  if (!savePrep(memberOwner(userId), anon.fields, { now: anon.savedAt, storage })) {
+    return { status: "failed" };
+  }
+  const written = readPrep(memberOwner(userId), now, storage);
+  if (!written || written.fields.prompt !== anon.fields.prompt) return { status: "failed" };
+  clearPrep(ANON, storage);
+  return { status: "recovered", prep: written };
+}
+
+/** Erases the anonymous preparation after the member confirmed it. Returns whether it is gone. */
+export function discardAnonymousPrep(storage = defaultStorage()): boolean {
+  clearPrep(ANON, storage);
+  try {
+    return storage ? storage.getItem(keyOf(ANON)) === null : false;
+  } catch {
+    return false;
+  }
 }
 
 /** Removes every slot older than seven days (called when the studio opens). */
