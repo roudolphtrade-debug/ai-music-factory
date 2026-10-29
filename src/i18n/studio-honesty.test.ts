@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { authCopy } from "./auth";
 import { LANGS, translate, type Lang } from "./translations";
 
 const langs = LANGS.map((l) => l.code) as Lang[];
@@ -207,4 +208,88 @@ describe("the recovery of tracks that belong to nobody", () => {
       expect(t(lang, "studio.gen.deleteWarning")).toMatch(irreversible[lang]);
     },
   );
+});
+
+describe("the recovery of a preparation made before signing in", () => {
+  const keys = [
+    "anonPrepTitle",
+    "anonPrepDesc",
+    "anonPrepClaim",
+    "anonPrepDelete",
+    "anonClaimTitle",
+    "anonClaimWarning",
+    "anonClaimNoProof",
+    "anonClaimConfirm",
+    "anonDeleteTitle",
+    "anonDeleteWarning",
+    "anonDeleteConfirm",
+    "anonClaimed",
+    "anonClaimFailed",
+    "anonClaimGone",
+    "anonClaimCancelled",
+    "anonDeleted",
+    "anonDeleteFailed",
+    "anonLimits",
+  ].map((k) => `studio.gen.${k}`);
+  const shared: Record<Lang, RegExp> = {
+    fr: /partagé/i,
+    en: /shared/i,
+    es: /compartido/i,
+    zh: /共用/,
+    pt: /compartilhado/i,
+    ar: /مشترك/,
+  };
+  const noProof: Record<Lang, RegExp> = {
+    fr: /ne vérifie pas/i,
+    en: /does not check/i,
+    es: /no comprueba/i,
+    zh: /不会核实/,
+    pt: /não verifica/i,
+    ar: /لا يتحقق/,
+  };
+  const irreversible: Record<Lang, RegExp> = {
+    fr: /irréversible/i,
+    en: /cannot be undone/i,
+    es: /no se puede deshacer/i,
+    zh: /无法撤销/,
+    pt: /não pode ser desfeita/i,
+    ar: /لا يمكن التراجع/,
+  };
+  const limits: Record<Lang, RegExp> = {
+    fr: /fenêtre privée/i,
+    en: /private window/i,
+    es: /ventana privada/i,
+    zh: /隐私窗口/,
+    pt: /janela privada/i,
+    ar: /نافذة خاصة/,
+  };
+
+  it.each(langs)("%s: every text exists, is its own, and has no dash and no raw key", (lang) => {
+    for (const key of keys) {
+      const value = t(lang, key);
+      expect(value, `${lang} ${key}`).not.toBe(key);
+      expect(value.length, `${lang} ${key}`).toBeGreaterThan(3);
+      expect(value, `${lang} ${key}`).not.toContain("\u2014");
+      if (lang !== "en") expect(value, `${lang} ${key}`).not.toBe(t("en", key));
+    }
+  });
+
+  it.each(langs)("%s: warns about a shared device and never claims to prove who wrote it", (lang) => {
+    expect(t(lang, "studio.gen.anonClaimWarning")).toMatch(shared[lang]);
+    expect(t(lang, "studio.gen.anonClaimNoProof")).toMatch(noProof[lang]);
+    const all = keys.map((k) => t(lang, k)).join(" ");
+    expect(all).not.toMatch(/\b(prouve|prove|proves|proven|certifie|certify|authentifi\w+|authenticat\w+)\b/i);
+  });
+
+  it.each(langs)("%s: the erase text says it cannot be undone and that cancelling keeps it", (lang) => {
+    expect(t(lang, "studio.gen.anonDeleteWarning")).toMatch(irreversible[lang]);
+  });
+
+  it.each(langs)("%s: the limits are said: another browser, a private window, profile or device", (lang) => {
+    expect(t(lang, "studio.gen.anonLimits")).toMatch(limits[lang]);
+    expect(authCopy[lang].checkPrepHint).toMatch(limits[lang]);
+    expect(authCopy[lang].checkPrepHint).not.toBe("checkPrepHint");
+    expect(authCopy[lang].checkPrepHint).not.toContain("\u2014");
+    if (lang !== "en") expect(authCopy[lang].checkPrepHint).not.toBe(authCopy.en.checkPrepHint);
+  });
 });

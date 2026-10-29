@@ -7,6 +7,10 @@
  *    account that signs in or up through the Generate click that set the claim (valid 24 hours).
  *  - Erased on a deliberate sign-out, after a warning (see AccountMenu).
  *
+ *  - A preparation made without an account and never submitted (no claim) is never attached to anyone by
+ *    itself. A signed-in member may take it over, or erase it, only through an explicit confirmation
+ *    (`recoverAnonymousPrep` / `discardAnonymousPrep`); until then it stays untouched in the anonymous slot.
+ *
  * LIMITS of local storage, said plainly: this separation is applicative, not a security boundary.
  * Anyone with the browser's developer tools on the same profile can read every slot. A session that
  * ends without a deliberate sign-out (expired, signed out from another tab) leaves the slot in place
@@ -142,6 +146,79 @@ export function hasPrep(owner: PrepOwner, now = Date.now(), storage = defaultSto
   return readPrep(owner, now, storage) !== null;
 }
 
+/** What a slot holds now: its text, `null` when empty, `undefined` when the storage cannot be read. */
+function rawOf(key: string, storage: Storage): string | null | undefined {
+  try {
+    return storage.getItem(key);
+  } catch {
+    return undefined;
+  }
+}
+
+/** Same words, same three choices, same time: what is stored is exactly what was copied. */
+function sameStored(a: StoredPrep, b: StoredPrep): boolean {
+  return (
+    a.savedAt === b.savedAt &&
+    a.fields.prompt === b.fields.prompt &&
+    a.fields.genre === b.fields.genre &&
+    a.fields.mood === b.fields.mood &&
+    a.fields.voice === b.fields.voice
+  );
+}
+
+/**
+ * Moves the anonymous preparation to one account, all or nothing, and says what happened. It is the only
+ * code that does so (the claimed path of a Generate click and the confirmed recovery both use it).
+ *
+ *  - The receiving account must be identified: a missing or blank identity writes nothing.
+ *  - The account's slot is written first, then read back and compared on all four fields and the time.
+ *  - The anonymous slot must still be exactly what was copied (another tab may have typed since), and it
+ *    must really be gone after the erase. A storage that refuses or silently ignores the erase is a
+ *    failure, not a success: otherwise the same words would belong to the account and still be on offer
+ *    to the next one.
+ *  - On any failure after the write, the account's slot is put back as it was (its own earlier
+ *    preparation, byte for byte, or empty). The anonymous words are never lost; if even the rollback is
+ *    refused, the worst case is two copies of the same words, never none.
+ */
+function moveAnonymousPrep(
+  userId: string,
+  now: number,
+  storage: Storage | null,
+  requireClaim: boolean,
+): RecoverResult {
+  if (typeof userId !== "string" || userId.trim() === "") return { status: "failed" };
+  const anonKey = keyOf(ANON);
+  const memberKey = keyOf(memberOwner(userId));
+  const anon = read(anonKey, now, storage);
+  if (!anon || !storage) return { status: "gone" };
+  if (requireClaim && (anon.claimUntil === undefined || anon.claimUntil <= now)) {
+    return { status: "gone" };
+  }
+  const anonRaw = rawOf(anonKey, storage);
+  const previous = rawOf(memberKey, storage);
+  if (typeof anonRaw !== "string" || previous === undefined) return { status: "failed" };
+
+  const rollback = (): RecoverResult => {
+    try {
+      if (previous === null) storage.removeItem(memberKey);
+      else storage.setItem(memberKey, previous);
+    } catch {
+      /* the anonymous words are still where they were */
+    }
+    return { status: "failed" };
+  };
+
+  if (!savePrep(memberOwner(userId), anon.fields, { now: anon.savedAt, storage })) {
+    return { status: "failed" };
+  }
+  const written = readPrep(memberOwner(userId), now, storage);
+  if (!written || !sameStored(written, anon)) return rollback();
+  if (rawOf(anonKey, storage) !== anonRaw) return rollback(); // newer words from another tab: keep them
+  clearPrep(ANON, storage);
+  if (rawOf(anonKey, storage) !== null) return rollback(); // the erase did not happen
+  return { status: "recovered", prep: written };
+}
+
 /**
  * A member who has just signed in or up takes over the anonymous preparation, but only when its claim
  * (set by the Generate click) is still valid. The anonymous slot is emptied either way once taken, so
@@ -152,12 +229,44 @@ export function adoptAnonymousPrep(
   now = Date.now(),
   storage = defaultStorage(),
 ): StoredPrep | null {
-  const anon = read(keyOf(ANON), now, storage);
-  if (!anon || anon.claimUntil === undefined || anon.claimUntil <= now || !storage) return null;
-  const moved = savePrep(memberOwner(userId), anon.fields, { now: anon.savedAt, storage });
-  if (!moved) return null;
+  const moved = moveAnonymousPrep(userId, now, storage, true);
+  return moved.status === "recovered" ? moved.prep : null;
+}
+
+/** The anonymous preparation as it stands (younger than seven days), or `null`. Reads only, moves nothing. */
+export function peekAnonymousPrep(now = Date.now(), storage = defaultStorage()): StoredPrep | null {
+  return read(keyOf(ANON), now, storage);
+}
+
+export type RecoverResult =
+  | { status: "recovered"; prep: StoredPrep }
+  /** Nothing to take any more: it expired, or someone erased it, since it was offered. Nothing moved. */
+  | { status: "gone" }
+  /** The storage refused the write. Nothing moved: the anonymous preparation is intact. */
+  | { status: "failed" };
+
+/**
+ * The explicit, confirmed recovery of the anonymous preparation by a signed-in member. It is the only way
+ * an unclaimed preparation changes hands, and it is called from a confirmation the member has just given:
+ * never from a sign-in. The member's slot is written first and checked; only then is the anonymous slot
+ * emptied, so a failure in the middle can lose nothing. The seven days keep counting from the last edit.
+ */
+export function recoverAnonymousPrep(
+  userId: string,
+  now = Date.now(),
+  storage = defaultStorage(),
+): RecoverResult {
+  return moveAnonymousPrep(userId, now, storage, false);
+}
+
+/** Erases the anonymous preparation after the member confirmed it. Returns whether it is gone. */
+export function discardAnonymousPrep(storage = defaultStorage()): boolean {
   clearPrep(ANON, storage);
-  return readPrep(memberOwner(userId), now, storage);
+  try {
+    return storage ? storage.getItem(keyOf(ANON)) === null : false;
+  } catch {
+    return false;
+  }
 }
 
 /** Removes every slot older than seven days (called when the studio opens). */
