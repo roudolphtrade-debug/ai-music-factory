@@ -477,7 +477,7 @@ export const projects: CreatorProject[] = [
   },
   {
     id: "p-2",
-    title: "Untitled — Nocturne 03",
+    title: "Untitled · Nocturne 03",
     genre: "Electronica",
     mood: "Reflective",
     voice: "Instrumental",
@@ -503,7 +503,7 @@ export const projects: CreatorProject[] = [
   },
   {
     id: "p-4",
-    title: "Working Idea — Chrome",
+    title: "Working Idea · Chrome",
     genre: "Hyperpop",
     mood: "Dramatic",
     voice: "Soprano",

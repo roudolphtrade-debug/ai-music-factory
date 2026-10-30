@@ -9,7 +9,10 @@ import { makeSession, type FakeSupabase } from "@/test/fakeSupabase";
 import { navigations, setUpAccounts } from "@/test/authHarness";
 import type { AuthHolder } from "@/test/clientMock";
 import { CreditsProvider } from "@/library/CreditsProvider";
-import { translate } from "@/i18n/translations";
+import { LANGS, translate, type Lang } from "@/i18n/translations";
+import { useI18n } from "@/i18n/context";
+import { moods } from "@/data/mock";
+import { STUDIO_VOICES } from "@/studio/options";
 import { peekReturnTo } from "@/auth/returnTo";
 import {
   ANON,
@@ -993,5 +996,170 @@ describe("Lot A.1: the preparation of a visitor who signs in without clicking Ge
     savePrep(ANON, TYPED); // the same words appear again in the anonymous slot
     await act(async () => void window.dispatchEvent(new Event("storage")));
     expect(notice()).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------- Lot A.2: moods, example prompt
+describe("the quick moods and the mood menu say the same thing", () => {
+  const moodSelect = () => screen.getAllByRole("combobox")[1] as HTMLSelectElement;
+  const chips = () =>
+    within(screen.getByRole("group", { name: en("studio.quickMoods") })).getAllByRole("button");
+  const pressed = () => chips().filter((c) => c.getAttribute("aria-pressed") === "true");
+
+  it("offers every mood in both, in the same order", async () => {
+    mount();
+    await ready();
+    const menu = Array.from(moodSelect().options).map((o) => o.textContent);
+    expect(menu).toEqual(moods.map((m) => en(`moods.${m}`)));
+    expect(chips().map((c) => c.textContent)).toEqual(menu);
+  });
+
+  it("shows exactly one active shortcut, the one that matches the menu, from the start", async () => {
+    mount();
+    await ready();
+    expect(pressed().map((c) => c.textContent)).toEqual([en(`moods.${moods[0]}`)]);
+    expect(moodSelect().value).toBe(moods[0]);
+  });
+
+  it("the active shortcut is visibly different from the others, and only that one", async () => {
+    mount();
+    await ready();
+    fireEvent.change(moodSelect(), { target: { value: "Triumphant" } });
+    const gold = (c: HTMLElement) => c.classList.contains("text-gold");
+    expect(chips().filter(gold).map((c) => c.textContent)).toEqual([en("moods.Triumphant")]);
+  });
+
+  it("Triumphant chosen in the menu is the active shortcut, and the other way round", async () => {
+    mount();
+    await ready();
+    fireEvent.change(moodSelect(), { target: { value: "Triumphant" } });
+    expect(pressed().map((c) => c.textContent)).toEqual([en("moods.Triumphant")]);
+    expect(readPrep(ANON)?.fields.mood).toBe("Triumphant");
+
+    fireEvent.click(screen.getByRole("button", { name: en("moods.Hypnotic") }));
+    expect(moodSelect().value).toBe("Hypnotic");
+    expect(pressed().map((c) => c.textContent)).toEqual([en("moods.Hypnotic")]);
+
+    fireEvent.click(screen.getByRole("button", { name: en("moods.Triumphant") }));
+    expect(moodSelect().value).toBe("Triumphant");
+    expect(pressed()).toHaveLength(1);
+  });
+
+  it.each(moods)("%s, put back from a stored preparation, is shown in the menu and as a shortcut", async (mood) => {
+    savePrep(ANON, { prompt: "stored", genre: "Trap", mood, voice: "Alto" });
+    mount();
+    await waitFor(() => expect(promptBox().value).toBe("stored"));
+    expect(moodSelect().value).toBe(mood);
+    expect(pressed().map((c) => c.textContent)).toEqual([en(`moods.${mood}`)]);
+  });
+
+  it("the mood that is sent is the active one", async () => {
+    signIn("alice");
+    mount();
+    await ready();
+    fireEvent.click(screen.getByRole("button", { name: en("moods.Triumphant") }));
+    fireEvent.click(generateButton());
+    await waitFor(() => expect(route).toHaveBeenCalled());
+    const sent = JSON.parse(String((route.mock.calls[0][1] as RequestInit).body));
+    expect(sent.mood).toBe(en("moods.Triumphant"));
+  });
+
+  it("the voice menu offers exactly the voices the figure beside the form counts", async () => {
+    mount();
+    await ready();
+    expect((screen.getAllByRole("combobox")[2] as HTMLSelectElement).options).toHaveLength(
+      STUDIO_VOICES.length,
+    );
+  });
+});
+
+describe("the example prompt follows the language of the interface", () => {
+  let setLang: (l: Lang) => void = () => {};
+  function LangProbe() {
+    setLang = useI18n().setLang;
+    return null;
+  }
+  function mountSwitchable() {
+    return render(
+      <AllProviders>
+        <LangProbe />
+        <AuthProvider>
+          <CreditsProvider>
+            <StudioComposer />
+          </CreditsProvider>
+        </AuthProvider>
+      </AllProviders>,
+    );
+  }
+  const example = (lang: Lang) => translate(lang, "studio.examplePrompt");
+
+  it.each(LANGS.map((l) => l.code))("%s: the form opens with the example in that language", async (lang) => {
+    localStorage.setItem("afm-lang", lang);
+    mountSwitchable();
+    await waitFor(() => expect(promptBox().value).toBe(example(lang)));
+    if (lang !== "en") expect(promptBox().value).not.toBe(example("en"));
+    // an example is not a preparation: nothing was saved by showing it
+    expect(readPrep(ANON)).toBeNull();
+  });
+
+  it("switching the language changes the example while it is untouched, and saves nothing", async () => {
+    mountSwitchable();
+    await waitFor(() => expect(promptBox().value).toBe(example("en")));
+    for (const lang of ["fr", "es", "zh", "pt", "ar", "en"] as const) {
+      act(() => setLang(lang));
+      await waitFor(() => expect(promptBox().value).toBe(example(lang)));
+    }
+    expect(readPrep(ANON)).toBeNull();
+  });
+
+  it("never touches words the member wrote, whatever the language", async () => {
+    mountSwitchable();
+    await ready();
+    fireEvent.change(promptBox(), { target: { value: "My own words about the sea" } });
+    for (const lang of ["fr", "ar", "zh"] as const) {
+      act(() => setLang(lang));
+      await settle();
+      expect(promptBox().value).toBe("My own words about the sea");
+    }
+    expect(readPrep(ANON)?.fields.prompt).toBe("My own words about the sea");
+  });
+
+  it("a stored preparation that kept the untouched example in another language follows the interface", async () => {
+    savePrep(ANON, { prompt: example("fr"), genre: "Trap", mood: "Triumphant", voice: "Alto" });
+    mountSwitchable();
+    await waitFor(() => expect(promptBox().value).toBe(example("en")));
+    expect(readPrep(ANON)?.fields.mood).toBe("Triumphant"); // the other choices are kept
+  });
+
+  it("a preparation that arrives later with the untouched example in another language follows the interface too", async () => {
+    savePrep(memberOwner("alice"), { prompt: example("fr"), genre: "Trap", mood: "Triumphant", voice: "Alto" });
+    mountSwitchable();
+    await waitFor(() => expect(promptBox().value).toBe(example("en")));
+    await ready();
+    await act(async () => fake.emit("SIGNED_IN", makeSession("alice", "alice@example.test"))); // the language is settled; only now is the member's preparation put back
+    await waitFor(() => expect(screen.getAllByRole("combobox")[1]).toHaveProperty("value", "Triumphant"));
+    expect(promptBox().value).toBe(example("en"));
+  });
+
+  it("the example of the language in use is what a click on Generate would send", async () => {
+    signIn("alice");
+    localStorage.setItem("afm-lang", "es");
+    mountSwitchable();
+    await waitFor(() => expect(promptBox().value).toBe(example("es")));
+    const go = () => screen.getByRole("button", { name: translate("es", "studio.generate") });
+    await waitFor(() => expect(go().hasAttribute("disabled")).toBe(false));
+    fireEvent.click(go());
+    await waitFor(() => expect(route).toHaveBeenCalled());
+    const sent = JSON.parse(String((route.mock.calls[0][1] as RequestInit).body));
+    expect(sent.prompt).toBe(example("es"));
+  });
+
+  it("erasing the preparation brings back the example of the language in use", async () => {
+    localStorage.setItem("afm-lang", "pt");
+    savePrep(ANON, { prompt: "mine", genre: "Trap", mood: "Hypnotic", voice: "Alto" });
+    mountSwitchable();
+    await waitFor(() => expect(promptBox().value).toBe("mine"));
+    fireEvent.click(screen.getByRole("button", { name: translate("pt", "studio.gen.prepClear") }));
+    expect(promptBox().value).toBe(example("pt"));
   });
 });

@@ -31,6 +31,7 @@ import { aiFetch, SignInRequiredError } from "@/lib/ai-fetch";
 import { useAuth } from "@/auth/context";
 import { AUTH_PATHS } from "@/auth/redirects";
 import { rememberReturnTo } from "@/auth/returnTo";
+import { STUDIO_GENRES, STUDIO_VOICES, examplePromptFor, isExamplePrompt } from "@/studio/options";
 import {
   ANON,
   PREP_PROMPT_MAX,
@@ -43,21 +44,10 @@ import {
   type PrepFields,
 } from "@/studio/prep";
 
-const genres = [
-  "Hip-Hop",
-  "Trap",
-  "Afrobeats",
-  "UK Drill",
-  "Amapiano",
-  "Reggaeton",
-  "Hyperpop",
-  "Neo-Soul",
-];
-const voiceKeys = ["Instrumental", "Warm tenor", "Soprano", "Alto", "Custom voice"];
+const genres = STUDIO_GENRES;
+const voiceKeys = STUDIO_VOICES;
 const GEN_COVER: ArtistId = "art-1";
 const STUDIO_PATH = "/studio";
-const DEFAULT_PROMPT =
-  "Cinematic ambient pop with golden-hour pads, warm analogue tape saturation, and a slow euphoric build toward a wordless choir.";
 
 type Phase = "idle" | "generating" | "done";
 
@@ -78,14 +68,14 @@ function decodeLyrics(b64: string | null): string {
 }
 
 export function StudioComposer() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { play } = usePlayer();
   const { addDraft, keepUrl } = useGeneratedDrafts();
   const { canAfford, spend } = useCredits();
   const { status, user } = useAuth();
   const navigate = useNavigate();
 
-  const [prompt, setPrompt] = useState(DEFAULT_PROMPT);
+  const [prompt, setPrompt] = useState(() => examplePromptFor(lang));
   const [genre, setGenre] = useState(genres[0]);
   const [mood, setMood] = useState(moods[0]);
   const [voice, setVoice] = useState(voiceKeys[1]);
@@ -122,8 +112,13 @@ export function StudioComposer() {
   const stepTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const phaseLabels = t("studio.gen.phases").split("|");
 
+  // The example prompt is shown in the language of the interface. A stored one that is still the
+  // untouched example (written in another language) follows the interface too; the member's own words
+  // never change.
   const applyFields = (f: PrepFields | undefined) => {
-    setPrompt(f ? f.prompt.slice(0, PREP_PROMPT_MAX) : DEFAULT_PROMPT);
+    setPrompt(
+      f && !isExamplePrompt(f.prompt) ? f.prompt.slice(0, PREP_PROMPT_MAX) : examplePromptFor(lang),
+    );
     setGenre(f && genres.includes(f.genre) ? f.genre : genres[0]);
     setMood(f && (moods as readonly string[]).includes(f.mood) ? f.mood : moods[0]);
     setVoice(f && voiceKeys.includes(f.voice) ? f.voice : voiceKeys[1]);
@@ -172,6 +167,15 @@ export function StudioComposer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, userId]);
 
+  // Changing the interface language changes the example prompt with it, as long as it is still the
+  // example. Nothing is saved: the example is not a preparation.
+  useEffect(() => {
+    if (isExamplePrompt(latest.current.prompt)) {
+      latest.current = { ...latest.current, prompt: examplePromptFor(lang) };
+    }
+    setPrompt((p) => (isExamplePrompt(p) ? examplePromptFor(lang) : p));
+  }, [lang]);
+
   // Every change is kept at once, for the owner of the form (an account, or the visitor).
   const current: PrepFields = { prompt, genre, mood, voice };
   const change = (patch: Partial<PrepFields>) => {
@@ -197,7 +201,7 @@ export function StudioComposer() {
   const clearPreparation = () => {
     clearPrep(owner);
     touched.current = false;
-    setPrompt(DEFAULT_PROMPT);
+    setPrompt(examplePromptFor(lang));
     setGenre(genres[0]);
     setMood(moods[0]);
     setVoice(voiceKeys[1]);
@@ -431,7 +435,7 @@ export function StudioComposer() {
           <Select
             value={mood}
             onChange={(value) => change({ mood: value })}
-            options={moods.slice(0, 6).map((m) => ({ value: m, label: t(`moods.${m}`) }))}
+            options={moods.map((m) => ({ value: m, label: t(`moods.${m}`) }))}
           />
         </Field>
         <Field label={t("studio.voice")}>
@@ -443,17 +447,20 @@ export function StudioComposer() {
         </Field>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs text-muted-foreground">{t("studio.quickMoods")}</span>
-        {moods.slice(0, 5).map((m) => (
+      <div role="group" aria-labelledby="quick-moods-label" className="flex flex-wrap items-center gap-2">
+        <span id="quick-moods-label" className="text-xs text-muted-foreground">
+          {t("studio.quickMoods")}
+        </span>
+        {moods.map((m) => (
           <button
             key={m}
             type="button"
+            aria-pressed={mood === m}
             onClick={() => change({ mood: m })}
             className={
-              "rounded-full border px-3 py-1 text-xs transition-colors " +
+              "min-h-8 rounded-full border px-3 py-1 text-xs transition-colors " +
               (mood === m
-                ? "border-[color-mix(in_oklab,var(--gold)_50%,transparent)] text-gold"
+                ? "border-[color-mix(in_oklab,var(--gold)_60%,transparent)] bg-[color-mix(in_oklab,var(--gold)_14%,transparent)] font-medium text-gold"
                 : "border-border text-muted-foreground hover:border-[color-mix(in_oklab,var(--gold)_40%,transparent)] hover:text-foreground")
             }
           >
