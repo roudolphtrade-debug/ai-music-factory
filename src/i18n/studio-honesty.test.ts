@@ -1,6 +1,9 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { authCopy } from "./auth";
 import { LANGS, translate, type Lang } from "./translations";
+import { PREP_PROMPT_MAX } from "@/studio/prep";
+import { examplePromptFor, isExamplePrompt } from "@/studio/options";
 
 const langs = LANGS.map((l) => l.code) as Lang[];
 const t = (lang: Lang, key: string) => translate(lang, key, { n: 5 });
@@ -291,5 +294,141 @@ describe("the recovery of a preparation made before signing in", () => {
     expect(authCopy[lang].checkPrepHint).not.toBe("checkPrepHint");
     expect(authCopy[lang].checkPrepHint).not.toContain("\u2014");
     if (lang !== "en") expect(authCopy[lang].checkPrepHint).not.toBe(authCopy.en.checkPrepHint);
+  });
+});
+
+describe("lot A.2: the texts exist in the six languages and keep their promises", () => {
+  const keys = [
+    "studio.examplePrompt",
+    "studio.statDrafts",
+    "studio.statVoices",
+    "studio.examples.eyebrow",
+    "studio.examples.title",
+    "studio.examples.desc",
+    "studio.examples.badge",
+    "studio.gen.emptyHint",
+  ];
+
+  it.each(langs)("%s: every key has its own text, no dash, and no raw key left", (lang) => {
+    for (const key of keys) {
+      const value = t(lang, key);
+      expect(value, `${lang} ${key}`).not.toBe(key);
+      expect(value.length, `${lang} ${key}`).toBeGreaterThan(1);
+      expect(value, `${lang} ${key}`).not.toContain("—");
+      if (lang !== "en")
+        expect(value, `${lang} ${key} is not the English text`).not.toBe(t("en", key));
+    }
+  });
+
+  // A paused service must never be advertised by the texts that welcome a member back. These say what the
+  // member can do with the preparation, or that their tracks will appear; none tells them to generate.
+  const INVITATION: Record<Lang, RegExp> = {
+    fr: /\b(générez|générer|lancez|lancer)\b/i,
+    en: /\b(generate|start the generation|launch)\b/i,
+    es: /\b(genera|generar|inicia la generación|iniciar la generación)\b/i,
+    zh: /开始生成|再生成|请生成|在上方生成/,
+    pt: /\b(gere|gerar|inicie a geração|iniciar a geração)\b/i,
+    ar: /(^|\s)ولّد(\s|$)|للتوليد|ابدأ التوليد/,
+  };
+
+  it.each(langs)("%s: the resume, sign-in and empty-state messages never invite to generate", (lang) => {
+    for (const key of ["studio.gen.prepResumed", "studio.gen.signInFirst", "studio.gen.emptyHint"]) {
+      expect(t(lang, key), `${lang} ${key}`).not.toMatch(INVITATION[lang]);
+    }
+  });
+
+  it.each(langs)("%s: the messages that stay say the preparation is kept or can be edited", (lang) => {
+    const kept: Record<Lang, RegExp> = {
+      fr: /conservée/,
+      en: /is kept/,
+      es: /se conserva/,
+      zh: /已保留/,
+      pt: /foi mantida/,
+      ar: /محفوظ/,
+    };
+    expect(t(lang, "studio.gen.signInFirst")).toMatch(kept[lang]);
+  });
+
+  it("the example prompt: six different texts, the English one unchanged, each fits the preparation", () => {
+    const texts = langs.map((l) => t(l, "studio.examplePrompt"));
+    expect(new Set(texts).size).toBe(6);
+    expect(t("en", "studio.examplePrompt")).toBe(
+      "Cinematic ambient pop with golden-hour pads, warm analogue tape saturation, and a slow euphoric build toward a wordless choir.",
+    );
+    for (const text of texts) expect(text.length).toBeLessThanOrEqual(PREP_PROMPT_MAX);
+  });
+
+  it("an untouched example is recognised in any language, and words of the member's own are not", () => {
+    for (const lang of langs) {
+      expect(isExamplePrompt(examplePromptFor(lang))).toBe(true);
+      expect(isExamplePrompt(examplePromptFor(lang) + " plus my own idea")).toBe(false);
+    }
+    expect(isExamplePrompt("")).toBe(false);
+    expect(isExamplePrompt("A tender highlife about rain")).toBe(false);
+  });
+
+  it("the studio page shows no fixed figure and no demonstration project of its own", () => {
+    const page = readFileSync("src/routes/_app.studio.tsx", "utf8");
+    expect(page).not.toMatch(/value="\d+"/);
+    expect(page).not.toContain("@/data/mock");
+    expect(page).not.toContain("miniTracks");
+    expect(page).not.toContain("miniVoices");
+  });
+
+  it("the old figures keys are gone from every language", () => {
+    for (const lang of langs) {
+      for (const key of ["studio.miniTracks", "studio.miniVoices", "studio.yourDrafts"]) {
+        expect(t(lang, key), `${lang} ${key}`).toBe(key);
+      }
+    }
+  });
+});
+
+describe("the idle status of the studio does not promise a generation that is not available", () => {
+  const prepare: Record<Lang, RegExp> = {
+    fr: /Préparez votre création/,
+    en: /Prepare your creation/,
+    es: /Prepara tu creación/,
+    zh: /准备创作/,
+    pt: /Prepare sua criação/,
+    ar: /تحضير عملك/,
+  };
+  const notYet: Record<Lang, RegExp> = {
+    fr: /n'est pas encore disponible/,
+    en: /is not available yet/,
+    es: /aún no está disponible/,
+    zh: /尚未开放/,
+    pt: /ainda não está disponível/,
+    ar: /غير متاح بعد/,
+  };
+  const claimsSecurity: Record<Lang, RegExp> = {
+    fr: /sécuris/i,
+    en: /secure/i,
+    es: /segura/i,
+    zh: /安全/,
+    pt: /segura/i,
+    ar: /آمن/,
+  };
+
+  it.each(langs)("%s: says that the creation can be prepared and that AI generation is not available yet", (lang) => {
+    const ready = t(lang, "studio.gen.ready");
+    expect(ready).toMatch(prepare[lang]);
+    expect(ready).toMatch(notYet[lang]);
+  });
+
+  it.each(langs)("%s: no longer presents the generation as secure, ready or connected", (lang) => {
+    expect(t(lang, "studio.gen.ready")).not.toMatch(claimsSecurity[lang]);
+  });
+
+  it.each(langs)("%s: keeps the mention of the synthetic voice", (lang) => {
+    const synthetic: Record<Lang, RegExp> = {
+      fr: /voix de synthèse/,
+      en: /synthetic voice/,
+      es: /voz sintética/,
+      zh: /合成人声/,
+      pt: /voz sintética/,
+      ar: /بصوت اصطناعي/,
+    };
+    expect(t(lang, "studio.gen.ready")).toMatch(synthetic[lang]);
   });
 });
