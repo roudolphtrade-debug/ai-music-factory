@@ -28,6 +28,7 @@ function BattlesPage() {
   return (
     <div className="space-y-10">
       <SectionHeading
+        className="flex-wrap sm:flex-nowrap"
         eyebrow={t("battles.eyebrow")}
         title={t("battles.title")}
         description={t("battles.desc")}

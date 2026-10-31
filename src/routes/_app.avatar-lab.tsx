@@ -153,6 +153,7 @@ function AttributeSlider({ label, initial }: { label: string; initial: number })
       </div>
       <input
         type="range"
+        aria-label={label}
         min={0}
         max={100}
         value={value}
