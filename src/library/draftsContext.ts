@@ -4,6 +4,8 @@ import type { GeneratedDraftMeta } from "@/library/generatedDrafts";
 /** A draft with a live object URL for playback. */
 export interface GeneratedDraft extends GeneratedDraftMeta {
   url: string;
+  /** What the stored audio really is, so that the downloaded file carries the right extension. */
+  ext: "wav" | "mp3";
 }
 
 /**
@@ -39,13 +41,21 @@ export interface DraftsValue {
    * not played, not held in memory, and left exactly as they are until the member confirms what to do.
    */
   unassignedCount: number;
+  /**
+   * True when the tracks could not be read from this device (no IndexedDB, a refused transaction). It is
+   * not the same as "there are none": the list is empty because it could not be read.
+   */
+  loadFailed?: boolean;
   addDraft: (meta: GeneratedDraftMeta, blob: Blob) => Promise<GeneratedDraft>;
   /** Deletes one of this account's tracks. Resolves to false (and deletes nothing) if it is not this account's. */
   removeDraft: (id: string) => Promise<boolean>;
   /** Makes a temporary address (a track the device could not keep) subject to the same erasure. */
   keepUrl: (url: string) => string;
-  /** Erases this account's drafts: disk, memory, temporary addresses. Late answers are discarded. */
-  eraseMine: () => Promise<void>;
+  /**
+   * Erases this account's drafts: disk, memory, temporary addresses. Late answers are discarded. Resolves to
+   * false when the disk refused: the tracks are gone from memory but still stored, and the member must be told.
+   */
+  eraseMine: () => Promise<boolean>;
   /**
    * Attaches the unassigned tracks to the signed-in account. To be called only after an explicit
    * confirmation: it does not check who made them (nothing on a device can).

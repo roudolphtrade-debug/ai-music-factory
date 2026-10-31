@@ -19,10 +19,13 @@ const disk = vi.hoisted(() => ({
   deletedFor: [] as string[],
   puts: [] as string[],
   failPut: null as string | null,
+  failLoad: false,
+  failErase: false,
 }));
 vi.mock("@/library/generatedDrafts", () => ({
   getAllDrafts: async () => {
     if (disk.loadGate) await disk.loadGate;
+    if (disk.failLoad) throw new Error("indexeddb unavailable");
     return [...disk.records.values()];
   },
   putDraft: async (record: { id: string }) => {
@@ -74,6 +77,7 @@ vi.mock("@/library/generatedDrafts", () => ({
     return true;
   },
   deleteDraftsOf: async (owner: string) => {
+    if (disk.failErase) throw new Error("transaction aborted");
     disk.deletedFor.push(owner);
     for (const [id, value] of disk.records) {
       if ((value as Rec).ownerId === owner) disk.records.delete(id);
@@ -136,6 +140,8 @@ beforeEach(() => {
   disk.deletedFor = [];
   disk.puts = [];
   disk.failPut = null;
+  disk.failLoad = false;
+  disk.failErase = false;
   created = [];
   revoked = [];
   erasedNotices = [];
@@ -598,5 +604,67 @@ describe("removing a track never touches another account's track", () => {
     hold.open();
     await act(async () => void (await adding));
     expect(disk.records.has("late")).toBe(false);
+  });
+});
+
+describe("what the disk refuses is reported, never swallowed", () => {
+  it("says the tracks could not be read, and keeps that apart from 'there are none'", async () => {
+    disk.failLoad = true;
+    disk.records.set("a1", rec("a1", "alice"));
+    mount();
+    await settle();
+    expect(api.ready).toBe(true);
+    expect(api.loadFailed).toBe(true);
+    expect(api.drafts).toEqual([]);
+  });
+
+  it("does not say it when the read worked, and forgets it at the next account", async () => {
+    disk.records.set("a1", rec("a1", "alice"));
+    const view = mount();
+    await settle();
+    expect(api.loadFailed).toBe(false);
+    disk.failLoad = true;
+    auth.user = { id: "bob" };
+    view.rerender(
+      <GeneratedDraftsProvider>
+        <Probe />
+      </GeneratedDraftsProvider>,
+    );
+    await settle();
+    expect(api.loadFailed).toBe(true);
+    disk.failLoad = false;
+    auth.user = { id: "alice" };
+    view.rerender(
+      <GeneratedDraftsProvider>
+        <Probe />
+      </GeneratedDraftsProvider>,
+    );
+    await settle();
+    expect(api.loadFailed).toBe(false);
+    expect(api.drafts.map((d) => d.id)).toEqual(["a1"]);
+  });
+
+  it("a sign-out erase that the disk refuses answers false, and one that works answers true", async () => {
+    disk.records.set("a1", rec("a1", "alice"));
+    mount();
+    await settle();
+    disk.failErase = true;
+    let result: boolean | undefined;
+    await act(async () => void (result = await api.eraseMine()));
+    expect(result).toBe(false);
+    expect(disk.records.has("a1")).toBe(true); // still there: the member can be told so
+
+    disk.failErase = false;
+    await act(async () => void (result = await api.eraseMine()));
+    expect(result).toBe(true);
+    expect(disk.records.has("a1")).toBe(false);
+  });
+
+  it("a track that cannot be written is refused with the disk's error, never reported as saved", async () => {
+    mount();
+    await settle();
+    disk.failPut = "t1";
+    await expect(api.addDraft(meta("t1"), new Blob(["x"]))).rejects.toThrow();
+    expect(api.drafts).toEqual([]);
   });
 });

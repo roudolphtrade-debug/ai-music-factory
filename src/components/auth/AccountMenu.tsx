@@ -68,9 +68,11 @@ export function AccountMenu() {
   const finishSignOut = async () => {
     // A deliberate sign-out leaves nothing of the member on this device: the generated tracks go too
     // (disk, memory, temporary addresses), before the session ends.
-    await drafts?.eraseMine();
+    const erased = await drafts?.eraseMine();
     await signOut();
     toast.success(t("signedOut"));
+    // The disk refused to erase them: the member is told the tracks are still on this device.
+    if (erased === false) toast.error(t("signOutEraseFailed"));
     void navigate({ to: "/" });
   };
 

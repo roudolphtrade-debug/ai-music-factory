@@ -35,6 +35,17 @@ function hasIDB(): boolean {
   return typeof window !== "undefined" && "indexedDB" in window;
 }
 
+/**
+ * This device has no IndexedDB (an old or restricted browser). Saving and reading must say so: resolving
+ * as if the track was saved, or as if there were none, would lose it at the next reload without a word.
+ */
+export class IndexedDbUnavailableError extends Error {
+  constructor() {
+    super("IndexedDB is not available on this device");
+    this.name = "IndexedDbUnavailableError";
+  }
+}
+
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, VERSION);
@@ -50,7 +61,7 @@ function openDB(): Promise<IDBDatabase> {
 }
 
 export async function putDraft(record: GeneratedDraftRecord): Promise<void> {
-  if (!hasIDB()) return;
+  if (!hasIDB()) throw new IndexedDbUnavailableError();
   const db = await openDB();
   await new Promise<void>((resolve, reject) => {
     const tx = db.transaction(STORE, "readwrite");
@@ -62,7 +73,7 @@ export async function putDraft(record: GeneratedDraftRecord): Promise<void> {
 }
 
 export async function getAllDrafts(): Promise<GeneratedDraftRecord[]> {
-  if (!hasIDB()) return [];
+  if (!hasIDB()) throw new IndexedDbUnavailableError();
   const db = await openDB();
   const records = await new Promise<GeneratedDraftRecord[]>((resolve, reject) => {
     const tx = db.transaction(STORE, "readonly");

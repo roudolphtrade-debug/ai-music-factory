@@ -12,6 +12,7 @@ import {
   type GeneratedDraftRecord,
 } from "@/library/generatedDrafts";
 import { emitDraftsErased } from "@/library/draftEvents";
+import { audioExtension } from "@/audio/format";
 import {
   DraftDiscardedError,
   DraftsContext,
@@ -39,6 +40,7 @@ export function GeneratedDraftsProvider({ children }: { children: ReactNode }) {
   const [drafts, setDrafts] = useState<GeneratedDraft[]>([]);
   const [unassignedCount, setUnassignedCount] = useState(0);
   const [ready, setReady] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
   // Every temporary address created here, so that all of them can be revoked.
   const urls = useRef<Set<string>>(new Set());
   // Who the drafts in memory belong to, and a counter that changes whenever that must be forgotten.
@@ -52,7 +54,7 @@ export function GeneratedDraftsProvider({ children }: { children: ReactNode }) {
     urls.current.add(url);
     const { blob: _blob, ...meta } = rec;
     void _blob;
-    return { ...meta, url };
+    return { ...meta, url, ext: audioExtension(rec.blob.type) };
   }, []);
 
   /** Forgets everything held in memory and revokes the addresses; the player is told. */
@@ -70,6 +72,7 @@ export function GeneratedDraftsProvider({ children }: { children: ReactNode }) {
     owner.current = userId;
     const mine = ++epoch.current;
     dropMemory();
+    setLoadFailed(false);
     if (status === "loading") {
       setReady(false);
       return;
@@ -87,7 +90,10 @@ export function GeneratedDraftsProvider({ children }: { children: ReactNode }) {
         setDrafts(records.filter((rec) => rec.ownerId === userId).map(toDraft));
         setUnassignedCount(records.filter((rec) => rec.ownerId === undefined).length);
       })
-      .catch(() => {})
+      .catch(() => {
+        // The list is empty because it could not be read, not because there is nothing: said apart.
+        if (epoch.current === mine) setLoadFailed(true);
+      })
       .finally(() => {
         if (epoch.current === mine) setReady(true);
       });
@@ -164,7 +170,9 @@ export function GeneratedDraftsProvider({ children }: { children: ReactNode }) {
     epoch.current++; // from now on, any answer still on its way is discarded
     dropMemory();
     // Only this account's tracks. The unassigned ones are not the member's to erase: they stay.
-    if (who) await deleteDraftsOf(who).catch(() => {});
+    let erased = true;
+    if (who) await deleteDraftsOf(who).catch(() => void (erased = false));
+    return erased;
   }, [dropMemory]);
 
   const claimUnassigned = useCallback(async (): Promise<ClaimResult> => {
@@ -219,6 +227,7 @@ export function GeneratedDraftsProvider({ children }: { children: ReactNode }) {
       drafts,
       ready,
       unassignedCount,
+      loadFailed,
       addDraft,
       removeDraft,
       keepUrl,
@@ -230,6 +239,7 @@ export function GeneratedDraftsProvider({ children }: { children: ReactNode }) {
       drafts,
       ready,
       unassignedCount,
+      loadFailed,
       addDraft,
       removeDraft,
       keepUrl,

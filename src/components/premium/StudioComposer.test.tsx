@@ -187,7 +187,11 @@ describe("a visitor prepares a track, then clicks Generate", () => {
     mount();
     await waitFor(() => expect(promptBox().value).toBe("to erase"));
     fireEvent.click(screen.getByRole("button", { name: en("studio.gen.prepClear") }));
-    expect(readPrep(ANON)).toBeNull();
+    // it asks first, and erases only once the visitor confirms
+    const box = await screen.findByRole("alertdialog");
+    expect(readPrep(ANON)).not.toBeNull();
+    fireEvent.click(within(box).getByRole("button", { name: en("studio.gen.prepClearConfirm") }));
+    await waitFor(() => expect(readPrep(ANON)).toBeNull());
     expect(promptBox().value).toContain(DEFAULT_PROMPT_START);
     expect(screen.queryByText(en("studio.gen.prepResumed"))).toBeNull();
   });
@@ -1160,6 +1164,10 @@ describe("the example prompt follows the language of the interface", () => {
     mountSwitchable();
     await waitFor(() => expect(promptBox().value).toBe("mine"));
     fireEvent.click(screen.getByRole("button", { name: translate("pt", "studio.gen.prepClear") }));
-    expect(promptBox().value).toBe(example("pt"));
+    const box = await screen.findByRole("alertdialog");
+    fireEvent.click(
+      within(box).getByRole("button", { name: translate("pt", "studio.gen.prepClearConfirm") }),
+    );
+    await waitFor(() => expect(promptBox().value).toBe(example("pt")));
   });
 });
