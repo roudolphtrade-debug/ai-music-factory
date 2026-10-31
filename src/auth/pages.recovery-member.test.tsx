@@ -430,10 +430,12 @@ describe("account menu in the top bar", () => {
     await waitFor(() => expect(container.innerHTML).toBe(""));
   });
 
-  it("offers a sign-in link to a visitor", async () => {
+  it("offers distinct sign-in and sign-up links to a visitor", async () => {
     mountPage(AccountMenu);
     const link = await screen.findByRole("link", { name: "Sign in" });
     expect(link.getAttribute("href")).toBe("/auth/sign-in");
+    const signUp = screen.getByRole("link", { name: "Create an account" });
+    expect(signUp.getAttribute("href")).toBe("/auth/sign-up");
   });
 
   it("names the member, and opens a menu with settings and sign-out", async () => {

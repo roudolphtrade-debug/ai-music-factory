@@ -20,7 +20,7 @@ export function Topbar({ onMenu, compact = false }: { onMenu: () => void; compac
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-xl">
-      <div className={cn("grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-3 sm:flex sm:gap-3 sm:px-6", compact ? "h-14 sm:h-16" : "h-16")}>
+      <div className={cn("grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-2 px-3 md:flex sm:gap-3 sm:px-6", compact ? "min-h-14 md:h-16" : "min-h-16 md:h-16")}>
         <Button variant="ghost" size="icon"
           type="button"
           onClick={onMenu}
@@ -47,15 +47,15 @@ export function Topbar({ onMenu, compact = false }: { onMenu: () => void; compac
         <div className="ms-auto flex shrink-0 items-center gap-1.5 sm:gap-3">
           <LanguageSelector />
 
-          <Button asChild variant="gold" className="hidden sm:inline-flex">
+          <Button asChild variant="gold" className="hidden xl:inline-flex">
             <Link to="/studio">
               <Plus className="h-4 w-4" />
               {t("topbar.create")}
             </Link>
           </Button>
           <NotificationsBell />
-          <AccountMenu />
         </div>
+        <AccountMenu />
       </div>
     </header>
   );

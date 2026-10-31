@@ -40,7 +40,7 @@ const fr: Dict = {
   topbar: {
     searchPlaceholder: "Rechercher artistes, titres, labels…",
     searchEmpty: "Aucun résultat.",
-    create: "Créer",
+    create: "Créer un titre",
   },
   sidebar: {
     platinumTitle: "Passez Platine",
@@ -811,7 +811,7 @@ const en: Dict = {
   topbar: {
     searchPlaceholder: "Search artists, tracks, labels…",
     searchEmpty: "No results found.",
-    create: "Create",
+    create: "Create a track",
   },
   sidebar: {
     platinumTitle: "Go Platinum",
@@ -1576,7 +1576,7 @@ const es: Dict = {
   topbar: {
     searchPlaceholder: "Buscar artistas, temas, sellos…",
     searchEmpty: "Sin resultados.",
-    create: "Crear",
+    create: "Crear una canción",
   },
   sidebar: {
     platinumTitle: "Hazte Platino",
@@ -2349,7 +2349,7 @@ const zh: Dict = {
   topbar: {
     searchPlaceholder: "搜索艺人、曲目、厂牌…",
     searchEmpty: "未找到结果。",
-    create: "创作",
+    create: "创作歌曲",
   },
   sidebar: {
     platinumTitle: "升级白金会员",
@@ -3118,7 +3118,7 @@ const pt: Dict = {
   topbar: {
     searchPlaceholder: "Buscar artistas, faixas, selos…",
     searchEmpty: "Nenhum resultado encontrado.",
-    create: "Criar",
+    create: "Criar uma faixa",
   },
   sidebar: {
     platinumTitle: "Seja Platina",
@@ -3895,7 +3895,7 @@ const ar: Dict = {
   topbar: {
     searchPlaceholder: "ابحث عن فنانين أو مقاطع أو علامات…",
     searchEmpty: "لا توجد نتائج.",
-    create: "إنشاء",
+    create: "إنشاء أغنية",
   },
   sidebar: {
     platinumTitle: "ترقَّ إلى البلاتيني",
