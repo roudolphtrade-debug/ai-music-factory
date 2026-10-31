@@ -1,9 +1,10 @@
 import { type Label } from "@/data/mock";
 import { GoldBadge, ReputationChip } from "./Chips";
 import { useI18n } from "@/i18n/context";
+import { demoLabelTagline } from "@/i18n/demo-content";
 
 export function LabelCard({ label }: { label: Label }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   return (
     <article className="group relative overflow-hidden rounded-2xl border border-border surface-premium card-hover">
       {label.cover && (
@@ -36,7 +37,7 @@ export function LabelCard({ label }: { label: Label }) {
           <h3 className="font-display text-2xl font-semibold tracking-tight text-foreground">
             {label.name}
           </h3>
-          <p className="text-sm italic text-muted-foreground">{label.tagline}</p>
+          <p className="text-sm italic text-muted-foreground">{demoLabelTagline(lang, label.id) || label.tagline}</p>
           <p className="text-xs text-muted-foreground/80">{label.specialty}</p>
         </div>
         <div className="relative mt-6 grid grid-cols-3 gap-3 border-t border-border pt-5">

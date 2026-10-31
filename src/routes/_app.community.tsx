@@ -6,6 +6,7 @@ import { GoldBadge, StatusChip } from "@/components/premium/Chips";
 import { EmptyState } from "@/components/premium/EmptyState";
 import { artistImages } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
+import { demoContent } from "@/i18n/demo-content";
 
 export const Route = createFileRoute("/_app/community")({
   head: () => ({
@@ -66,7 +67,7 @@ const channels = [
 ];
 
 function CommunityPage() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   return (
     <div className="space-y-8">
       <SectionHeading
@@ -132,7 +133,7 @@ function CommunityPage() {
                   className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary/50 hover:text-foreground"
                 >
                   <Hash className="h-4 w-4 text-gold/70" />
-                  <span className="flex-1 text-left">{c.name}</span>
+                  <span className="min-w-0 flex-1 break-words text-start">{c.name === "label-houses" ? demoContent[lang].labelHouses : c.name}</span>
                   {c.live && (
                     <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse-gold" />
                   )}

@@ -13,6 +13,7 @@ import { useSpotlight } from "@/hooks/useSpotlight";
 import { releasesFor } from "@/audio/tracks";
 import { getArtist, artistImages, tracks } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
+import { demoArtistCopy } from "@/i18n/demo-content";
 import { ArtistNotFound } from "@/components/premium/ArtistNotFound";
 
 export const Route = createFileRoute("/_app/artists/$artistId")({
@@ -29,13 +30,14 @@ export const Route = createFileRoute("/_app/artists/$artistId")({
 });
 
 function ArtistProfilePage() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { artistId } = Route.useParams();
   const artist = getArtist(artistId);
   const [following, setFollowing] = useState(false);
   const spotlight = useSpotlight<HTMLElement>();
 
   if (!artist) return <ArtistNotFound />;
+  const copy = demoArtistCopy(lang, artist.id);
 
   const releases = tracks.filter((track) => track.artistId === artist.id);
   const playableReleases = releasesFor(artist.id);
@@ -80,7 +82,7 @@ function ArtistProfilePage() {
               </h1>
               <p className="mt-1 text-sm text-muted-foreground">{artist.handle}</p>
             </div>
-            <p className="max-w-xl text-base text-muted-foreground">{artist.tagline}</p>
+            <p className="max-w-xl text-base text-muted-foreground">{copy.tagline}</p>
 
             <div className="flex flex-wrap items-center gap-3 pt-1">
               <ReputationChip score={artist.reputation} />
@@ -152,12 +154,12 @@ function ArtistProfilePage() {
             <h3 className="font-display text-xl font-semibold text-foreground">
               {t("artistProfile.about")}
             </h3>
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{artist.bio}</p>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{copy.bio}</p>
             <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
-              <Sparkles className="h-3.5 w-3.5 text-gold" /> {artist.aesthetic}
+              <Sparkles className="h-3.5 w-3.5 text-gold" /> {copy.aesthetic}
             </p>
             <div className="mt-4">
-              <ReadAloudButton text={`${artist.name}. ${artist.bio}`} size="sm" />
+              <ReadAloudButton text={`${artist.name}. ${copy.bio}`} size="sm" />
             </div>
           </div>
 
