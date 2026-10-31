@@ -31,7 +31,7 @@ import { clearPrep, hasPrep, memberOwner } from "@/studio/prep";
 import { MemberMonogram } from "./ProfileParts";
 
 /**
- * Top bar entry for the member: a sign-in button for visitors, the member's own name and a small
+ * Top bar entry for the member: explicit sign-up and sign-in links for visitors, the member's own name and a small
  * menu once signed in. Nothing at all while accounts are not configured, so no dead end.
  */
 export function AccountMenu() {
@@ -56,12 +56,17 @@ export function AccountMenu() {
 
   if (status === "signedOut") {
     return (
-      <Button asChild variant="ghost-gold" size="sm" className="h-9 shrink-0 px-2.5 sm:px-3.5">
-        <Link to={AUTH_PATHS.signIn} aria-label={t("signIn")}>
-          <LogIn aria-hidden="true" />
-          <span className="hidden sm:inline">{t("signIn")}</span>
-        </Link>
-      </Button>
+      <div className="col-span-4 flex min-w-0 items-center justify-end gap-2 pb-2 sm:pb-0">
+        <Button asChild variant="ghost-gold" size="sm" className="h-11 shrink-0 px-2.5 sm:h-9 sm:px-3.5">
+          <Link to={AUTH_PATHS.signIn} aria-label={t("signIn")}>
+            <LogIn aria-hidden="true" />
+            <span>{t("signIn")}</span>
+          </Link>
+        </Button>
+        <Button asChild variant="gold" size="sm" className="h-11 shrink-0 px-2.5 sm:h-9 sm:px-3.5">
+          <Link to={AUTH_PATHS.signUp}>{t("signUp")}</Link>
+        </Button>
+        </div>
     );
   }
 
