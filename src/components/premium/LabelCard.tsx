@@ -2,6 +2,7 @@ import { type Label } from "@/data/mock";
 import { GoldBadge, ReputationChip } from "./Chips";
 import { useI18n } from "@/i18n/context";
 import { demoLabelTagline } from "@/i18n/demo-content";
+import { labelCoverText } from "@/i18n/demo-details";
 
 export function LabelCard({ label }: { label: Label }) {
   const { t, lang } = useI18n();
@@ -11,7 +12,7 @@ export function LabelCard({ label }: { label: Label }) {
         <div className="relative aspect-[5/2] overflow-hidden">
           <img
             src={label.cover}
-            alt={`${label.name} cover art`}
+            alt={labelCoverText(lang, label.name)}
             loading="lazy"
             width={1024}
             height={1024}

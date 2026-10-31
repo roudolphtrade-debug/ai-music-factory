@@ -1,3 +1,5 @@
+import { useDemoPageMetadata } from "@/i18n/useDemoPageMetadata";
+import { channelText, demoPageHead } from "@/i18n/demo-details";
 import { createFileRoute } from "@tanstack/react-router";
 import { MessagesSquare, Hash, Heart, MessageCircle, Repeat2, Users, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,19 +11,7 @@ import { useI18n } from "@/i18n/context";
 import { demoContent } from "@/i18n/demo-content";
 
 export const Route = createFileRoute("/_app/community")({
-  head: () => ({
-    meta: [
-      { property: "og:title", content: "Community · Ai Music Factory" },
-      { property: "og:description", content: "Fan circles, channels and live conversation around artists of every kind." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { title: "Community · Ai Music Factory" },
-      {
-        name: "description",
-        content: "Fan circles, channels and live conversation around artists of every kind.",
-      },
-    ],
-  }),
+  head: () => demoPageHead("community"),
   component: CommunityPage,
 });
 
@@ -67,6 +57,7 @@ const channels = [
 ];
 
 function CommunityPage() {
+  useDemoPageMetadata("community");
   const { t, lang } = useI18n();
   return (
     <div className="space-y-8">
@@ -96,7 +87,7 @@ function CommunityPage() {
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-foreground">{p.author}</p>
                   <p className="text-xs text-muted-foreground">
-                    {p.channel} · {p.time}
+                    #{channelText(lang, p.channel.slice(1))} · {p.time}
                   </p>
                 </div>
                 <GoldBadge variant="outline">{t("community.verified")}</GoldBadge>
@@ -133,7 +124,7 @@ function CommunityPage() {
                   className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary/50 hover:text-foreground"
                 >
                   <Hash className="h-4 w-4 text-gold/70" />
-                  <span className="min-w-0 flex-1 break-words text-start">{c.name === "label-houses" ? demoContent[lang].labelHouses : c.name}</span>
+                  <span className="min-w-0 flex-1 break-words text-start">{c.name === "label-houses" ? demoContent[lang].labelHouses : channelText(lang, c.name)}</span>
                   {c.live && (
                     <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse-gold" />
                   )}

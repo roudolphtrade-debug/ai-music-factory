@@ -6,6 +6,7 @@ import { SectionHeading } from "@/components/premium/SectionHeading";
 import { GoldBadge } from "@/components/premium/Chips";
 import avatarPreview from "@/assets/avatar-preview.webp";
 import { useI18n } from "@/i18n/context";
+import { demoDetails } from "@/i18n/demo-details";
 
 export const Route = createFileRoute("/_app/avatar-lab")({
   head: () => ({
@@ -28,7 +29,7 @@ export const Route = createFileRoute("/_app/avatar-lab")({
 const styles = ["Amber Minimal", "Liquid Chrome", "Monastic Noir", "Maximal Gold", "Neon Visor"];
 
 function AvatarLabPage() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [style, setStyle] = useState(styles[0]);
 
   return (
@@ -48,7 +49,7 @@ function AvatarLabPage() {
               <img
                 loading="eager"
                 src={avatarPreview}
-                alt="Avatar preview"
+                alt={demoDetails[lang].avatarPreview}
                 className="h-full w-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />

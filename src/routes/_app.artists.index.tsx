@@ -1,3 +1,5 @@
+import { useDemoPageMetadata } from "@/i18n/useDemoPageMetadata";
+import { demoPageHead } from "@/i18n/demo-details";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { SectionHeading } from "@/components/premium/SectionHeading";
@@ -7,22 +9,14 @@ import { useI18n } from "@/i18n/context";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/artists/")({
-  head: () => ({
-    meta: [
-      { property: "og:title", content: "Virtual Artists · Ai Music Factory" },
-      { property: "og:description", content: "Discover and follow human, hybrid and AI artists across every genre." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { title: "Virtual Artists · Ai Music Factory" },
-      { name: "description", content: "Discover and follow human, hybrid and AI artists across every genre." },
-    ],
-  }),
+  head: () => demoPageHead("artists"),
   component: ArtistsPage,
 });
 
 const genreFilters = ["Ambient Pop", "Hyperpop", "Techno", "Trap", "Neo-Soul", "Synthwave"];
 
 function ArtistsPage() {
+  useDemoPageMetadata("artists");
   const { t } = useI18n();
   const [active, setActive] = useState("All");
 
