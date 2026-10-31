@@ -20,7 +20,7 @@ export function PlaylistCard({
   pl: Playlist;
   playQueue: (queue: PlayableTrack[], shuffled?: boolean) => void;
 }) {
-  const { t } = useI18n();
+  const { t, tn } = useI18n();
   const { l, f } = useListening();
   const { deletePlaylist, renamePlaylist, removeFromPlaylist, moveInPlaylist } = usePlaylists();
   const [editing, setEditing] = useState(false);
@@ -52,7 +52,7 @@ export function PlaylistCard({
           ) : (
             <p className="truncate font-display text-xl font-semibold text-foreground">{pl.name}</p>
           )}
-          <p className="text-xs text-muted-foreground">{t("playlists.count", { n: pl.trackIds.length })}</p>
+          <p className="text-xs text-muted-foreground">{tn("playlists.count", pl.trackIds.length)}</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
             <Button size="sm" variant="ghost-gold" disabled={!plTracks.length} onClick={() => playQueue(plTracks)}><Play className="h-4 w-4" /> {l.playTrack}</Button>
             <Button size="sm" variant="ghost" disabled={plTracks.length < 2} onClick={() => playQueue(plTracks, true)} aria-label={`${l.shufflePlay} · ${pl.name}`}><Shuffle className="h-4 w-4" /></Button>

@@ -172,3 +172,27 @@ describe("PlaylistCard: behaviour kept by the extraction", () => {
     expect(screen.queryByRole("button", { name: `${l.moveUp} · ${B.title}` })).toBeNull();
   });
 });
+
+describe("PlaylistCard: the count of tracks is written correctly for one and for many", () => {
+  const countLine = () => screen.getByTestId("playlist-card").querySelector("p.text-xs")?.textContent;
+
+  it("one track: '1 titre', not '1 titres'", async () => {
+    await renderCard([A.id], { edit: false });
+    expect(countLine()).toBe("1 titre");
+  });
+
+  it("two tracks: '2 titres'", async () => {
+    await renderCard([A.id, B.id], { edit: false });
+    expect(countLine()).toBe("2 titres");
+  });
+
+  it("in English and in Arabic as well", async () => {
+    window.localStorage.setItem("afm-lang", "en");
+    await renderCard([A.id], { edit: false });
+    expect(countLine()).toBe("1 track");
+    cleanup();
+    window.localStorage.setItem("afm-lang", "ar");
+    await renderCard([A.id, B.id], { edit: false });
+    expect(countLine()).toBe("مقطوعتان");
+  });
+});
