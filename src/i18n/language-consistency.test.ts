@@ -101,28 +101,37 @@ describe("the demonstration projects are described in each language", () => {
 });
 
 // ---------------------------------------------------------------- nothing falls back to English
-describe("what the studio and the player show exists in every language", () => {
-  // sections that other pages use and that are still being translated: a known, bounded gap (see below)
-  const KNOWN_GAP = [
-    "avatarLab", "artistProfile", "battles", "bracket", "notif", "seasons", "credits", "labels",
-    "hallOfFame", "community", "analytics",
-  ];
-  const frSections = Object.keys(translations.fr);
-
-  it.each(others)("%s: every key of every other section exists in the language itself", (lang) => {
-    const missing: string[] = [];
-    for (const section of frSections) {
-      if (KNOWN_GAP.includes(section)) continue;
-      for (const key of flat((translations.fr as Tree)[section], section)) {
-        if (own(lang, key) === undefined) missing.push(key);
-      }
+describe("every text of the interface exists in each of the six languages", () => {
+  const leaves = (lang: Lang) => {
+    const out: string[] = [];
+    for (const section of Object.keys((translations as Record<Lang, Tree>)[lang])) {
+      flat((translations as Record<Lang, Tree>)[lang][section], section, out);
     }
-    expect(missing).toEqual([]);
+    return out.sort();
+  };
+  const frLeaves = leaves("fr");
+
+  it("French, the reference, is not empty", () => {
+    expect(frLeaves.length).toBeGreaterThan(600);
   });
 
-  it("the playlists and the radio, used from the player, are complete in the six languages", () => {
-    for (const lang of langs) {
-      for (const section of ["playlists", "radio"]) {
+  it.each(others)("%s: no key of the French dictionary is missing, whatever the page", (lang) => {
+    const have = new Set(leaves(lang));
+    expect(frLeaves.filter((k) => !have.has(k))).toEqual([]);
+  });
+
+  it.each(langs)("%s: no key that French does not have (a stale or misspelt key)", (lang) => {
+    const reference = new Set(frLeaves);
+    expect(leaves(lang).filter((k) => !reference.has(k))).toEqual([]);
+  });
+
+  it("the 195 keys that were still borrowed from English are written in Portuguese, Chinese and Arabic", () => {
+    const sections = [
+      "avatarLab", "artistProfile", "battles", "bracket", "notif", "seasons", "credits", "labels",
+      "hallOfFame", "community", "analytics",
+    ];
+    for (const lang of ["pt", "zh", "ar"] as const) {
+      for (const section of sections) {
         for (const key of flat((translations.fr as Tree)[section], section)) {
           expect(own(lang, key), `${lang} ${key}`).toBeDefined();
         }
@@ -130,24 +139,43 @@ describe("what the studio and the player show exists in every language", () => {
     }
   });
 
-  // The pages that are not part of this lot still fall back to English in Portuguese, Chinese and Arabic.
-  // The gap may only shrink: a new page must come with its six languages.
-  it.each(["pt", "zh", "ar"] as const)("%s: the keys still borrowed from English in the other pages do not grow", (lang) => {
-    let missing = 0;
-    for (const section of KNOWN_GAP) {
-      for (const key of flat((translations.fr as Tree)[section], section)) {
-        if (own(lang, key) === undefined) missing++;
-      }
+  // a text that is rewritten must keep its variables, or the page shows "{n}" or loses the number
+  const placeholders = (value: unknown) =>
+    typeof value === "string" ? [...new Set(value.match(/\{[a-zA-Z]+\}/g) ?? [])].sort().join(",") : "";
+  it.each(others)("%s: every text keeps exactly the variables of the French one", (lang) => {
+    const wrong: string[] = [];
+    for (const key of frLeaves) {
+      const fr = own("fr", key);
+      const v = own(lang, key);
+      if (typeof fr === "string" && placeholders(v) !== placeholders(fr)) wrong.push(`${key}: ${placeholders(v)} instead of ${placeholders(fr)}`);
     }
-    expect(missing).toBeLessThanOrEqual(195);
+    expect(wrong).toEqual([]);
   });
 
-  it("Spanish and French have no gap at all", () => {
-    for (const lang of ["fr", "es"] as const) {
-      for (const section of frSections) {
-        for (const key of flat((translations.fr as Tree)[section], section)) {
-          expect(own(lang, key), `${lang} ${key}`).toBeDefined();
-        }
+  it.each(others)("%s: a list (the days of the week) has as many items as the French one", (lang) => {
+    const wrong: string[] = [];
+    for (const key of frLeaves) {
+      const fr = own("fr", key);
+      const v = own(lang, key);
+      if (Array.isArray(fr) && (!Array.isArray(v) || v.length !== fr.length)) wrong.push(key);
+    }
+    expect(wrong).toEqual([]);
+  });
+
+  it.each(langs)("%s: no empty text, no space at either end", (lang) => {
+    const wrong: string[] = [];
+    for (const key of leaves(lang)) {
+      const v = own(lang, key);
+      if (typeof v === "string" && (v.trim() === "" || v !== v.trim())) wrong.push(key);
+    }
+    expect(wrong).toEqual([]);
+  });
+
+  it.each(["pt", "zh", "ar"] as const)("%s: the counted texts keep the shape of the other languages (an 'other' form)", (lang) => {
+    for (const key of frLeaves) {
+      const fr = own("fr", key);
+      if (fr && typeof fr === "object" && !Array.isArray(fr)) {
+        expect(typeof (own(lang, key) as Tree | undefined)?.other, `${lang} ${key}`).toBe("string");
       }
     }
   });

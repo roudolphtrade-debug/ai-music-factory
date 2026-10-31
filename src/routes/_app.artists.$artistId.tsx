@@ -117,7 +117,7 @@ function ArtistProfilePage() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* RELEASES */}
-        <div className="space-y-4 lg:col-span-2">
+        <div className="min-w-0 space-y-4 lg:col-span-2">
           <h2 className="font-display text-2xl font-semibold text-foreground">
             {t("artistProfile.releases")}
           </h2>
@@ -147,7 +147,7 @@ function ArtistProfilePage() {
         </div>
 
         {/* SIDE: bio, badges, community */}
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <div className="rounded-2xl border border-border bg-card p-6">
             <h3 className="font-display text-xl font-semibold text-foreground">
               {t("artistProfile.about")}

@@ -29,7 +29,7 @@ export function SectionHeading({
           <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">{description}</p>
         )}
       </div>
-      {action && <div className="shrink-0">{action}</div>}
+      {action && <div className="sm:shrink-0">{action}</div>}
     </div>
   );
 }
