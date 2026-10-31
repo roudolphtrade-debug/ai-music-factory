@@ -5,6 +5,7 @@ import type { ComponentType } from "react";
 import { LanguageProvider, useI18n } from "./context";
 import { LANGS } from "./translations";
 import { demoContent } from "./demo-content";
+import { badgeText, channelText, labelCoverText } from "./demo-details";
 import { labels } from "@/data/mock";
 import { LabelCard } from "@/components/premium/LabelCard";
 
@@ -57,6 +58,9 @@ describe("demonstration text follows live language changes", () => {
       expect(screen.getByText(copy.tagline)).toBeTruthy();
       expect(screen.getByText(copy.bio)).toBeTruthy();
       expect(screen.getByText(copy.aesthetic)).toBeTruthy();
+      for (const badge of ["Verified", "Top 1% Reputation", "Radio Favorite"]) {
+        expect(screen.getByText(badgeText(code, badge))).toBeTruthy();
+      }
       expect(screen.getByTestId("read-aloud-text").textContent).toBe(`SØL Aurelius. ${copy.bio}`);
       expect(screen.getByRole("heading", { name: "SØL Aurelius" })).toBeTruthy();
     }
@@ -78,6 +82,7 @@ describe("demonstration text follows live language changes", () => {
       fireEvent.click(screen.getByRole("button", { name: code }));
       for (const tagline of Object.values(demoContent[code].labels))
         expect(screen.getByText(tagline)).toBeTruthy();
+      expect(screen.getByAltText(labelCoverText(code, "Halo Atelier"))).toBeTruthy();
       expect(screen.getByText("My own words")).toBeTruthy();
       expect(screen.getByText("Mon label")).toBeTruthy();
     }
@@ -94,6 +99,10 @@ describe("demonstration text follows live language changes", () => {
       fireEvent.click(screen.getByRole("button", { name: code }));
       const channel = screen.getByText(demoContent[code].labelHouses);
       expect(channel.closest("button")?.textContent).toContain("620");
+      for (const name of ["releases", "battles", "golden-hour", "prompt-lab"]) {
+        expect(screen.getByText(channelText(code, name), { exact: true })).toBeTruthy();
+      }
+      expect(screen.getByText(`#${channelText(code, "releases")} · 12m`)).toBeTruthy();
     }
   });
 });

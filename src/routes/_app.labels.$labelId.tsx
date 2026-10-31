@@ -1,3 +1,5 @@
+import { useDemoPageMetadata } from "@/i18n/useDemoPageMetadata";
+import { demoPageHead } from "@/i18n/demo-details";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -24,18 +26,12 @@ import { useLabels } from "@/library/LabelsProvider";
 import { useI18n } from "@/i18n/context";
 
 export const Route = createFileRoute("/_app/labels/$labelId")({
-  head: () => ({
-    meta: [
-      { name: "description", content: "Explore the label identity and demonstration roster at AI Music Factory." },
-      { property: "og:title", content: "Label · Ai Music Factory" },
-      { property: "og:description", content: "Explore the label identity and demonstration roster at AI Music Factory." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },{ title: "Label · Ai Music Factory" }],
-  }),
+  head: () => demoPageHead("label"),
   component: LabelDetailPage,
 });
 
 function LabelDetailPage() {
+  useDemoPageMetadata("label");
   const { t } = useI18n();
   const { labelId } = Route.useParams();
   const { getLabel, signArtist, releaseArtist } = useLabels();

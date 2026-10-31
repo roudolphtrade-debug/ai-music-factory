@@ -1,3 +1,5 @@
+import { useDemoPageMetadata } from "@/i18n/useDemoPageMetadata";
+import { badgeText, demoPageHead } from "@/i18n/demo-details";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { UserPlus, Check, Users, Sparkles, Building2, ArrowLeft } from "lucide-react";
@@ -17,19 +19,13 @@ import { demoArtistCopy } from "@/i18n/demo-content";
 import { ArtistNotFound } from "@/components/premium/ArtistNotFound";
 
 export const Route = createFileRoute("/_app/artists/$artistId")({
-  head: () => ({
-    meta: [
-      { name: "description", content: "Explore the artist profile and playable catalogue at AI Music Factory." },
-      { property: "og:title", content: "Artist · Ai Music Factory" },
-      { property: "og:description", content: "Explore the artist profile and playable catalogue at AI Music Factory." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },{ title: "Artist · Ai Music Factory" }],
-  }),
+  head: () => demoPageHead("artist"),
   component: ArtistProfilePage,
   notFoundComponent: ArtistNotFound,
 });
 
 function ArtistProfilePage() {
+  useDemoPageMetadata("artist");
   const { t, lang } = useI18n();
   const { artistId } = Route.useParams();
   const artist = getArtist(artistId);
@@ -169,7 +165,7 @@ function ArtistProfilePage() {
             </h3>
             <div className="mt-3 flex flex-wrap gap-2">
               {artist.badges.map((b) => (
-                <GoldBadge key={b}>{b}</GoldBadge>
+                <GoldBadge key={b}><span className="break-words">{badgeText(lang, b)}</span></GoldBadge>
               ))}
             </div>
           </div>
