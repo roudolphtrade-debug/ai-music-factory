@@ -18,10 +18,14 @@ type Rec = { id: string; title: string; ownerId?: string; blob: Blob; [key: stri
 const disk = vi.hoisted(() => ({
   records: new Map<string, unknown>(),
   failClaim: false,
+  failLoad: false,
   claimGate: null as Promise<void> | null,
 }));
 vi.mock("@/library/generatedDrafts", () => ({
-  getAllDrafts: async () => [...disk.records.values()],
+  getAllDrafts: async () => {
+    if (disk.failLoad) throw new Error("indexeddb unavailable");
+    return [...disk.records.values()];
+  },
   putDraft: async (record: { id: string }) => void disk.records.set(record.id, record),
   deleteDraft: async (id: string) => void disk.records.delete(id),
   claimUnownedDrafts: async (owner: string) => {
@@ -106,6 +110,7 @@ beforeEach(() => {
   auth.user = { id: "alice" };
   disk.records.clear();
   disk.failClaim = false;
+  disk.failLoad = false;
   disk.claimGate = null;
   disk.records.set("old1", track("old1", undefined));
   disk.records.set("old2", track("old2", undefined));
@@ -318,6 +323,13 @@ describe("the recovery and the deletion tell the truth when they cannot be done"
     await act(async () =>
       fireEvent.click(screen.getByRole("button", { name: en("studio.gen.delete") })),
     );
+    await act(async () =>
+      fireEvent.click(
+        within(await screen.findByRole("alertdialog")).getByRole("button", {
+          name: en("studio.gen.deleteDraftConfirm"),
+        }),
+      ),
+    );
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(en("studio.gen.deleteDraftFailed")),
     );
@@ -331,8 +343,95 @@ describe("the recovery and the deletion tell the truth when they cannot be done"
     await act(async () =>
       fireEvent.click(screen.getByRole("button", { name: en("studio.gen.delete") })),
     );
+    await act(async () =>
+      fireEvent.click(
+        within(await screen.findByRole("alertdialog")).getByRole("button", {
+          name: en("studio.gen.deleteDraftConfirm"),
+        }),
+      ),
+    );
     await waitFor(() => expect(toast.success).toHaveBeenCalledWith(en("studio.gen.deleted")));
     expect(disk.records.has("mine")).toBe(false);
     expect(disk.records.has("theirs")).toBe(true);
+  });
+});
+
+describe("deleting a generated track asks first", () => {
+  const trash = () => screen.getByRole("button", { name: en("studio.gen.delete") });
+
+  it("opens a question that names what is lost, and deletes nothing yet", async () => {
+    render(tree());
+    await settle();
+    fireEvent.click(trash());
+    const box = await screen.findByRole("alertdialog");
+    expect(within(box).getByText(en("studio.gen.deleteDraftTitle"))).toBeTruthy();
+    expect(within(box).getByText(en("studio.gen.deleteDraftWarning"))).toBeTruthy();
+    expect(disk.records.has("mine")).toBe(true);
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  it("cancelling keeps the track and says nothing", async () => {
+    render(tree());
+    await settle();
+    fireEvent.click(trash());
+    const box = await screen.findByRole("alertdialog");
+    fireEvent.click(within(box).getByRole("button", { name: en("studio.gen.dialogCancel") }));
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+    expect(disk.records.has("mine")).toBe(true);
+    expect(screen.getByText("Title of mine")).toBeTruthy();
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("an account change while the question is open deletes nothing", async () => {
+    const view = render(tree());
+    await settle();
+    fireEvent.click(trash());
+    await screen.findByRole("alertdialog");
+    auth.user = { id: "carol" };
+    view.rerender(tree());
+    await settle();
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    expect(disk.records.has("mine")).toBe(true); // alice's track, untouched by whoever is signed in now
+  });
+});
+
+describe("the list of tracks tells the truth about what it holds", () => {
+  it("shows no invented version: no 'v1' badge", async () => {
+    render(tree());
+    await settle();
+    expect(screen.getByText("Title of mine")).toBeTruthy();
+    expect(screen.queryByText("v1")).toBeNull();
+  });
+
+  it("names the downloaded file after what is stored: WAV for a mix, MP3 for a bare vocal", async () => {
+    disk.records.set("wavy", { ...track("wavy", "alice"), blob: new Blob(["w"], { type: "audio/wav" }) });
+    disk.records.set("mpeg", { ...track("mpeg", "alice"), blob: new Blob(["m"], { type: "audio/mpeg" }) });
+    render(tree());
+    await settle();
+    const file = (title: string) =>
+      screen
+        .getByText(title)
+        .closest("article")
+        ?.querySelector("a[download]")
+        ?.getAttribute("download");
+    expect(file("Title of wavy")).toBe("Title of wavy.wav");
+    expect(file("Title of mpeg")).toBe("Title of mpeg.mp3");
+  });
+
+  it("says that the tracks could not be read, instead of saying there are none", async () => {
+    disk.failLoad = true;
+    render(tree());
+    await settle();
+    expect(screen.getByText(en("studio.gen.loadFailed"))).toBeTruthy();
+    expect(screen.queryByText(en("studio.gen.emptyHint"))).toBeNull();
+  });
+
+  it("still invites nothing to generate in the empty state, and shows it only when the read worked", async () => {
+    disk.records.clear();
+    render(tree());
+    await settle();
+    expect(screen.getByText(en("studio.gen.emptyHint"))).toBeTruthy();
+    expect(screen.queryByText(en("studio.gen.loadFailed"))).toBeNull();
   });
 });

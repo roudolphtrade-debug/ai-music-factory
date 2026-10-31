@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { authCopy } from "./auth";
-import { LANGS, translate, type Lang } from "./translations";
+import { LANGS, translate, translations, type Lang } from "./translations";
 import { PREP_PROMPT_MAX } from "@/studio/prep";
 import { examplePromptFor, isExamplePrompt } from "@/studio/options";
 
@@ -430,5 +430,135 @@ describe("the idle status of the studio does not promise a generation that is no
       ar: /بصوت اصطناعي/,
     };
     expect(t(lang, "studio.gen.ready")).toMatch(synthetic[lang]);
+  });
+});
+
+describe("lot A.3: the new texts exist in the six languages and keep their promises", () => {
+  const keys = [
+    "studio.gen.saveFailed",
+    "studio.gen.pausedNoticeUnsaved",
+    "studio.gen.signInFirstUnsaved",
+    "studio.gen.accountsOffUnsaved",
+    "studio.gen.prepSaved",
+    "studio.gen.prepClearTitle",
+    "studio.gen.prepClearWarning",
+    "studio.gen.prepClearConfirm",
+    "studio.gen.deleteDraftTitle",
+    "studio.gen.deleteDraftWarning",
+    "studio.gen.deleteDraftConfirm",
+    "studio.gen.loadFailed",
+    "studio.gen.prepExpiry",
+    "studio.uploadTitle",
+    "studio.uploadDesc",
+    "studio.browseFiles",
+    "studio.uploadSoon",
+  ];
+
+  it.each(langs)("%s: every key has its own text, no dash, and no raw key left", (lang) => {
+    for (const key of keys) {
+      const value = t(lang, key);
+      expect(value, `${lang} ${key}`).not.toBe(key);
+      expect(value.length, `${lang} ${key}`).toBeGreaterThan(1);
+      expect(value, `${lang} ${key}`).not.toContain("—");
+      if (lang !== "en")
+        expect(value, `${lang} ${key} is not the English text`).not.toBe(t("en", key));
+    }
+  });
+
+  const kept: Record<Lang, RegExp> = {
+    fr: /conservée/,
+    en: /is kept/,
+    es: /se conserva/,
+    zh: /已保留/,
+    pt: /foi mantida/,
+    ar: /محفوظ/,
+  };
+  it.each(langs)("%s: a text for a preparation that was not saved never says it is kept", (lang) => {
+    for (const key of [
+      "studio.gen.saveFailed",
+      "studio.gen.pausedNoticeUnsaved",
+      "studio.gen.signInFirstUnsaved",
+      "studio.gen.accountsOffUnsaved",
+    ]) {
+      expect(t(lang, key), `${lang} ${key}`).not.toMatch(kept[lang]);
+    }
+  });
+
+  it.each(langs)("%s: the texts that carry the usual message are still there beside the unsaved ones", (lang) => {
+    expect(t(lang, "studio.gen.pausedNotice")).toMatch(kept[lang]);
+    expect(t(lang, "studio.gen.signInFirst")).toMatch(kept[lang]);
+  });
+
+  it.each(langs)("%s: the seven days are written with their number", (lang) => {
+    expect(t(lang, "studio.gen.prepExpiry")).toMatch(/7/);
+  });
+
+  const INVITATION: Record<Lang, RegExp> = {
+    fr: /\b(générez|générer|lancez|lancer)\b/i,
+    en: /\b(generate|start the generation|launch)\b/i,
+    es: /\b(genera|generar|inicia la generación|iniciar la generación)\b/i,
+    zh: /开始生成|再生成|请生成|在上方生成/,
+    pt: /\b(gere|gerar|inicie a geração|iniciar a geração)\b/i,
+    ar: /(^|\s)ولّد(\s|$)|للتوليد|ابدأ التوليد/,
+  };
+  it.each(langs)("%s: none of the new messages invites to generate", (lang) => {
+    for (const key of keys) {
+      if (key === "studio.gen.pausedNoticeUnsaved") continue; // it says that generation is unavailable
+      expect(t(lang, key), `${lang} ${key}`).not.toMatch(INVITATION[lang]);
+    }
+  });
+
+  it.each(langs)("%s: the upload zone says that the import is not available yet", (lang) => {
+    const notYet: Record<Lang, RegExp> = {
+      fr: /pas encore disponible/,
+      en: /not available yet/,
+      es: /aún no está disponible/,
+      zh: /尚未开放/,
+      pt: /ainda não está disponível/,
+      ar: /غير متاح بعد/,
+    };
+    expect(t(lang, "studio.uploadDesc")).toMatch(notYet[lang]);
+  });
+
+  it("the old note and the old promise of a drop are gone from every language", () => {
+    for (const lang of langs) {
+      expect(t(lang, "studio.engineNote"), `${lang} engineNote`).toBe("studio.engineNote");
+      expect(t(lang, "studio.uploadDesc"), `${lang} uploadDesc`).not.toMatch(/glissez|drag|arrastra|拖|arraste|اسحب/i);
+    }
+  });
+});
+
+describe("lot A.3: what the studio page shows is written in each language, not borrowed from English", () => {
+  // translate() falls back to English for a missing key, which hides the gap: look in the language's own text.
+  const own = (lang: Lang, key: string) =>
+    key.split(".").reduce<unknown>(
+      (acc, part) => (acc && typeof acc === "object" ? (acc as Record<string, unknown>)[part] : undefined),
+      translations[lang],
+    );
+  const visible = [
+    "studio.newComposition",
+    "studio.saveDraft",
+    "studio.voices.Instrumental",
+    "studio.voices.Warm tenor",
+    "studio.voices.Soprano",
+    "studio.voices.Alto",
+    "studio.voices.Custom voice",
+    "studio.gen.newTrack",
+    "studio.uploadTitle",
+    "studio.uploadDesc",
+    "studio.browseFiles",
+    "studio.uploadSoon",
+  ];
+
+  it.each(langs)("%s: every text of the studio page exists in its own language", (lang) => {
+    for (const key of visible) {
+      expect(typeof own(lang, key), `${lang} ${key}`).toBe("string");
+    }
+  });
+
+  it.each(langs.filter((l) => l !== "en"))("%s: the Save draft button and the new-composition label are not the English ones", (lang) => {
+    for (const key of ["studio.saveDraft", "studio.newComposition"]) {
+      expect(own(lang, key), `${lang} ${key}`).not.toBe(own("en", key));
+    }
   });
 });

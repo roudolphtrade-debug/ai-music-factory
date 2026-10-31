@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Trash2, Download, GitBranch, ShieldAlert, Sparkles } from "lucide-react";
+import { Trash2, Download, ShieldAlert, Sparkles, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -49,11 +49,30 @@ function draftToTrack(d: GeneratedDraft, t: (k: string) => string): PlayableTrac
 }
 
 export function GeneratedDraftsSection() {
-  const { t, relTime } = useI18n();
-  const { drafts, ready, unassignedCount, removeDraft, claimUnassigned, deleteUnassigned } =
-    useGeneratedDrafts();
+  const { t, relTime, lang } = useI18n();
+  const {
+    drafts,
+    ready,
+    unassignedCount,
+    loadFailed,
+    removeDraft,
+    claimUnassigned,
+    deleteUnassigned,
+  } = useGeneratedDrafts();
+  // The track the member is being asked about. Only a track that is still this account's can be asked
+  // about: if the account changes, the list empties and the question closes with it.
+  const [askingDelete, setAskingDelete] = useState<string | null>(null);
+  const asked = askingDelete ? (drafts.find((d) => d.id === askingDelete) ?? null) : null;
 
   if (!ready) return null;
+
+  const confirmDelete = (id: string) => {
+    setAskingDelete(null);
+    void removeDraft(id).then((removed) => {
+      if (removed) toast.success(t("studio.gen.deleted"));
+      else toast.error(t("studio.gen.deleteDraftFailed"));
+    });
+  };
 
   return (
     <section className="space-y-5">
@@ -66,9 +85,15 @@ export function GeneratedDraftsSection() {
       {drafts.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border bg-card/40 p-10 text-center">
           <span className="grid h-12 w-12 place-items-center rounded-xl bg-noir-gradient text-gold">
-            <Sparkles className="h-5 w-5" />
+            {loadFailed ? (
+              <TriangleAlert className="h-5 w-5" aria-hidden="true" />
+            ) : (
+              <Sparkles className="h-5 w-5" aria-hidden="true" />
+            )}
           </span>
-          <p className="max-w-sm text-sm text-muted-foreground">{t("studio.gen.emptyHint")}</p>
+          <p role={loadFailed ? "status" : undefined} className="max-w-sm text-sm text-muted-foreground">
+            {loadFailed ? t("studio.gen.loadFailed") : t("studio.gen.emptyHint")}
+          </p>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
@@ -90,7 +115,7 @@ export function GeneratedDraftsSection() {
                     <LikeButton trackId={d.id} size="sm" />
                     <a
                       href={d.url}
-                      download={`${d.title}.mp3`}
+                      download={`${d.title}.${d.ext}`}
                       aria-label={t("studio.gen.download")}
                       className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                     >
@@ -99,12 +124,7 @@ export function GeneratedDraftsSection() {
                     <button
                       type="button"
                       aria-label={t("studio.gen.delete")}
-                      onClick={() => {
-                        void removeDraft(d.id).then((removed) => {
-                          if (removed) toast.success(t("studio.gen.deleted"));
-                          else toast.error(t("studio.gen.deleteDraftFailed"));
-                        });
-                      }}
+                      onClick={() => setAskingDelete(d.id)}
                       className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -120,9 +140,6 @@ export function GeneratedDraftsSection() {
                   <GoldBadge variant="outline">{d.genre}</GoldBadge>
                   <GoldBadge variant="outline">{t(`moods.${d.mood}`)}</GoldBadge>
                   <GoldBadge variant="outline">{t(`studio.voices.${d.voice}`)}</GoldBadge>
-                  <span className="ml-auto inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <GitBranch className="h-3.5 w-3.5 text-gold" /> v1
-                  </span>
                 </div>
               </article>
             );
@@ -133,6 +150,29 @@ export function GeneratedDraftsSection() {
       {unassignedCount > 0 && (
         <UnassignedTitles count={unassignedCount} claim={claimUnassigned} remove={deleteUnassigned} />
       )}
+
+      <AlertDialog open={asked !== null} onOpenChange={(open) => !open && setAskingDelete(null)}>
+        <AlertDialogContent dir={RTL_LANGS.includes(lang) ? "rtl" : "ltr"}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("studio.gen.deleteDraftTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {asked ? <span className="mb-2 block font-medium text-foreground">{asked.title}</span> : null}
+              {t("studio.gen.deleteDraftWarning")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("studio.gen.dialogCancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(event) => {
+                event.preventDefault();
+                if (asked) confirmDelete(asked.id);
+              }}
+            >
+              {t("studio.gen.deleteDraftConfirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }

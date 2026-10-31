@@ -4,6 +4,7 @@ import { act, cleanup, fireEvent, screen, waitFor } from "@testing-library/react
 import { makeProfile, makeSession, type FakeSupabase } from "@/test/fakeSupabase";
 import { expectNavigation, mountPage, setUpAccounts } from "@/test/authHarness";
 import type { AuthHolder } from "@/test/clientMock";
+import { toast } from "sonner";
 import { authCopy } from "@/i18n/auth";
 import { LANGS } from "@/i18n/translations";
 import { ANON, hasPrep, memberOwner, readPrep, savePrep } from "@/studio/prep";
@@ -21,6 +22,7 @@ const disk = vi.hoisted(() => ({
   records: new Map<string, { id: string; ownerId?: string; blob: Blob }>(),
   loadGate: null as Promise<void> | null,
   events: [] as string[],
+  failErase: false,
 }));
 vi.mock("@/library/generatedDrafts", () => ({
   getAllDrafts: async () => {
@@ -56,6 +58,7 @@ vi.mock("@/library/generatedDrafts", () => ({
   },
   deleteUnownedDrafts: async () => 0,
   deleteDraftsOf: async (owner: string) => {
+    if (disk.failErase) throw new Error("transaction aborted");
     disk.events.push("erase-disk");
     for (const [id, v] of disk.records) if (v.ownerId === owner) disk.records.delete(id);
   },
@@ -70,6 +73,8 @@ beforeEach(() => {
   disk.records.clear();
   disk.loadGate = null;
   disk.events = [];
+  disk.failErase = false;
+  vi.mocked(toast.error).mockClear();
   fake.restore(makeSession("alice", "alice@example.test"));
   fake.client.auth.signOut.mockImplementation(async () => {
     disk.events.push("sign-out");
@@ -252,5 +257,43 @@ describe("signing out with generated tracks kept on the device", () => {
     await screen.findByRole("alertdialog");
     expect(fake.client.auth.signOut).not.toHaveBeenCalled();
     open();
+  });
+});
+
+describe("signing out when the disk refuses to erase the tracks", () => {
+  it("signs out as asked, and tells the member that the tracks are still on this device", async () => {
+    disk.records.set("t1", track("t1", "alice"));
+    disk.failErase = true;
+    await pressSignOutWithTracks();
+    await screen.findByRole("alertdialog");
+    await act(async () =>
+      fireEvent.click(
+        screen.getByRole("button", { name: authCopy.en.signOutPrepConfirm as string }),
+      ),
+    );
+    await waitFor(() => expect(fake.client.auth.signOut).toHaveBeenCalled());
+    expect(toast.error).toHaveBeenCalledWith(authCopy.en.signOutEraseFailed);
+    expect(disk.records.has("t1")).toBe(true);
+  });
+
+  it("says nothing of the kind when the erase worked", async () => {
+    disk.records.set("t1", track("t1", "alice"));
+    await pressSignOutWithTracks();
+    await screen.findByRole("alertdialog");
+    await act(async () =>
+      fireEvent.click(
+        screen.getByRole("button", { name: authCopy.en.signOutPrepConfirm as string }),
+      ),
+    );
+    await waitFor(() => expect(fake.client.auth.signOut).toHaveBeenCalled());
+    expect(toast.error).not.toHaveBeenCalled();
+    expect(disk.records.has("t1")).toBe(false);
+  });
+
+  it.each(LANGS.map((l) => l.code))("%s: the warning exists, has no dash and is its own text", (code) => {
+    const text = authCopy[code].signOutEraseFailed as string;
+    expect(text).toBeTruthy();
+    expect(text).not.toContain("—");
+    if (code !== "en") expect(text).not.toBe(authCopy.en.signOutEraseFailed);
   });
 });
