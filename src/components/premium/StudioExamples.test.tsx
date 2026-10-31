@@ -72,3 +72,25 @@ describe("the demonstration projects are named as examples, not shown as the mem
     expect(within(cards()[0]).getByText(translate(lang, "studio.examples.badge"))).toBeTruthy();
   });
 });
+
+describe("the examples speak the language of the interface and keep the names", () => {
+  it.each(LANGS.map((l) => l.code))("%s: each card has the description in that language, and keeps its title and genre", async (lang) => {
+    mount(lang);
+    await waitFor(() => expect(screen.getByText(translate(lang, "studio.examples.title"))).toBeTruthy());
+    expect(cards()).toHaveLength(projects.length);
+    for (const [i, p] of projects.entries()) {
+      const card = cards()[i];
+      expect(within(card).getByText(p.title)).toBeTruthy(); // the work is not translated
+      expect(within(card).getByText(p.genre)).toBeTruthy(); // nor the genre
+      expect(within(card).getByText(translate(lang, `studio.examples.items.${p.id}`))).toBeTruthy();
+    }
+  });
+
+  it("no card cuts its description after two lines: a long translation is shown whole", () => {
+    mount("ar");
+    for (const card of cards()) {
+      expect(card.querySelector("[class*=line-clamp]")).toBeNull();
+      expect(card.className).not.toContain("overflow-hidden");
+    }
+  });
+});

@@ -6,6 +6,8 @@ import { useI18n } from "@/i18n/context";
 /**
  * Demonstration ideas, named as such. They are not the member's creations, so they carry no date, no
  * status, no version count and no audio: nothing here suggests that something was made or published.
+ * The description is written in the language of the interface; the title (a work), the genre and the
+ * artist are names and stay as they are.
  */
 export function StudioExamples() {
   const { t } = useI18n();
@@ -29,7 +31,9 @@ export function StudioExamples() {
               </h3>
               <GoldBadge variant="outline">{t("studio.examples.badge")}</GoldBadge>
             </div>
-            <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{p.prompt}</p>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              {t(`studio.examples.items.${p.id}`)}
+            </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <GoldBadge variant="outline">{p.genre}</GoldBadge>
               <GoldBadge variant="outline">{t(`moods.${p.mood}`)}</GoldBadge>

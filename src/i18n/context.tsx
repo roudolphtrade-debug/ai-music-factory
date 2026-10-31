@@ -1,5 +1,4 @@
 import {
-  createContext,
   useCallback,
   useContext,
   useEffect,
@@ -7,6 +6,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { translatePlural } from "./plural";
+import { I18nContext, type I18nValue } from "./i18n-context";
 import {
   translate,
   translateArray,
@@ -18,16 +19,6 @@ const STORAGE_KEY = "afm-lang";
 const DEFAULT_LANG: Lang = "fr";
 
 export type RelTime = { n?: number; u: "m" | "h" | "d" | "yesterday" };
-
-interface I18nValue {
-  lang: Lang;
-  setLang: (lang: Lang) => void;
-  t: (key: string, vars?: Record<string, string | number>) => string;
-  ta: (key: string) => string[];
-  relTime: (time: RelTime) => string;
-}
-
-const I18nContext = createContext<I18nValue | null>(null);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(DEFAULT_LANG);
@@ -69,6 +60,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       setLang,
       t,
       ta: (key: string) => translateArray(lang, key),
+      tn: (key: string, n: number) => translatePlural(lang, key, n),
       relTime,
     };
   }, [lang, setLang]);

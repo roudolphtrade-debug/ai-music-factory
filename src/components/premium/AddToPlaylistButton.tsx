@@ -40,7 +40,7 @@ export function AddToPlaylistButton({
   size?: Size;
   className?: string;
 }) {
-  const { t } = useI18n();
+  const { t, tn } = useI18n();
   const { playlists, createPlaylist, addToPlaylist, removeFromPlaylist, isInPlaylist } =
     usePlaylists();
   const [open, setOpen] = useState(false);
@@ -122,7 +122,7 @@ export function AddToPlaylistButton({
                   <span className="min-w-0 flex-1 truncate">
                     {p.name}
                     <span className="ml-2 text-xs text-muted-foreground">
-                      {t("playlists.count", { n: p.trackIds.length })}
+                      {tn("playlists.count", p.trackIds.length)}
                     </span>
                   </span>
                   <span

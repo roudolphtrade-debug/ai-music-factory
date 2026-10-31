@@ -1,4 +1,5 @@
 import { useI18n } from "./context";
+import { pluralForm, type PluralForms } from "./plural";
 import type { Lang } from "./translations";
 
 /** Browser-safe listening catalog (player, Radio, Library) for the six languages. */
@@ -12,15 +13,16 @@ const fr = {
   loading: "Chargement", error: "Lecture impossible : ce titre n'a pas pu être chargé.", retry: "Réessayer", skip: "Titre suivant",
   playing: "Lecture", paused: "En pause", volume: "Volume", mute: "Couper le son", unmute: "Rétablir le son",
   genres: "Genres", moods: "Ambiances", stations: "Stations thématiques", stationsNote: "Programmation démo générée à partir du catalogue local.",
-  demoProgramming: "Programmation démo", results: "{n} titres", reset: "Réinitialiser", noResults: "Aucun titre ne correspond à cette sélection.",
-  selection: "Sélection en cours", allTracks: "Tout le catalogue", playSelection: "Lire la sélection", tracksCount: "{n} titres",
+  demoProgramming: "Programmation démo", results: { one: "{n} titre", other: "{n} titres" }, reset: "Réinitialiser", noResults: "Aucun titre ne correspond à cette sélection.",
+  selection: "Sélection en cours", allTracks: "Tout le catalogue", playSelection: "Lire la sélection", tracksCount: { one: "{n} titre", other: "{n} titres" },
   favorites: "Favoris", playlists: "Playlists", plays: "Écoutes", playAll: "Tout lire", shufflePlay: "Aléatoire",
   newPlaylist: "Nouvelle playlist", namePlaceholder: "Nom de la playlist", create: "Créer", rename: "Renommer", save: "Enregistrer",
   cancel: "Annuler", edit: "Modifier", done: "Terminé", deleteConfirm: "Supprimer cette playlist ? Les titres restent dans le catalogue.",
   delete: "Supprimer", emptyPlaylist: "Cette playlist est vide. Ajoutez des titres depuis vos favoris ou la Radio.",
   localNote: "Enregistré sur cet appareil",
 };
-type Dict = typeof fr;
+// the same keys in every language, a counted text being a set of plural forms
+type Dict = { [K in keyof typeof fr]: (typeof fr)[K] extends string ? string : PluralForms };
 
 const en: Dict = {
   radioIntro: "Explore the catalog by genre, mood or themed station. Demo programming, genuinely playable tracks.",
@@ -32,8 +34,8 @@ const en: Dict = {
   loading: "Loading", error: "Playback failed: this track could not be loaded.", retry: "Retry", skip: "Next track",
   playing: "Playing", paused: "Paused", volume: "Volume", mute: "Mute", unmute: "Unmute",
   genres: "Genres", moods: "Moods", stations: "Themed stations", stationsNote: "Demo programming built from the local catalog.",
-  demoProgramming: "Demo programming", results: "{n} tracks", reset: "Reset", noResults: "No track matches this selection.",
-  selection: "Current selection", allTracks: "Full catalog", playSelection: "Play selection", tracksCount: "{n} tracks",
+  demoProgramming: "Demo programming", results: { one: "{n} track", other: "{n} tracks" }, reset: "Reset", noResults: "No track matches this selection.",
+  selection: "Current selection", allTracks: "Full catalog", playSelection: "Play selection", tracksCount: { one: "{n} track", other: "{n} tracks" },
   favorites: "Favorites", playlists: "Playlists", plays: "Plays", playAll: "Play all", shufflePlay: "Shuffle",
   newPlaylist: "New playlist", namePlaceholder: "Playlist name", create: "Create", rename: "Rename", save: "Save",
   cancel: "Cancel", edit: "Edit", done: "Done", deleteConfirm: "Delete this playlist? Tracks stay in the catalog.",
@@ -50,8 +52,8 @@ const es: Dict = {
   loading: "Cargando", error: "No se pudo reproducir: la canción no se cargó.", retry: "Reintentar", skip: "Siguiente canción",
   playing: "Reproduciendo", paused: "En pausa", volume: "Volumen", mute: "Silenciar", unmute: "Activar sonido",
   genres: "Géneros", moods: "Ambientes", stations: "Estaciones temáticas", stationsNote: "Programación demo creada a partir del catálogo local.",
-  demoProgramming: "Programación demo", results: "{n} canciones", reset: "Restablecer", noResults: "Ninguna canción coincide con esta selección.",
-  selection: "Selección actual", allTracks: "Catálogo completo", playSelection: "Reproducir selección", tracksCount: "{n} canciones",
+  demoProgramming: "Programación demo", results: { one: "{n} canción", other: "{n} canciones" }, reset: "Restablecer", noResults: "Ninguna canción coincide con esta selección.",
+  selection: "Selección actual", allTracks: "Catálogo completo", playSelection: "Reproducir selección", tracksCount: { one: "{n} canción", other: "{n} canciones" },
   favorites: "Favoritos", playlists: "Listas", plays: "Escuchas", playAll: "Reproducir todo", shufflePlay: "Aleatorio",
   newPlaylist: "Nueva lista", namePlaceholder: "Nombre de la lista", create: "Crear", rename: "Renombrar", save: "Guardar",
   cancel: "Cancelar", edit: "Editar", done: "Listo", deleteConfirm: "¿Eliminar esta lista? Las canciones siguen en el catálogo.",
@@ -68,8 +70,8 @@ const zh: Dict = {
   loading: "加载中", error: "无法播放：该曲目加载失败。", retry: "重试", skip: "下一首",
   playing: "播放中", paused: "已暂停", volume: "音量", mute: "静音", unmute: "取消静音",
   genres: "曲风", moods: "氛围", stations: "主题电台", stationsNote: "基于本地曲库生成的示范节目。",
-  demoProgramming: "示范节目", results: "{n} 首曲目", reset: "重置", noResults: "没有符合此选择的曲目。",
-  selection: "当前选择", allTracks: "全部曲库", playSelection: "播放所选", tracksCount: "{n} 首曲目",
+  demoProgramming: "示范节目", results: { other: "{n} 首曲目" }, reset: "重置", noResults: "没有符合此选择的曲目。",
+  selection: "当前选择", allTracks: "全部曲库", playSelection: "播放所选", tracksCount: { other: "{n} 首曲目" },
   favorites: "收藏", playlists: "歌单", plays: "播放记录", playAll: "全部播放", shufflePlay: "随机",
   newPlaylist: "新建歌单", namePlaceholder: "歌单名称", create: "创建", rename: "重命名", save: "保存",
   cancel: "取消", edit: "编辑", done: "完成", deleteConfirm: "删除此歌单？曲目仍保留在曲库中。",
@@ -86,8 +88,8 @@ const pt: Dict = {
   loading: "Carregando", error: "Não foi possível tocar: a faixa não carregou.", retry: "Tentar novamente", skip: "Próxima faixa",
   playing: "Tocando", paused: "Pausado", volume: "Volume", mute: "Silenciar", unmute: "Ativar som",
   genres: "Gêneros", moods: "Climas", stations: "Estações temáticas", stationsNote: "Programação demo criada a partir do catálogo local.",
-  demoProgramming: "Programação demo", results: "{n} faixas", reset: "Redefinir", noResults: "Nenhuma faixa corresponde a esta seleção.",
-  selection: "Seleção atual", allTracks: "Catálogo completo", playSelection: "Tocar seleção", tracksCount: "{n} faixas",
+  demoProgramming: "Programação demo", results: { one: "{n} faixa", other: "{n} faixas" }, reset: "Redefinir", noResults: "Nenhuma faixa corresponde a esta seleção.",
+  selection: "Seleção atual", allTracks: "Catálogo completo", playSelection: "Tocar seleção", tracksCount: { one: "{n} faixa", other: "{n} faixas" },
   favorites: "Favoritos", playlists: "Playlists", plays: "Reproduções", playAll: "Tocar tudo", shufflePlay: "Aleatório",
   newPlaylist: "Nova playlist", namePlaceholder: "Nome da playlist", create: "Criar", rename: "Renomear", save: "Salvar",
   cancel: "Cancelar", edit: "Editar", done: "Concluir", deleteConfirm: "Excluir esta playlist? As faixas continuam no catálogo.",
@@ -104,8 +106,8 @@ const ar: Dict = {
   loading: "جارٍ التحميل", error: "تعذّر التشغيل: لم يتم تحميل هذه المقطوعة.", retry: "إعادة المحاولة", skip: "المقطوعة التالية",
   playing: "قيد التشغيل", paused: "متوقف مؤقتاً", volume: "مستوى الصوت", mute: "كتم الصوت", unmute: "إلغاء الكتم",
   genres: "الأنواع", moods: "الأجواء", stations: "محطات موضوعية", stationsNote: "برمجة توضيحية مبنية على الكتالوج المحلي.",
-  demoProgramming: "برمجة توضيحية", results: "{n} مقطوعات", reset: "إعادة تعيين", noResults: "لا توجد مقطوعة تطابق هذا الاختيار.",
-  selection: "الاختيار الحالي", allTracks: "الكتالوج الكامل", playSelection: "تشغيل الاختيار", tracksCount: "{n} مقطوعات",
+  demoProgramming: "برمجة توضيحية", results: { zero: "لا توجد مقطوعات", one: "مقطوعة واحدة", two: "مقطوعتان", few: "{n} مقطوعات", many: "{n} مقطوعة", other: "{n} مقطوعة" }, reset: "إعادة تعيين", noResults: "لا توجد مقطوعة تطابق هذا الاختيار.",
+  selection: "الاختيار الحالي", allTracks: "الكتالوج الكامل", playSelection: "تشغيل الاختيار", tracksCount: { zero: "لا توجد مقطوعات", one: "مقطوعة واحدة", two: "مقطوعتان", few: "{n} مقطوعات", many: "{n} مقطوعة", other: "{n} مقطوعة" },
   favorites: "المفضلة", playlists: "قوائم التشغيل", plays: "مرات الاستماع", playAll: "تشغيل الكل", shufflePlay: "عشوائي",
   newPlaylist: "قائمة جديدة", namePlaceholder: "اسم القائمة", create: "إنشاء", rename: "إعادة تسمية", save: "حفظ",
   cancel: "إلغاء", edit: "تعديل", done: "تم", deleteConfirm: "حذف هذه القائمة؟ تبقى المقطوعات في الكتالوج.",
@@ -118,6 +120,9 @@ export const listening: Record<Lang, Dict> = { fr, en, es, zh, pt, ar };
 export function useListening() {
   const { lang } = useI18n();
   const d = listening[lang] ?? fr;
-  const f = (key: keyof Dict, n: number) => d[key].replace("{n}", String(n));
+  const f = (key: keyof Dict, n: number) => {
+    const v = d[key];
+    return typeof v === "string" ? v.replace("{n}", String(n)) : pluralForm(lang, v, n);
+  };
   return { l: d, f, lang };
 }
