@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/premium/SectionHeading";
@@ -8,6 +8,9 @@ import { useAuth } from "@/auth/context";
 import { useAuthCopy } from "@/i18n/auth";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/context";
+import { useDemoHonesty } from "@/i18n/demo-honesty";
+import { DemoBadge } from "@/components/premium/DemoBadge";
+import { DemoNotice } from "@/components/premium/DemoNotice";
 import { useTheme } from "@/theme/context";
 
 export const Route = createFileRoute("/_app/settings")({
@@ -32,6 +35,9 @@ function SettingsPage() {
   const { t: account } = useAuthCopy();
   const { status } = useAuth();
   const signedIn = status === "signedIn";
+  const honesty = useDemoHonesty();
+  const saveNoteId = useId();
+  const profileNoteId = useId();
   const accountsOff = status === "unconfigured";
   return (
     <div className="space-y-8">
@@ -64,15 +70,25 @@ function SettingsPage() {
               {t("settings.studioProfile")}
             </h2>
             <MemberProfileSection />
+            <DemoNotice kind="demoProfile" className="mt-4" id={profileNoteId} />
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              <FormField label={t("settings.primaryGenre")} defaultValue="Afrobeats" />
-              <FormField label={t("settings.location")} defaultValue="Paris, FR" />
+              <FormField
+                label={t("settings.primaryGenre")}
+                defaultValue="Afrobeats"
+                demoNoteId={profileNoteId}
+              />
+              <FormField
+                label={t("settings.location")}
+                defaultValue="Paris, FR"
+                demoNoteId={profileNoteId}
+              />
             </div>
             <FormField
               label={t("settings.bio")}
               defaultValue="Crafting cinematic, golden-hour electronica for AI-native artists."
               className="mt-4"
               textarea
+              demoNoteId={profileNoteId}
             />
           </section>
 
@@ -127,9 +143,16 @@ function SettingsPage() {
         )}
       </div>
 
-      <div className="flex justify-end gap-3">
-        <Button variant="noir">{t("settings.discard")}</Button>
-        <Button variant="gold">{t("settings.saveChanges")}</Button>
+      <div className="flex flex-wrap items-center justify-end gap-3">
+        <p id={saveNoteId} className="me-auto text-xs text-muted-foreground">
+          {honesty.notSaved}
+        </p>
+        <Button variant="noir" disabled aria-describedby={saveNoteId}>
+          {t("settings.discard")}
+        </Button>
+        <Button variant="gold" disabled aria-describedby={saveNoteId}>
+          {t("settings.saveChanges")}
+        </Button>
       </div>
     </div>
   );
@@ -140,24 +163,33 @@ function FormField({
   defaultValue,
   className,
   textarea,
+  demoNoteId,
 }: {
   label: string;
   defaultValue: string;
   className?: string;
   textarea?: boolean;
+  /** Marks the value as a fictional example, never the account's real data. */
+  demoNoteId?: string;
 }) {
+  const honesty = useDemoHonesty();
   return (
     <label className={cn("block space-y-1.5", className)}>
-      <span className="eyebrow text-muted-foreground">{label}</span>
+      <span className="flex flex-wrap items-center gap-2">
+        <span className="eyebrow text-muted-foreground">{label}</span>
+        {demoNoteId ? <DemoBadge title={honesty.exampleField} /> : null}
+      </span>
       {textarea ? (
         <textarea
           rows={3}
           defaultValue={defaultValue}
+          aria-describedby={demoNoteId}
           className="w-full resize-none rounded-xl border border-input bg-secondary/30 p-3 text-sm text-foreground outline-none transition-colors focus:border-[color-mix(in_oklab,var(--gold)_45%,transparent)]"
         />
       ) : (
         <input
           defaultValue={defaultValue}
+          aria-describedby={demoNoteId}
           className="h-10 w-full rounded-xl border border-input bg-secondary/30 px-3 text-sm text-foreground outline-none transition-colors focus:border-[color-mix(in_oklab,var(--gold)_45%,transparent)]"
         />
       )}

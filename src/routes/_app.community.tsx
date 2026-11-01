@@ -1,5 +1,6 @@
 import { useDemoPageMetadata } from "@/i18n/useDemoPageMetadata";
 import { channelText, demoPageHead } from "@/i18n/demo-details";
+import { useId } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { MessagesSquare, Hash, Heart, MessageCircle, Repeat2, Users, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,8 @@ import { EmptyState } from "@/components/premium/EmptyState";
 import { artistImages } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
 import { demoContent } from "@/i18n/demo-content";
+import { useDemoHonesty } from "@/i18n/demo-honesty";
+import { DemoNotice } from "@/components/premium/DemoNotice";
 
 export const Route = createFileRoute("/_app/community")({
   head: () => demoPageHead("community"),
@@ -59,6 +62,9 @@ const channels = [
 function CommunityPage() {
   useDemoPageMetadata("community");
   const { t, lang } = useI18n();
+  const honesty = useDemoHonesty();
+  const postNoteId = useId();
+  const circlesNoteId = useId();
   return (
     <div className="space-y-8">
       <SectionHeading
@@ -66,11 +72,15 @@ function CommunityPage() {
         title={t("community.title")}
         description={t("community.desc")}
         action={
-          <Button variant="gold" size="lg">
+          <Button variant="gold" size="lg" disabled aria-describedby={postNoteId}>
             <Sparkles className="h-4 w-4" /> {t("community.newPost")}
           </Button>
         }
       />
+      <DemoNotice kind="demoContent" />
+      <p id={postNoteId} className="text-xs text-muted-foreground">
+        {honesty.noPosting}
+      </p>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         {/* FEED */}
@@ -96,15 +106,15 @@ function CommunityPage() {
                 {t(`community.posts.${p.id}`)}
               </p>
               <div className="mt-4 flex items-center gap-6 text-xs text-muted-foreground">
-                <button className="inline-flex items-center gap-1.5 transition-colors hover:text-gold">
-                  <Heart className="h-4 w-4" /> {p.likes}
-                </button>
-                <button className="inline-flex items-center gap-1.5 transition-colors hover:text-foreground">
-                  <MessageCircle className="h-4 w-4" /> {p.replies}
-                </button>
-                <button className="inline-flex items-center gap-1.5 transition-colors hover:text-foreground">
-                  <Repeat2 className="h-4 w-4" /> {p.reposts}
-                </button>
+                <span className="inline-flex items-center gap-1.5">
+                  <Heart aria-hidden="true" className="h-4 w-4" /> {p.likes}
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <MessageCircle aria-hidden="true" className="h-4 w-4" /> {p.replies}
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Repeat2 aria-hidden="true" className="h-4 w-4" /> {p.reposts}
+                </span>
               </div>
             </article>
           ))}
@@ -119,9 +129,9 @@ function CommunityPage() {
             </div>
             <div className="mt-4 space-y-1">
               {channels.map((c) => (
-                <button
+                <div
                   key={c.name}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary/50 hover:text-foreground"
+                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-muted-foreground"
                 >
                   <Hash className="h-4 w-4 text-gold/70" />
                   <span className="min-w-0 flex-1 break-words text-start">{c.name === "label-houses" ? demoContent[lang].labelHouses : channelText(lang, c.name)}</span>
@@ -129,7 +139,7 @@ function CommunityPage() {
                     <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse-gold" />
                   )}
                   <span className="text-xs">{c.count}</span>
-                </button>
+                </div>
               ))}
             </div>
           </div>
@@ -145,9 +155,12 @@ function CommunityPage() {
             <p className="mt-3 text-sm text-muted-foreground">
               {t("community.circlesLine", { n: 3 })}
             </p>
-            <Button variant="ghost-gold" className="mt-4 w-full">
+            <Button variant="ghost-gold" className="mt-4 w-full" disabled aria-describedby={circlesNoteId}>
               {t("community.discoverCircles")}
             </Button>
+            <p id={circlesNoteId} className="mt-2 text-xs text-muted-foreground">
+              {honesty.noCircles}
+            </p>
           </div>
 
           <EmptyState

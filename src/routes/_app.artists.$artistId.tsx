@@ -1,7 +1,7 @@
 import { useDemoPageMetadata } from "@/i18n/useDemoPageMetadata";
 import { badgeText, demoPageHead } from "@/i18n/demo-details";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { UserPlus, Check, Users, Sparkles, Building2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GoldBadge, ReputationChip, StatusChip } from "@/components/premium/Chips";
@@ -15,8 +15,10 @@ import { useSpotlight } from "@/hooks/useSpotlight";
 import { releasesFor } from "@/audio/tracks";
 import { getArtist, artistImages, tracks } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
+import { useDemoHonesty } from "@/i18n/demo-honesty";
 import { demoArtistCopy } from "@/i18n/demo-content";
 import { ArtistNotFound } from "@/components/premium/ArtistNotFound";
+import { DemoNotice } from "@/components/premium/DemoNotice";
 
 export const Route = createFileRoute("/_app/artists/$artistId")({
   head: () => demoPageHead("artist"),
@@ -27,6 +29,8 @@ export const Route = createFileRoute("/_app/artists/$artistId")({
 function ArtistProfilePage() {
   useDemoPageMetadata("artist");
   const { t, lang } = useI18n();
+  const honesty = useDemoHonesty();
+  const circlesNoteId = useId();
   const { artistId } = Route.useParams();
   const artist = getArtist(artistId);
   const [following, setFollowing] = useState(false);
@@ -46,6 +50,7 @@ function ArtistProfilePage() {
       >
         <ArrowLeft className="h-4 w-4" /> {t("artistProfile.allArtists")}
       </Link>
+      <DemoNotice kind="demoStats" />
 
       {/* HERO */}
       <section
@@ -96,10 +101,13 @@ function ArtistProfilePage() {
                 {following ? t("artistProfile.following") : t("artistProfile.follow")}
               </Button>
               <VoteButton initialVotes={artist.reputation > 9 ? 12400 : 8900} />
-              <Button variant="ghost-gold">
+              <Button variant="ghost-gold" disabled aria-describedby={circlesNoteId}>
                 <Users className="h-4 w-4" />
                 {t("artistProfile.joinFanCircle")}
               </Button>
+              <span id={circlesNoteId} className="self-center text-xs text-muted-foreground">
+                {honesty.noCircles}
+              </span>
             </div>
           </div>
         </div>
@@ -180,8 +188,8 @@ function ArtistProfilePage() {
             <p className="mt-3 text-sm text-muted-foreground">
               {t("artistProfile.followersLine", { f: artist.followers, c: "4.2K" })}
             </p>
-            <Button variant="ghost-gold" className="mt-4 w-full">
-              {t("artistProfile.enterCommunity")}
+            <Button asChild variant="ghost-gold" className="mt-4 w-full">
+              <Link to="/community">{t("artistProfile.enterCommunity")}</Link>
             </Button>
           </div>
         </div>

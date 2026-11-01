@@ -24,6 +24,7 @@ import { artists, artistImages, type ArtistId } from "@/data/mock";
 import { simulateLabel, formatMoney, formatCompact, TIER_CONFIG } from "@/library/labels";
 import { useLabels } from "@/library/LabelsProvider";
 import { useI18n } from "@/i18n/context";
+import { DemoNotice } from "@/components/premium/DemoNotice";
 
 export const Route = createFileRoute("/_app/labels/$labelId")({
   head: () => demoPageHead("label"),
@@ -61,6 +62,7 @@ function LabelDetailPage() {
   return (
     <div className="space-y-8">
       <BackLink t={t} />
+      <DemoNotice kind="demoStats" />
 
       {/* HERO */}
       <section

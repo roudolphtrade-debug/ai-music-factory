@@ -80,11 +80,14 @@ describe("Credits page · no payment, no subscription", () => {
     );
   });
 
-  it("presents the free offer without a subscription, and 20 credits a month", () => {
+  it("presents a local demo counter, not a real monthly allocation", () => {
     mount("fr");
-    expect(screen.getByRole("heading", { name: "Offre gratuite, sans abonnement" })).toBeTruthy();
-    expect(screen.getByText(/20 crédits sont offerts chaque mois/)).toBeTruthy();
-    expect(screen.getByText("Crédits offerts chaque mois")).toBeTruthy();
+    expect(
+      screen.getByRole("heading", { name: "Compteur de démonstration, sans allocation réelle" }),
+    ).toBeTruthy();
+    expect(screen.getByText(/affiche 20 crédits par mois à titre d'exemple/)).toBeTruthy();
+    expect(screen.getByText(/Aucun crédit réel n'est attribué automatiquement/)).toBeTruthy();
+    expect(screen.getByText("Compteur de démo, par mois")).toBeTruthy();
   });
 
   it("does not turn 20 credits into a number of free tracks", () => {
@@ -277,4 +280,19 @@ describe("Credits page · layout fixes found at the local recette", () => {
     expect(document.documentElement.dir).toBe("rtl");
     expect(container.firstElementChild?.getAttribute("dir")).toBeNull();
   });
+});
+
+describe("Credits page · the history is shown as fictional demo operations", () => {
+  it.each(langs)(
+    "%s: the first visit lists the +20 line as a demo, not as real credits",
+    (lang) => {
+      const { container } = mount(lang);
+      const welcome = tr(lang, "credits.ledger.welcome");
+      expect(container.textContent).toContain(welcome);
+      expect(welcome).toMatch(/^(Démo|Demo|演示|عرض تجريبي)/);
+      expect(container.textContent).not.toMatch(
+        /Crédits de bienvenue|Welcome credits|Créditos de bienvenida|欢迎积分|boas-vindas|أرصدة الترحيب/,
+      );
+    },
+  );
 });

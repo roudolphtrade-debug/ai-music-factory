@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Sparkles, Shuffle, Wand2, Feather, BookOpen, Palette, Mic2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/premium/SectionHeading";
@@ -7,6 +7,8 @@ import { GoldBadge } from "@/components/premium/Chips";
 import avatarPreview from "@/assets/avatar-preview.webp";
 import { useI18n } from "@/i18n/context";
 import { demoDetails } from "@/i18n/demo-details";
+import { useDemoHonesty } from "@/i18n/demo-honesty";
+import { DemoNotice } from "@/components/premium/DemoNotice";
 
 export const Route = createFileRoute("/_app/avatar-lab")({
   head: () => ({
@@ -27,10 +29,25 @@ export const Route = createFileRoute("/_app/avatar-lab")({
 });
 
 const styles = ["Amber Minimal", "Liquid Chrome", "Monastic Noir", "Maximal Gold", "Neon Visor"];
+const ATTRIBUTES = [
+  { key: "charisma", initial: 78 },
+  { key: "futuristicEdge", initial: 64 },
+  { key: "warmth", initial: 52 },
+  { key: "auraIntensity", initial: 88 },
+] as const;
 
 function AvatarLabPage() {
   const { t, lang } = useI18n();
   const [style, setStyle] = useState(styles[0]);
+  const [values, setValues] = useState<number[]>(ATTRIBUTES.map((a) => a.initial));
+  const honesty = useDemoHonesty();
+  const generateNoteId = useId();
+
+  // Local and free: it only shuffles the visual style and the four sliders on screen.
+  const randomize = () => {
+    setStyle(styles[Math.floor(Math.random() * styles.length)]);
+    setValues(ATTRIBUTES.map(() => 20 + Math.floor(Math.random() * 81)));
+  };
 
   return (
     <div className="space-y-10">
@@ -39,6 +56,7 @@ function AvatarLabPage() {
         title={t("avatarLab.title")}
         description={t("avatarLab.desc")}
       />
+      <DemoNotice kind="demoContent" />
 
       <section className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
         {/* PREVIEW */}
@@ -79,10 +97,14 @@ function AvatarLabPage() {
           </div>
 
           <div className="space-y-5">
-            <AttributeSlider label={t("avatarLab.charisma")} initial={78} />
-            <AttributeSlider label={t("avatarLab.futuristicEdge")} initial={64} />
-            <AttributeSlider label={t("avatarLab.warmth")} initial={52} />
-            <AttributeSlider label={t("avatarLab.auraIntensity")} initial={88} />
+            {ATTRIBUTES.map((a, i) => (
+              <AttributeSlider
+                key={a.key}
+                label={t(`avatarLab.${a.key}`)}
+                value={values[i]}
+                onChange={(v) => setValues((cur) => cur.map((x, j) => (j === i ? v : x)))}
+              />
+            ))}
           </div>
 
           <div className="space-y-2 border-t border-border pt-5">
@@ -105,14 +127,17 @@ function AvatarLabPage() {
           </div>
 
           <div className="flex flex-wrap gap-3 border-t border-border pt-5">
-            <Button variant="gold">
+            <Button variant="gold" disabled aria-describedby={generateNoteId}>
               <Sparkles className="h-4 w-4" />
               {t("avatarLab.generate")}
             </Button>
-            <Button variant="ghost-gold">
+            <Button variant="ghost-gold" onClick={randomize}>
               <Shuffle className="h-4 w-4" />
               {t("avatarLab.randomize")}
             </Button>
+            <p id={generateNoteId} className="basis-full text-xs text-muted-foreground">
+              {honesty.aiPaused}
+            </p>
           </div>
         </div>
       </section>
@@ -144,8 +169,15 @@ function AvatarLabPage() {
   );
 }
 
-function AttributeSlider({ label, initial }: { label: string; initial: number }) {
-  const [value, setValue] = useState(initial);
+function AttributeSlider({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (value: number) => void;
+}) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-sm">
@@ -158,7 +190,7 @@ function AttributeSlider({ label, initial }: { label: string; initial: number })
         min={0}
         max={100}
         value={value}
-        onChange={(e) => setValue(Number(e.target.value))}
+        onChange={(e) => onChange(Number(e.target.value))}
         className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-secondary outline-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-gold [&::-webkit-slider-thumb]:shadow-[0_0_0_4px_color-mix(in_oklab,var(--gold)_25%,transparent)]"
         style={{
           background: `linear-gradient(to right, var(--gold) ${value}%, var(--secondary) ${value}%)`,

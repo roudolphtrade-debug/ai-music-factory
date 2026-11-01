@@ -98,7 +98,7 @@ describe("demonstration text follows live language changes", () => {
     for (const { code } of LANGS) {
       fireEvent.click(screen.getByRole("button", { name: code }));
       const channel = screen.getByText(demoContent[code].labelHouses);
-      expect(channel.closest("button")?.textContent).toContain("620");
+      expect(channel.parentElement?.textContent).toContain("620");
       for (const name of ["releases", "battles", "golden-hour", "prompt-lab"]) {
         expect(screen.getByText(channelText(code, name), { exact: true })).toBeTruthy();
       }

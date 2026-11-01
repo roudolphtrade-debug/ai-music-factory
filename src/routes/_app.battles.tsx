@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Swords, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,8 @@ import { BracketView } from "@/components/premium/BracketView";
 import { SeasonHistory } from "@/components/premium/SeasonHistory";
 import { battles } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
+import { useDemoHonesty } from "@/i18n/demo-honesty";
+import { DemoNotice } from "@/components/premium/DemoNotice";
 
 export const Route = createFileRoute("/_app/battles")({
   head: () => ({
@@ -24,6 +27,8 @@ export const Route = createFileRoute("/_app/battles")({
 
 function BattlesPage() {
   const { t } = useI18n();
+  const honesty = useDemoHonesty();
+  const joinNoteId = useId();
 
   return (
     <div className="space-y-10">
@@ -39,12 +44,16 @@ function BattlesPage() {
                 <Crown className="h-4 w-4" /> {t("nav.hallOfFame")}
               </Link>
             </Button>
-            <Button variant="gold" size="lg">
+            <Button variant="gold" size="lg" disabled aria-describedby={joinNoteId}>
               <Swords className="h-4 w-4" /> {t("battles.joinNext")}
             </Button>
           </div>
         }
       />
+      <DemoNotice kind="demoContent" />
+      <p id={joinNoteId} className="text-xs text-muted-foreground">
+        {honesty.noBattle}
+      </p>
 
       {/* LIVE BATTLES */}
       <section className="space-y-5">

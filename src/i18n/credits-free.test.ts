@@ -44,7 +44,9 @@ describe("Credits page texts exist in the six languages", () => {
     expect(own("fr", "credits.paymentsUnavailable")).toBe(
       "Les paiements ne sont pas encore disponibles. Aucune carte n'est demandée.",
     );
-    expect(own("fr", "credits.freeOfferTitle")).toBe("Offre gratuite, sans abonnement");
+    expect(own("fr", "credits.freeOfferTitle")).toBe(
+      "Compteur de démonstration, sans allocation réelle",
+    );
     expect(own("fr", "credits.comingSoon")).toBe("Bientôt disponible");
   });
 
@@ -55,6 +57,22 @@ describe("Credits page texts exist in the six languages", () => {
       for (const key of KEYS) {
         const filled = translate(lang, key, { n: 20 });
         expect(filled, `${lang}:${key}`).not.toMatch(/[{}]/);
+      }
+    }
+  });
+
+  it("never promises real credits, a free offer or a subscription, in any language", () => {
+    for (const lang of codes) {
+      for (const key of [
+        "credits.desc",
+        "credits.giftMonthly",
+        "credits.freeOfferTitle",
+        "credits.freeOfferDesc",
+      ]) {
+        const text = own(lang, key) as string;
+        expect(text, `${lang}:${key}`).not.toMatch(
+          /offerts?|gratuit|abonnement|free|gift|gratis|grátis|oferta|免费|赠送|مجان|عرض مجاني/i,
+        );
       }
     }
   });
@@ -194,6 +212,52 @@ describe("Credits page · no text left to the English fallback", () => {
       for (const lang of codes) {
         expect(own(lang, key) as string).not.toMatch(/—|[{}]/);
       }
+    }
+  });
+});
+
+describe("Credits history · every line is plainly a fictional demo operation", () => {
+  const LEDGER = [
+    "welcome",
+    "monthly",
+    "subscribed",
+    "pack",
+    "spentTrack",
+    "spentVoice",
+    "spentTranscribe",
+  ];
+  const DEMO = {
+    fr: "Démo",
+    en: "Demo",
+    es: "Demo",
+    zh: "演示",
+    pt: "Demo",
+    ar: "عرض تجريبي",
+  } as const;
+  const DISCLAIMER = {
+    fr: /aucun|fictif|simulé/i,
+    en: /no |fictional|simulated/i,
+    es: /sin |ficticio|simulad/i,
+    zh: /无|虚构|模拟/,
+    pt: /sem |fictíci|simulad/i,
+    ar: /دون|وهمي|محاكى|محاكاة/,
+  } as const;
+  it.each(LEDGER)(
+    "credits.ledger.%s starts with the demo marker and denies any real effect",
+    (key) => {
+      for (const lang of codes) {
+        const text = own(lang, `credits.ledger.${key}`) as string;
+        expect(text.startsWith(DEMO[lang]), `${lang}:${key}`).toBe(true);
+        expect(text, `${lang}:${key}`).toMatch(DISCLAIMER[lang]);
+      }
+    },
+  );
+  it("no longer says welcome credits or a plain monthly refill in French and English", () => {
+    for (const key of LEDGER) {
+      expect(own("fr", `credits.ledger.${key}`)).not.toMatch(
+        /^(Crédits de bienvenue|Recharge mensuelle)/,
+      );
+      expect(own("en", `credits.ledger.${key}`)).not.toMatch(/^(Welcome credits|Monthly refill)/);
     }
   });
 });
