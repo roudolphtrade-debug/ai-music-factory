@@ -5,6 +5,7 @@ import { GoldBadge } from "@/components/premium/Chips";
 import { SeasonHistory } from "@/components/premium/SeasonHistory";
 import { hallOfFame, artistImages } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
+import { DemoNotice } from "@/components/premium/DemoNotice";
 
 export const Route = createFileRoute("/_app/hall-of-fame")({
   head: () => ({
@@ -42,6 +43,7 @@ function HallOfFamePage() {
         title={t("hallOfFame.title")}
         description={t("hallOfFame.desc")}
       />
+      <DemoNotice kind="demoContent" />
 
       {/* CROWN JEWEL */}
       <section className="relative overflow-hidden rounded-3xl border border-[color-mix(in_oklab,var(--gold)_30%,transparent)] bg-noir-gradient p-8 sm:p-12">

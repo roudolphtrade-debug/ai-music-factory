@@ -9,6 +9,7 @@ import { useCredits, PACKS } from "@/library/CreditsProvider";
 import { COSTS, FREE_MONTHLY_CREDITS } from "@/library/credits";
 import { formatNumber } from "@/lib/format";
 import { useI18n } from "@/i18n/context";
+import { useDemoHonesty } from "@/i18n/demo-honesty";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/credits")({
@@ -35,6 +36,7 @@ export const Route = createFileRoute("/_app/credits")({
 
 function CreditsPage() {
   const { t } = useI18n();
+  const honesty = useDemoHonesty();
   const { balance, ledger } = useCredits();
   // The packs below point at this notice, so that assistive technology reads why they are disabled.
   const noticeId = useId();
@@ -69,6 +71,10 @@ function CreditsPage() {
         <Info aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
         <p className="text-sm text-foreground">{t("credits.paymentsUnavailable")}</p>
       </div>
+
+      <p className="text-xs text-muted-foreground">
+        {honesty.aiPaused}. {honesty.creditsLocal}
+      </p>
 
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatModule

@@ -10,6 +10,7 @@ import { CreateLabelDialog } from "@/components/premium/CreateLabelDialog";
 import { labels } from "@/data/mock";
 import { useLabels } from "@/library/LabelsProvider";
 import { useI18n } from "@/i18n/context";
+import { DemoNotice } from "@/components/premium/DemoNotice";
 
 export const Route = createFileRoute("/_app/labels/")({
   head: () => demoPageHead("labels"),
@@ -29,6 +30,7 @@ function LabelsPage() {
         description={t("labels.desc")}
         action={<CreateLabelDialog />}
       />
+      <DemoNotice kind="demoContent" />
 
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatModule label={t("labels.activeLabels")} value="1,284" delta={t("home.stats.plusThisWeek", { n: "18" })} icon={<Building2 className="h-5 w-5" />} />

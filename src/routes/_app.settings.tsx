@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/premium/SectionHeading";
@@ -8,6 +8,8 @@ import { useAuth } from "@/auth/context";
 import { useAuthCopy } from "@/i18n/auth";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/context";
+import { useDemoHonesty } from "@/i18n/demo-honesty";
+import { DemoNotice } from "@/components/premium/DemoNotice";
 import { useTheme } from "@/theme/context";
 
 export const Route = createFileRoute("/_app/settings")({
@@ -32,6 +34,8 @@ function SettingsPage() {
   const { t: account } = useAuthCopy();
   const { status } = useAuth();
   const signedIn = status === "signedIn";
+  const honesty = useDemoHonesty();
+  const saveNoteId = useId();
   const accountsOff = status === "unconfigured";
   return (
     <div className="space-y-8">
@@ -64,6 +68,7 @@ function SettingsPage() {
               {t("settings.studioProfile")}
             </h2>
             <MemberProfileSection />
+            <DemoNotice kind="demoProfile" className="mt-4" />
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <FormField label={t("settings.primaryGenre")} defaultValue="Afrobeats" />
               <FormField label={t("settings.location")} defaultValue="Paris, FR" />
@@ -127,9 +132,16 @@ function SettingsPage() {
         )}
       </div>
 
-      <div className="flex justify-end gap-3">
-        <Button variant="noir">{t("settings.discard")}</Button>
-        <Button variant="gold">{t("settings.saveChanges")}</Button>
+      <div className="flex flex-wrap items-center justify-end gap-3">
+        <p id={saveNoteId} className="me-auto text-xs text-muted-foreground">
+          {honesty.notSaved}
+        </p>
+        <Button variant="noir" disabled aria-describedby={saveNoteId}>
+          {t("settings.discard")}
+        </Button>
+        <Button variant="gold" disabled aria-describedby={saveNoteId}>
+          {t("settings.saveChanges")}
+        </Button>
       </div>
     </div>
   );

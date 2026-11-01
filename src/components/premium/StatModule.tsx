@@ -1,3 +1,4 @@
+import { DemoBadge } from "@/components/premium/DemoBadge";
 import { cn } from "@/lib/utils";
 
 export function StatModule({
@@ -5,12 +6,15 @@ export function StatModule({
   value,
   delta,
   icon,
+  demo,
   className,
 }: {
   label: string;
   value: string;
   delta?: string;
   icon?: React.ReactNode;
+  /** Marks the figure as a fictional example. */
+  demo?: boolean;
   className?: string;
 }) {
   return (
@@ -33,6 +37,7 @@ export function StatModule({
         {value}
       </p>
       {delta && <p className="mt-1.5 text-xs text-muted-foreground">{delta}</p>}
+      {demo && <DemoBadge className="mt-3" />}
     </div>
   );
 }

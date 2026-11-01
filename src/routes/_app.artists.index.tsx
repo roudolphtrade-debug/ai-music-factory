@@ -7,6 +7,7 @@ import { ArtistCard } from "@/components/premium/ArtistCard";
 import { artists } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
 import { cn } from "@/lib/utils";
+import { DemoNotice } from "@/components/premium/DemoNotice";
 
 export const Route = createFileRoute("/_app/artists/")({
   head: () => demoPageHead("artists"),
@@ -30,6 +31,7 @@ function ArtistsPage() {
         title={t("artists.title")}
         description={t("artists.desc")}
       />
+      <DemoNotice kind="demoContent" />
 
       <div className="flex flex-wrap gap-2">
         {["All", ...genreFilters].map((f) => (
