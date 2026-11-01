@@ -6,6 +6,7 @@ import { useI18n } from "@/i18n/context";
 import { DICTATION_MAX_SECONDS, aiErrorCode, aiErrorKey } from "@/lib/ai-limits";
 import { aiFetch, hasMemberSession, SignInRequiredError } from "@/lib/ai-fetch";
 import { cn } from "@/lib/utils";
+import { PausedNotice } from "./PausedNotice";
 
 type Phase = "idle" | "recording" | "transcribing";
 
@@ -26,6 +27,8 @@ export function VoicePrompt({
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  // The AI is paused on purpose: a calm notice, not an error. The transcript stays, nothing is retried.
+  const [paused, setPaused] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [copied, setCopied] = useState(false);
 
@@ -62,6 +65,7 @@ export function VoicePrompt({
   const start = async () => {
     setError(null);
     setNotice(null);
+    setPaused(false);
     if (!(await hasMemberSession())) {
       setError(t("aiErrors.signIn"));
       return;
@@ -115,7 +119,14 @@ export function VoicePrompt({
       const form = new FormData();
       form.append("audio", blob, "recording");
       const res = await aiFetch("/api/voice/transcribe", { method: "POST", body: form });
-      if (!res.ok) throw new Error(t(aiErrorKey(res.status, await aiErrorCode(res))));
+      if (!res.ok) {
+        const code = await aiErrorCode(res);
+        if (res.status === 503 && code === "ai_paused") {
+          setPaused(true);
+          return;
+        }
+        throw new Error(t(aiErrorKey(res.status, code)));
+      }
       const data = (await res.json()) as { text?: string };
       const text = (data.text ?? "").trim();
       setTranscript((prev) => (prev ? `${prev} ${text}` : text));
@@ -137,6 +148,7 @@ export function VoicePrompt({
     setTranscript("");
     setError(null);
     setNotice(null);
+    setPaused(false);
   };
 
   const copy = async () => {
@@ -220,6 +232,7 @@ export function VoicePrompt({
         </p>
       )}
       {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+      {paused && <PausedNotice className="mt-2">{t("aiErrors.paused")}</PausedNotice>}
     </section>
   );
 }
