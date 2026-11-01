@@ -80,11 +80,14 @@ describe("Credits page · no payment, no subscription", () => {
     );
   });
 
-  it("presents the free offer without a subscription, and 20 credits a month", () => {
+  it("presents a local demo counter, not a real monthly allocation", () => {
     mount("fr");
-    expect(screen.getByRole("heading", { name: "Offre gratuite, sans abonnement" })).toBeTruthy();
-    expect(screen.getByText(/20 crédits sont offerts chaque mois/)).toBeTruthy();
-    expect(screen.getByText("Crédits offerts chaque mois")).toBeTruthy();
+    expect(
+      screen.getByRole("heading", { name: "Compteur de démonstration, sans allocation réelle" }),
+    ).toBeTruthy();
+    expect(screen.getByText(/affiche 20 crédits par mois à titre d'exemple/)).toBeTruthy();
+    expect(screen.getByText(/Aucun crédit réel n'est attribué automatiquement/)).toBeTruthy();
+    expect(screen.getByText("Compteur de démo, par mois")).toBeTruthy();
   });
 
   it("does not turn 20 credits into a number of free tracks", () => {

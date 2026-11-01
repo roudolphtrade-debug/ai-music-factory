@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ComponentType } from "react";
 import { LanguageProvider } from "@/i18n/context";
 import { AuthProvider } from "@/auth/AuthProvider";
 import { authCopy } from "@/i18n/auth";
+import { demoHonesty } from "@/i18n/demo-honesty";
 import { LANGS, translate, translations, type Lang } from "@/i18n/translations";
 import { ThemeProvider } from "@/theme/context";
 import { makeProfile, makeSession, type FakeSupabase } from "@/test/fakeSupabase";
@@ -231,5 +232,20 @@ describe("Settings page · a signed-in member", () => {
     mount("en");
     expect(await screen.findByText(authCopy.en.settingsNoticeTitle)).toBeTruthy();
     expect(screen.getByText(authCopy.en.settingsNoticeDesc)).toBeTruthy();
+  });
+});
+
+describe("Settings page · each fictional field value is marked and apart from the account", () => {
+  it.each(langs)("%s: Afrobeats, Paris and the bio carry a demo badge and the notice", (lang) => {
+    mount(lang);
+    const demo = translate(lang, "nav.demo");
+    const note = screen.getByText(demoHonesty[lang].demoProfile).parentElement!;
+    expect(note.id).toBeTruthy();
+    for (const value of ["Afrobeats", "Paris, FR", /Crafting cinematic/]) {
+      const field = screen.getByDisplayValue(value);
+      expect(field.getAttribute("aria-describedby")).toBe(note.id);
+      const badge = within(field.closest("label")!).getByText(demo);
+      expect(badge.getAttribute("title")).toBe(demoHonesty[lang].exampleField);
+    }
   });
 });
