@@ -281,3 +281,18 @@ describe("Credits page · layout fixes found at the local recette", () => {
     expect(container.firstElementChild?.getAttribute("dir")).toBeNull();
   });
 });
+
+describe("Credits page · the history is shown as fictional demo operations", () => {
+  it.each(langs)(
+    "%s: the first visit lists the +20 line as a demo, not as real credits",
+    (lang) => {
+      const { container } = mount(lang);
+      const welcome = tr(lang, "credits.ledger.welcome");
+      expect(container.textContent).toContain(welcome);
+      expect(welcome).toMatch(/^(Démo|Demo|演示|عرض تجريبي)/);
+      expect(container.textContent).not.toMatch(
+        /Crédits de bienvenue|Welcome credits|Créditos de bienvenida|欢迎积分|boas-vindas|أرصدة الترحيب/,
+      );
+    },
+  );
+});
