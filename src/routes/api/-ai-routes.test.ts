@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AI_LIMITS } from "@/lib/ai-limits";
+import { RETIRED_VOICES, STUDIO_VOICES } from "@/studio/options";
 
 // The three handlers run for real, with a synthetic Request and a mocked `fetch`: no network and no
 // AI credit is ever used. Modules are reloaded per test so the guard counters start from zero.
@@ -432,5 +433,24 @@ describe("what counts against the local safety net", () => {
       expect((await post({ request: jsonRequest({ text: "hi" }) })).status, String(i)).toBe(200);
     }
     expect((await post({ request: jsonRequest({ text: "hi" }) })).status).toBe(429);
+  });
+});
+
+describe("lot P0: POST /api/studio/generate refuses the retired voice choices", () => {
+  it.each(RETIRED_VOICES)("'%s' is refused with 400 before any provider call", async (voice) => {
+    const res = await (await handler("generate"))({ request: jsonRequest({ prompt: "p", voice }) });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "This voice is not available.", code: "voice_unavailable" });
+    expect(upstream).not.toHaveBeenCalled();
+  });
+
+  it.each(STUDIO_VOICES)("'%s', a voice the studio offers, still goes through", async (voice) => {
+    upstream.mockImplementation(async (url: string) =>
+      String(url).endsWith("/chat/completions")
+        ? Response.json({ choices: [{ message: { content: "hook" } }] })
+        : mp3(),
+    );
+    const res = await (await handler("generate"))({ request: jsonRequest({ prompt: "p", voice }) });
+    expect(res.status).toBe(200);
   });
 });

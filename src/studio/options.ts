@@ -11,7 +11,24 @@ export const STUDIO_GENRES = [
   "Hyperpop",
   "Neo-Soul",
 ];
-export const STUDIO_VOICES = ["Instrumental", "Warm tenor", "Soprano", "Alto", "Custom voice"];
+/**
+ * The synthetic voices the form offers: each one is a real voice of the speech service, which reads the
+ * lyrics (nothing sings). The keys stay the old ones so that stored preparations and drafts still read;
+ * their labels describe the timbre, not a singing register.
+ */
+export const STUDIO_VOICES = ["Warm tenor", "Soprano", "Alto"];
+export const STUDIO_DEFAULT_VOICE = "Warm tenor";
+/**
+ * Choices the form no longer offers because they did not do what they said: "Instrumental" still produced
+ * a spoken voice, and "Custom voice" was one fixed voice. A stored preparation that holds one of them is
+ * put back with the default voice; the server refuses them.
+ */
+export const RETIRED_VOICES = ["Instrumental", "Custom voice"];
+
+/** The translation key of an offered voice, or `null` for a retired or unknown one. */
+export function voiceLabelKey(voice: string): string | null {
+  return STUDIO_VOICES.includes(voice) ? `studio.voices.${voice}` : null;
+}
 
 const EXAMPLE_PROMPT_KEY = "studio.examplePrompt";
 

@@ -9,12 +9,16 @@ import { AI_LIMITS, guardMemberRequest, readJsonLimited, textField } from "@/lib
  * client can display them alongside the audio.
  */
 const VOICE_MAP: Record<string, string> = {
-  Instrumental: "alloy",
   "Warm tenor": "ash",
   Soprano: "shimmer",
   Alto: "sage",
-  "Custom voice": "verse",
 };
+/**
+ * Choices the studio used to offer and that did not do what they said: "Instrumental" was still read
+ * aloud by a voice, and "Custom voice" was one fixed voice. Asked for by name (an old page left open),
+ * they are refused before any provider call instead of silently producing something else.
+ */
+const RETIRED_VOICES = new Set(["Instrumental", "Custom voice"]);
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1";
 
@@ -37,6 +41,12 @@ export const Route = createFileRoute("/api/studio/generate")({
         const prompt = textField(body.prompt, 600);
         if (!prompt) {
           return Response.json({ error: "No prompt provided." }, { status: 400 });
+        }
+        if (typeof body.voice === "string" && RETIRED_VOICES.has(body.voice)) {
+          return Response.json(
+            { error: "This voice is not available.", code: "voice_unavailable" },
+            { status: 400 },
+          );
         }
         const genre = textField(body.genre, 60, "Pop");
         const mood = textField(body.mood, 60, "warm");

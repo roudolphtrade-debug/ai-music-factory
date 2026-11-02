@@ -21,12 +21,21 @@ function getContext(): AudioContext {
  * solely to decode the vocal mp3 into PCM. Everything else is plain math.
  * If decoding fails for any reason, the original vocal-only blob is returned
  * unchanged so a track is never lost over a cosmetic upgrade.
+ *
+ * `durationSec` is the length measured on the decoded audio (the mix has the same frames). When the
+ * vocal could not be decoded, nothing was measured and it is `null`: the length is then unknown, never
+ * guessed.
  */
+export interface FinalTrack {
+  blob: Blob;
+  durationSec: number | null;
+}
+
 export async function composeFinalTrack(
   vocalBlob: Blob,
   genre: string,
   mood: string,
-): Promise<Blob> {
+): Promise<FinalTrack> {
   try {
     const ctx = getContext();
     const arrayBuffer = await vocalBlob.arrayBuffer();
@@ -61,10 +70,10 @@ export async function composeFinalTrack(
     softLimit(left);
     softLimit(right);
 
-    return encodeWav([left, right], outSampleRate);
+    return { blob: encodeWav([left, right], outSampleRate), durationSec: frames / outSampleRate };
   } catch (err) {
     console.error("[composeFinalTrack] falling back to vocal-only track:", err);
-    return vocalBlob;
+    return { blob: vocalBlob, durationSec: null };
   }
 }
 

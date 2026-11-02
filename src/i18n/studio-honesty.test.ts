@@ -538,11 +538,12 @@ describe("lot A.3: what the studio page shows is written in each language, not b
   const visible = [
     "studio.newComposition",
     "studio.saveDraft",
-    "studio.voices.Instrumental",
+    "studio.voice",
     "studio.voices.Warm tenor",
     "studio.voices.Soprano",
     "studio.voices.Alto",
-    "studio.voices.Custom voice",
+    "studio.gen.duration",
+    "studio.gen.durationUnknown",
     "studio.gen.newTrack",
     "studio.uploadTitle",
     "studio.uploadDesc",
@@ -560,5 +561,133 @@ describe("lot A.3: what the studio page shows is written in each language, not b
     for (const key of ["studio.saveDraft", "studio.newComposition"]) {
       expect(own(lang, key), `${lang} ${key}`).not.toBe(own("en", key));
     }
+  });
+});
+
+// ------------------------------------------------------------------ lot P0
+describe("lot P0: the studio does not claim mastering, singing registers or retired choices", () => {
+  const MASTERING: Record<Lang, RegExp> = {
+    fr: /master/i,
+    en: /master/i,
+    es: /master/i,
+    zh: /母带/,
+    pt: /master/i,
+    ar: /ماستر|امستر/,
+  };
+  // A singing register promises a sung voice; the speech service reads the lyrics.
+  const REGISTER: Record<Lang, RegExp> = {
+    fr: /t[ée]nor|soprano|alto/i,
+    en: /tenor|soprano|alto/i,
+    es: /tenor|soprano|contralto/i,
+    zh: /男高音|女高音|女低音/,
+    pt: /tenor|soprano|contralto/i,
+    ar: /تينور|سوبرانو|ألتو/,
+  };
+
+  it.each(langs)("%s: neither the description of the studio nor its progress mentions mastering", (lang) => {
+    expect(t(lang, "studio.desc")).not.toMatch(MASTERING[lang]);
+    expect(t(lang, "studio.gen.phases")).not.toMatch(MASTERING[lang]);
+  });
+
+  it.each(langs)("%s: the progress has three real steps, each written in the language", (lang) => {
+    const steps = t(lang, "studio.gen.phases").split("|");
+    expect(steps).toHaveLength(3);
+    for (const step of steps) expect(step.trim().length).toBeGreaterThan(3);
+    if (lang !== "en") expect(t(lang, "studio.gen.phases")).not.toBe(t("en", "studio.gen.phases"));
+  });
+
+  it.each(langs)("%s: the voices are named by timbre, the field says they are synthetic", (lang) => {
+    for (const voice of ["Warm tenor", "Soprano", "Alto"]) {
+      expect(t(lang, `studio.voices.${voice}`), `${lang} ${voice}`).not.toMatch(REGISTER[lang]);
+    }
+    const synthetic = { fr: /synth[eè]se/i, en: /synthetic/i, es: /sint[eé]tica/i, zh: /合成/, pt: /sint[eé]tica/i, ar: /اصطناعي/ }[lang];
+    expect(t(lang, "studio.voice")).toMatch(synthetic);
+    expect(t(lang, "studio.desc")).toMatch(synthetic);
+  });
+
+  it.each(langs)("%s: no text is left for the retired 'Instrumental' and 'Custom voice' choices", (lang) => {
+    const voices = (translations[lang] as { studio: { voices: Record<string, string> } }).studio.voices;
+    expect(Object.keys(voices).sort()).toEqual(["Alto", "Soprano", "Warm tenor"]);
+  });
+
+  it.each(langs)("%s: the length texts exist, fill their value and carry no dash", (lang) => {
+    expect(translate(lang, "studio.gen.duration", { d: "1:23" })).toContain("1:23");
+    for (const key of ["studio.gen.duration", "studio.gen.durationUnknown", "studio.desc", "studio.gen.phases"]) {
+      expect(t(lang, key), `${lang} ${key}`).not.toContain("—");
+    }
+  });
+
+  it("the page description given to search engines and previews says what the studio does", () => {
+    const route = readFileSync("src/routes/_app.studio.tsx", "utf8");
+    expect(route).not.toMatch(/master|publish|version/i);
+    expect(route).toMatch(/synthetic voice/);
+  });
+});
+
+describe("lot P0: where each part of a track is made", () => {
+  const ONLINE: Record<Lang, RegExp> = {
+    fr: /service en ligne/,
+    en: /online service/,
+    es: /servicio en l[ií]nea/,
+    zh: /在线服务/,
+    pt: /servi[cç]o online/,
+    ar: /خدمة عبر الإنترنت/,
+  };
+  it.each(langs)("%s: the notice says the voice comes from an online service, not from the device", (lang) => {
+    expect(t(lang, "studio.rightsNotice")).toMatch(ONLINE[lang]);
+  });
+});
+
+// ------------------------------------------------------------------ PR #17, legal review
+describe("no unconditional promise of ownership, exclusivity or copyright on AI-generated content", () => {
+  // A provider not claiming ownership is not a guarantee of copyright protection nor of exclusivity: no text
+  // of the site may promise either, in any language. Rights are said to depend on the law and provider terms.
+  const PROMISE: Record<Lang, RegExp> = {
+    fr: /vous (conservez|gardez|d[ée]tenez|poss[ée]dez)[^.]*droits|droits? exclusifs?|exclusivit[ée]|vous appartien(t|nent)|(enti[èe]re|pleine) propri[ée]t[ée]|prot[ée]g[ée]e?s? par le droit d'auteur|droit d'auteur automatique/i,
+    en: /you (retain|keep|own|hold)[^.]*(rights|copyright|ownership)|exclusive (rights|ownership|license)|exclusively yours|you own (it|them|the|your|what|all)|(full|complete) ownership|automatic(ally)? copyright|copyright(ed)? automatically/i,
+    es: /(conservas|mantienes|tienes|posees)[^.]*derechos|derechos? exclusivos?|exclusividad|te pertenece|(plena|total) propiedad|protegid[oa]s? por derechos de autor autom[áa]ticamente/i,
+    zh: /你(保留|拥有|享有)|您(保留|拥有|享有)|独家|专有权|归你所有|归您所有|完全所有权|自动(享有|获得)版权/,
+    pt: /(voc[êe] )?(mant[ée]m|conserva|det[ée]m|possui)[^.]*direitos|direitos? exclusivos?|exclusividade|pertence a voc[êe]|(plena|total) propriedade|direitos autorais autom[áa]ticos/i,
+    ar: /تحتفظ بحقوق|تملك (حقوق|جميع)|حقوق حصرية|حصري|ملك لك|ملكية كاملة|حقوق النشر تلقائي/,
+  };
+  const DEPENDS: Record<Lang, RegExp> = {
+    fr: /d[ée]pendent de la l[ée]gislation et des conditions des fournisseurs/,
+    en: /depend on applicable law and provider terms/,
+    es: /dependen de la legislaci[óo]n aplicable y de las condiciones de los proveedores/,
+    zh: /取决于适用法律和服务提供商的条款/,
+    pt: /dependem da legisla[çc][ãa]o aplic[áa]vel e dos termos dos fornecedores/,
+    ar: /على القوانين المعمول بها وشروط مزوّدي الخدمة/,
+  };
+  const everyText = (node: unknown, out: string[] = []): string[] => {
+    if (typeof node === "string") out.push(node);
+    else if (Array.isArray(node)) node.forEach((n) => everyText(n, out));
+    else if (node && typeof node === "object") Object.values(node).forEach((n) => everyText(n, out));
+    return out;
+  };
+
+  it.each(langs)("%s: no text of the site promises rights, ownership, exclusivity or automatic copyright", (lang) => {
+    const offending = [...everyText(translations[lang]), ...everyText(authCopy[lang])].filter((text) =>
+      PROMISE[lang].test(text),
+    );
+    expect(offending).toEqual([]);
+  });
+
+  it.each(langs)("%s: the studio notice says that rights depend on the law and the providers' terms", (lang) => {
+    expect(t(lang, "studio.rightsNotice")).toMatch(DEPENDS[lang]);
+    expect(t(lang, "studio.rightsNotice")).not.toContain("—");
+  });
+
+  it("the guard catches the promises that were on the page before this review", () => {
+    const before: Record<Lang, string> = {
+      fr: "Vous conservez les droits sur ce que vous créez ici.",
+      en: "You retain the rights to what you create here.",
+      es: "Conservas los derechos sobre lo que creas aquí.",
+      zh: "你保留对在此创作内容的权利。",
+      pt: "Você mantém os direitos sobre o que cria aqui.",
+      ar: "تحتفظ بحقوق ما تنشئه هنا.",
+    };
+    for (const lang of langs) expect(before[lang], lang).toMatch(PROMISE[lang]);
+    expect("You own exclusive rights to every track.").toMatch(PROMISE.en);
+    expect("Vos titres sont protégés par le droit d'auteur.").toMatch(PROMISE.fr);
   });
 });

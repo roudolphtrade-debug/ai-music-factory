@@ -30,7 +30,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { STUDIO_PROMPT_ID } from "@/components/premium/StudioActions";
-import { audioExtension } from "@/audio/format";
+import { audioExtension, formatMeasuredDuration, UNKNOWN_DURATION } from "@/audio/format";
 import { usePlayer } from "@/audio/PlayerProvider";
 import type { PlayableTrack } from "@/audio/tracks";
 import { DraftDiscardedError, useGeneratedDrafts } from "@/library/draftsContext";
@@ -45,7 +45,14 @@ import { aiFetch, SignInRequiredError } from "@/lib/ai-fetch";
 import { useAuth } from "@/auth/context";
 import { AUTH_PATHS } from "@/auth/redirects";
 import { rememberReturnTo } from "@/auth/returnTo";
-import { STUDIO_GENRES, STUDIO_VOICES, examplePromptFor, isExamplePrompt } from "@/studio/options";
+import {
+  STUDIO_DEFAULT_VOICE,
+  STUDIO_GENRES,
+  STUDIO_VOICES,
+  examplePromptFor,
+  isExamplePrompt,
+  voiceLabelKey,
+} from "@/studio/options";
 import {
   ANON,
   PREP_PROMPT_MAX,
@@ -65,11 +72,20 @@ const STUDIO_PATH = "/studio";
 
 type Phase = "idle" | "generating" | "done";
 
+/**
+ * The steps shown while a track is made, in the order of `studio.gen.phases`. Each one starts when the
+ * code really reaches it: the service writes and voices the lyrics, the browser adds the instrumental
+ * bed, then the track is saved on this device. No timer moves them on.
+ */
+const STEP = { voice: 0, bed: 1, save: 2 } as const;
+
 interface GenResult {
   track: PlayableTrack;
   lyrics: string;
   url: string;
   ext: "wav" | "mp3";
+  /** The measured length as "m:ss", or `null` when it could not be measured. */
+  durationLabel: string | null;
   /** Who made it. It is shown to that account only, and only while that account is the one signed in. */
   ownerKey: string;
 }
@@ -95,7 +111,7 @@ export function StudioComposer() {
   const [prompt, setPrompt] = useState(() => examplePromptFor(lang));
   const [genre, setGenre] = useState(genres[0]);
   const [mood, setMood] = useState(moods[0]);
-  const [voice, setVoice] = useState(voiceKeys[1]);
+  const [voice, setVoice] = useState(STUDIO_DEFAULT_VOICE);
   // The preparation is kept on this device (see studio/prep.ts). "restored" turns true once the
   // session is known and the stored preparation, if any, has been put back in the form.
   const userId = user?.id;
@@ -141,7 +157,6 @@ export function StudioComposer() {
   // preparation and the button are untouched, and nothing is retried.
   const [paused, setPaused] = useState(false);
 
-  const stepTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const phaseLabels = t("studio.gen.phases").split("|");
 
   // The example prompt is shown in the language of the interface. A stored one that is still the
@@ -153,7 +168,8 @@ export function StudioComposer() {
         f && !isExamplePrompt(f.prompt) ? f.prompt.slice(0, PREP_PROMPT_MAX) : examplePromptFor(lang),
       genre: f && genres.includes(f.genre) ? f.genre : genres[0],
       mood: f && (moods as readonly string[]).includes(f.mood) ? f.mood : moods[0],
-      voice: f && voiceKeys.includes(f.voice) ? f.voice : voiceKeys[1],
+      // a retired choice ("Instrumental", "Custom voice") comes back as the default voice
+      voice: f && voiceKeys.includes(f.voice) ? f.voice : STUDIO_DEFAULT_VOICE,
     };
     // readable at once, before the next render
     latest.current = next;
@@ -199,7 +215,7 @@ export function StudioComposer() {
         prompt: examplePromptFor(lang),
         genre: genres[0],
         mood: moods[0],
-        voice: voiceKeys[1],
+        voice: STUDIO_DEFAULT_VOICE,
       };
       fields = { ...base, ...mine };
       kept = savePrep(owner, fields, { now });
@@ -287,22 +303,6 @@ export function StudioComposer() {
     toast.success(t("studio.gen.prepSaved"));
   };
 
-  // Cycle phase labels while generating for a lively "forging" feel.
-  useEffect(() => {
-    if (phase !== "generating") {
-      if (stepTimer.current) clearInterval(stepTimer.current);
-      return;
-    }
-    setStepIndex(0);
-    stepTimer.current = setInterval(() => {
-      setStepIndex((i) => Math.min(i + 1, phaseLabels.length - 1));
-    }, 2200);
-    return () => {
-      if (stepTimer.current) clearInterval(stepTimer.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase]);
-
   const generate = async () => {
     if (restoring) return;
     const clean = prompt.trim();
@@ -333,6 +333,7 @@ export function StudioComposer() {
     setKeptHere(keptNow);
     setSaveFailed(!keptNow);
     setPaused(false);
+    setStepIndex(STEP.voice);
     setPhase("generating");
     const startedFor = signedInAs.current;
     // An answer that comes back after the member signed out, or after another account signed in, is
@@ -383,7 +384,8 @@ export function StudioComposer() {
       // Compose an original instrumental bed (drums/bass/pad, synthesized on
       // the fly — no samples, no API, no cost) and mix it under the vocal
       // performance. Falls back to the vocal-only take if mixing fails.
-      const blob = await composeFinalTrack(vocalBlob, genre, mood);
+      setStepIndex(STEP.bed);
+      const { blob, durationSec } = await composeFinalTrack(vocalBlob, genre, mood);
       if (stale()) {
         setPhase("idle");
         return;
@@ -395,7 +397,10 @@ export function StudioComposer() {
           .split(/[.,—-]/)[0]
           .trim()
           .slice(0, 42) || t("studio.gen.newTrack");
-      const duration = "0:20";
+      // The length measured on the audio, or nothing: an unknown length is shown as unknown.
+      const durationLabel = formatMeasuredDuration(durationSec);
+      const duration = durationLabel ?? "";
+      setStepIndex(STEP.save);
 
       // Persist the draft (audio Blob + metadata) — provider owns the object URL. The wallet is
       // debited only once the track is kept; if the device cannot keep it, the track is still
@@ -412,6 +417,7 @@ export function StudioComposer() {
             voice,
             lyrics,
             duration,
+            ...(durationLabel !== null && durationSec !== null ? { durationSec } : {}),
             createdAt: Date.now(),
           },
           blob,
@@ -434,14 +440,21 @@ export function StudioComposer() {
       const track: PlayableTrack = {
         id,
         title,
-        artist: `${genre} · ${t(`studio.voices.${voice}`)}`,
+        artist: `${genre} · ${t(voiceLabelKey(voice) ?? "studio.voice")}`,
         artistId: GEN_COVER,
         src: draftUrl,
         cover: artistImages[GEN_COVER],
-        duration,
+        duration: durationLabel ?? UNKNOWN_DURATION,
       };
 
-      setResult({ track, lyrics, url: draftUrl, ext: audioExtension(blob.type), ownerKey: `u:${startedFor}` });
+      setResult({
+        track,
+        lyrics,
+        url: draftUrl,
+        ext: audioExtension(blob.type),
+        durationLabel,
+        ownerKey: `u:${startedFor}`,
+      });
       setPhase("done");
       play(track);
       toast.success(t("studio.gen.saved"));
@@ -696,6 +709,11 @@ export function StudioComposer() {
                 {shown.track.title}
               </p>
               <p className="truncate text-sm text-muted-foreground">{shown.track.artist}</p>
+              <p data-testid="result-duration" className="text-xs tabular-nums text-muted-foreground">
+                {shown.durationLabel
+                  ? t("studio.gen.duration", { d: shown.durationLabel })
+                  : t("studio.gen.durationUnknown")}
+              </p>
             </div>
             <PlayButton track={shown.track} size="md" />
             <LikeButton trackId={shown.track.id} size="sm" />
