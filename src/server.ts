@@ -40,8 +40,9 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
-      // Private Lyria pilot: not a TanStack public route. OFF without explicit server bindings.
-      // This bypasses no auth: the isolated handler validates owner identity and a durable D1 quota.
+      // Private Lyria pilot: not a TanStack public route. OFF without explicit server bindings, and closed by the
+      // shared emergency stop AI_ROUTES_PAUSED. The handler checks the owner, reserves in D1 and only enqueues:
+      // Google is called by the queue consumer below, never inside this request.
       if (new URL(request.url).pathname === "/api/studio/lyria-private") {
         const { handlePrivateLyriaRequest } = await import("./music/private-demo-handler");
         return await handlePrivateLyriaRequest(request, env as import("./music/private-demo-handler").PrivateLyriaBindings);
@@ -56,5 +57,15 @@ export default {
         headers: { "content-type": "text/html; charset=utf-8" },
       });
     }
+  },
+
+  /**
+   * Cloudflare Queues consumer of the private Lyria pilot. Without a queue binding configured for this Worker it is
+   * never invoked. Every message is acknowledged after handling; the consumer itself guarantees at most one provider
+   * call per attempt, whatever the queue redelivers.
+   */
+  async queue(batch: { messages: readonly { body: unknown; ack(): void }[] }, env: unknown) {
+    const { consumePrivateLyriaBatch } = await import("./music/private-pilot-worker");
+    await consumePrivateLyriaBatch(batch, env as import("./music/private-pilot-bindings").PrivateLyriaBindings);
   },
 };

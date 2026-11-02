@@ -1,43 +1,43 @@
 /**
- * Private owner-only Lyria pilot endpoint, deliberately NOT exposed through the ordinary Studio
- * generation route. OFF unless an operator configures ALL secrets, an isolated D1 database, and
- * an explicit enable flag. The existing Studio/TTS route remains paused.
+ * Private owner-only Lyria pilot: the LIGHT HTTP front. It never calls Google and never decodes audio: it checks,
+ * reserves one attempt in D1, hands a tiny message to the queue, and lets the owner follow the attempt and replay
+ * the stored song (streamed from the private bucket). The provider call happens in the queue consumer
+ * (`private-pilot-worker.ts`).
  *
- * This is staged code only: deployment/activation and any paid call require separate owner GO.
+ * OFF by default, FAIL-CLOSED: the pilot switch, the shared emergency stop `AI_ROUTES_PAUSED`, the owner identity
+ * and the bindings are all checked before anything is read or written. Staged code only: deployment, activation and
+ * any paid call require a separate owner GO.
+ *
+ *   GET  /api/studio/lyria-private                 pilot status (owner only)
+ *   GET  /api/studio/lyria-private?job=<id>        one attempt: state, and the lyrics once stored
+ *   GET  /api/studio/lyria-private?job=<id>&audio=1  the stored MP3, streamed, private, never cached
+ *   POST /api/studio/lyria-private  (Idempotency-Key: <uuid>)  202 new attempt, or 200 the same attempt again
  */
 import { readJsonLimited, textField } from "@/lib/api-guard";
 import { memberAuthConfig, verifyMemberSession, type MemberCheck } from "@/lib/member-guard";
-import { buildLyriaPrompt, generateLyriaSong, LyriaGenerationError, type LyriaSong, type LyriaSongRequest } from "./lyria35";
+import { buildLyriaPrompt, type LyriaSongRequest } from "./lyria35";
 import {
-  PrivateDemoBudgetError,
-  completeOwnerDemoCall,
-  isOwner,
-  ownerDemoBudgetStatus,
-  reserveOwnerDemoCall,
-  type BudgetDatabase,
-} from "./private-demo-budget";
+  aiRoutesPaused,
+  lyricsKey,
+  pilotEnabled,
+  UUID_PATTERN,
+  type PrivateLyriaBindings,
+} from "./private-pilot-bindings";
+import { createPilotStore, PilotStoreError, type PilotJob, type PilotStore } from "./private-pilot-store";
+import { reconcilePilot } from "./private-pilot-worker";
 
-export interface PrivateLyriaBindings {
-  AIMF_PRIVATE_LYRIA_ENABLED?: string;
-  AIMF_PRIVATE_LYRIA_OWNER_ID?: string;
-  AIMF_PRIVATE_LYRIA_DB?: BudgetDatabase;
-  GEMINI_API_KEY?: string;
-  SUPABASE_URL?: string;
-  SUPABASE_PUBLISHABLE_KEY?: string;
-  VITE_SUPABASE_URL?: string;
-  VITE_SUPABASE_PUBLISHABLE_KEY?: string;
-}
+export type { PrivateLyriaBindings } from "./private-pilot-bindings";
 
 export interface PrivateLyriaDependencies {
   verify?: (request: Request) => Promise<MemberCheck>;
-  generate?: (request: LyriaSongRequest, options: { apiKey: string }) => Promise<LyriaSong>;
+  now?: () => number;
+  processEnv?: Record<string, string | undefined>;
 }
 
-function jsonFailure(status: number, code: string): Response {
-  return Response.json(
-    { error: "Private music generation unavailable.", code },
-    { status, headers: { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } },
-  );
+const NO_STORE = { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" };
+
+function failure(status: number, code: string): Response {
+  return Response.json({ error: "Private music generation unavailable.", code }, { status, headers: NO_STORE });
 }
 
 function isSameOriginRequest(request: Request): boolean {
@@ -52,68 +52,26 @@ function isSameOriginRequest(request: Request): boolean {
   return request.headers.get("sec-fetch-site") === "same-origin";
 }
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** What the owner may see of an attempt: never the owner id, the input or the storage address. */
+function jobView(job: PilotJob) {
+  return {
+    id: job.id,
+    state: job.state,
+    providerEngaged: job.provider_engaged_at !== null,
+    reviewReason: job.review_reason,
+    audioBytes: job.state === "stored" ? job.audio_bytes : null,
+    createdAt: job.created_at,
+    updatedAt: job.updated_at,
+  };
+}
 
-/**
- * One request = at most one Lyria call. Never auto retry. A provider failure
- * intentionally leaves the durable reservation locked for owner investigation.
- * A successful response releases the active lock, but its ID stays spent forever.
- */
-export async function handlePrivateLyriaRequest(
-  request: Request,
-  bindings: PrivateLyriaBindings | null | undefined,
-  deps: PrivateLyriaDependencies = {},
-): Promise<Response> {
-  if (request.method !== "POST" && request.method !== "GET") return jsonFailure(405, "method_not_allowed");
-  if (!bindings || bindings.AIMF_PRIVATE_LYRIA_ENABLED !== "1") {
-    return jsonFailure(503, "pilot_disabled");
-  }
-  if (!isSameOriginRequest(request)) return jsonFailure(403, "forbidden");
-  if (!bindings.AIMF_PRIVATE_LYRIA_OWNER_ID?.trim()) {
-    return jsonFailure(503, "pilot_unconfigured");
-  }
+async function sha256Hex(text: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
+}
 
-  // Authentication is read-only; a valid token is not enough unless it belongs to the owner.
-  const member = await (deps.verify ?? ((r) => verifyMemberSession(r, {
-    config: memberAuthConfig({
-      SUPABASE_URL: bindings.SUPABASE_URL,
-      SUPABASE_PUBLISHABLE_KEY: bindings.SUPABASE_PUBLISHABLE_KEY,
-      VITE_SUPABASE_URL: bindings.VITE_SUPABASE_URL,
-      VITE_SUPABASE_PUBLISHABLE_KEY: bindings.VITE_SUPABASE_PUBLISHABLE_KEY,
-    }),
-  })))(request);
-  if (!member.ok) return member.response;
-  if (!isOwner(member.userId, bindings.AIMF_PRIVATE_LYRIA_OWNER_ID)) {
-    return jsonFailure(403, "owner_only");
-  }
-
-  const apiKey = bindings.GEMINI_API_KEY?.trim();
-  const db = bindings.AIMF_PRIVATE_LYRIA_DB;
-  if (!apiKey || !db || typeof db.prepare !== "function") {
-    return jsonFailure(503, "pilot_unconfigured");
-  }
-
-  if (request.method === "GET") {
-    try {
-      const status = await ownerDemoBudgetStatus(db);
-      return Response.json(
-        { enabled: true, model: "lyria-3.5", ...status },
-        { headers: { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } },
-      );
-    } catch {
-      return jsonFailure(503, "pilot_unavailable");
-    }
-  }
-
-  const requestId = request.headers.get("idempotency-key")?.trim() ?? "";
-  if (!UUID_PATTERN.test(requestId)) return jsonFailure(400, "idempotency_key_required");
-
-  const parsed = await readJsonLimited(request);
-  if (!parsed.ok) return parsed.response;
-  const body = parsed.body;
-  if (!body || typeof body !== "object" || Array.isArray(body)) {
-    return jsonFailure(400, "invalid_input");
-  }
+function readInput(body: unknown): LyriaSongRequest | null {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return null;
   const fields = body as Record<string, unknown>;
   const input: LyriaSongRequest = {
     prompt: textField(fields.prompt, 1200),
@@ -125,57 +83,138 @@ export async function handlePrivateLyriaRequest(
   };
   try {
     buildLyriaPrompt(input);
+    return input;
   } catch {
-    return jsonFailure(400, "invalid_input");
+    return null;
   }
+}
 
-  let usedCalls: number;
+export async function handlePrivateLyriaRequest(
+  request: Request,
+  bindings: PrivateLyriaBindings | null | undefined,
+  deps: PrivateLyriaDependencies = {},
+): Promise<Response> {
+  if (request.method !== "POST" && request.method !== "GET") return failure(405, "method_not_allowed");
+  if (!pilotEnabled(bindings)) return failure(503, "pilot_disabled");
+  if (aiRoutesPaused(bindings, deps.processEnv)) return failure(503, "ai_paused");
+  if (!isSameOriginRequest(request)) return failure(403, "forbidden");
+  const ownerId = bindings?.AIMF_PRIVATE_LYRIA_OWNER_ID?.trim();
+  if (!ownerId) return failure(503, "pilot_unconfigured");
+
+  // Authentication is read-only; a valid session is not enough unless it is the owner's.
+  const member = await (
+    deps.verify ??
+    ((r: Request) =>
+      verifyMemberSession(r, {
+        config: memberAuthConfig({
+          SUPABASE_URL: bindings?.SUPABASE_URL,
+          SUPABASE_PUBLISHABLE_KEY: bindings?.SUPABASE_PUBLISHABLE_KEY,
+          VITE_SUPABASE_URL: bindings?.VITE_SUPABASE_URL,
+          VITE_SUPABASE_PUBLISHABLE_KEY: bindings?.VITE_SUPABASE_PUBLISHABLE_KEY,
+        }),
+      }))
+  )(request);
+  if (!member.ok) return member.response;
+  if (member.userId !== ownerId) return failure(403, "owner_only");
+
+  const db = bindings?.AIMF_PRIVATE_LYRIA_DB;
+  const queue = bindings?.AIMF_PRIVATE_LYRIA_QUEUE;
+  const bucket = bindings?.AIMF_PRIVATE_LYRIA_BUCKET;
+  if (!db || !queue || !bucket || !bindings?.GEMINI_API_KEY?.trim()) return failure(503, "pilot_unconfigured");
+  const store = createPilotStore(db, deps.now);
+
   try {
-    usedCalls = await reserveOwnerDemoCall(db, requestId);
+    // Recovery of the windows no single write covers (never a provider call). The pilot is open at this point.
+    await reconcilePilot(store, bucket, queue, { canEnqueue: true });
+    if (request.method === "GET") return await handleGet(request, store, bucket, ownerId);
+    return await handlePost(request, store, queue, ownerId);
   } catch (error) {
-    if (!(error instanceof PrivateDemoBudgetError)) return jsonFailure(503, "pilot_unavailable");
-    if (error.reason === "invalid_request") return jsonFailure(400, "invalid_request");
-    if (error.reason === "duplicate") return jsonFailure(409, "already_submitted");
-    if (error.reason === "busy") return jsonFailure(409, "generation_in_progress");
-    if (error.reason === "exhausted") return jsonFailure(402, "pilot_quota_exhausted");
-    return jsonFailure(503, "pilot_unavailable");
+    if (error instanceof PilotStoreError) return failure(503, "pilot_unavailable");
+    return failure(503, "pilot_unavailable");
   }
+}
 
-  let song: LyriaSong;
-  try {
-    song = await (deps.generate ?? generateLyriaSong)(input, { apiKey });
-  } catch (error) {
-    // Reservation stays locked; do not retry or refund on an unknown billing outcome.
-    if (error instanceof LyriaGenerationError && error.status === 429) {
-      return jsonFailure(429, "provider_rate_limited");
+async function handleGet(request: Request, store: PilotStore, bucket: NonNullable<PrivateLyriaBindings["AIMF_PRIVATE_LYRIA_BUCKET"]>, ownerId: string) {
+  const params = new URL(request.url).searchParams;
+  const jobId = params.get("job");
+  if (jobId === null) {
+    const summary = await store.summary();
+    return Response.json({ enabled: true, model: "lyria-3.5", ...summary }, { headers: NO_STORE });
+  }
+  if (!UUID_PATTERN.test(jobId)) return failure(400, "invalid_job");
+  const job = await store.getJob(jobId);
+  // Another owner's attempt (impossible with one owner, kept for safety) answers like a missing one.
+  if (!job || job.owner_id !== ownerId) return failure(404, "not_found");
+
+  if (params.get("audio") === "1") {
+    if (job.state !== "stored" || !job.audio_key) return failure(409, "not_ready");
+    const object = await bucket.get(job.audio_key);
+    if (!object || object.size !== job.audio_bytes || object.customMetadata?.sha256 !== job.audio_sha256) {
+      return failure(503, "audio_unavailable");
     }
-    return jsonFailure(502, "provider_failed_review_required");
+    return new Response(object.body, {
+      headers: {
+        "Content-Type": "audio/mpeg",
+        "Content-Length": String(object.size),
+        "Cache-Control": "private, no-store",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Disposition": `inline; filename="aimf-lyria-${job.id}.mp3"`,
+      },
+    });
   }
 
-  // Fail-closed if the provider returned an unexpected output without an MP3.
-  if (song.model !== "lyria-3.5" || song.mimeType !== "audio/mpeg" || song.audio.byteLength === 0) {
-    return jsonFailure(502, "provider_invalid_review_required");
+  let lyrics: string | null = null;
+  if (job.state === "stored") {
+    const meta = await bucket.get(lyricsKey(job.owner_id, job.id)).catch(() => null);
+    try {
+      const parsed = meta ? (JSON.parse(await meta.text()) as { lyrics?: unknown }) : null;
+      lyrics = typeof parsed?.lyrics === "string" ? parsed.lyrics : null;
+    } catch {
+      lyrics = null;
+    }
+  }
+  return Response.json({ job: jobView(job), lyrics }, { headers: NO_STORE });
+}
+
+async function handlePost(
+  request: Request,
+  store: PilotStore,
+  queue: NonNullable<PrivateLyriaBindings["AIMF_PRIVATE_LYRIA_QUEUE"]>,
+  ownerId: string,
+) {
+  const requestId = request.headers.get("idempotency-key")?.trim() ?? "";
+  if (!UUID_PATTERN.test(requestId)) return failure(400, "idempotency_key_required");
+  const parsed = await readJsonLimited(request);
+  if (!parsed.ok) return parsed.response;
+  const input = readInput(parsed.body);
+  if (!input) return failure(400, "invalid_input");
+  const inputJson = JSON.stringify(input);
+  const requestHash = await sha256Hex(inputJson);
+
+  const reserved = await store.reserve(requestId.toLowerCase(), ownerId, requestHash, inputJson);
+  if (!reserved) {
+    // Same key again: the same attempt, never a new one. Same key, other content: refused.
+    const existing = await store.getJob(requestId.toLowerCase());
+    if (existing) {
+      if (existing.owner_id !== ownerId) return failure(404, "not_found");
+      if (existing.request_hash !== requestHash) return failure(409, "idempotency_key_reused");
+      return Response.json({ job: jobView(existing), replay: true }, { headers: NO_STORE });
+    }
+    const summary = await store.summary();
+    if (summary.frozen) return failure(503, "pilot_frozen");
+    if (summary.reviewRequired) return failure(423, "review_required");
+    if (summary.activeId) return failure(409, "generation_in_progress");
+    if (summary.usedAttempts >= summary.maxAttempts) return failure(402, "pilot_quota_exhausted");
+    return failure(503, "pilot_unavailable");
   }
 
-  // Complete the one-flight reservation only after the audio exists and is validated.
-  // A client disconnect may lose the result, but replaying this ID can never re-spend.
+  // Outbox: the attempt is durable before the hand-off. If the send fails, it stays `reserved` (never engaged) and
+  // the reconciliation hands it over later; the owner replays the same key to follow it.
   try {
-    await completeOwnerDemoCall(db, requestId);
+    await queue.send({ v: 1, jobId: reserved.id });
+    const queued = await store.markQueued(reserved.id);
+    return Response.json({ job: jobView(queued ?? reserved), replay: false }, { status: 202, headers: NO_STORE });
   } catch {
-    // Do not return a success with budget state possibly inconsistent.
-    return jsonFailure(503, "pilot_unavailable_review_required");
+    return Response.json({ job: jobView(reserved), replay: false, handoff: "pending" }, { status: 202, headers: NO_STORE });
   }
-
-  return Response.json(
-    {
-      generationId: requestId,
-      model: song.model,
-      lyrics: song.text,
-      audioMimeType: song.mimeType,
-      audioBase64: Buffer.from(song.audio).toString("base64"),
-      estimatedCostUsd: song.estimatedCostUsd,
-      pilotCallsUsed: usedCalls,
-    },
-    { headers: { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } },
-  );
 }
