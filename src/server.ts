@@ -40,6 +40,12 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      // Private Lyria pilot: not a TanStack public route. OFF without explicit server bindings.
+      // This bypasses no auth: the isolated handler validates owner identity and a durable D1 quota.
+      if (new URL(request.url).pathname === "/api/studio/lyria-private") {
+        const { handlePrivateLyriaRequest } = await import("./music/private-demo-handler");
+        return await handlePrivateLyriaRequest(request, env as import("./music/private-demo-handler").PrivateLyriaBindings);
+      }
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
