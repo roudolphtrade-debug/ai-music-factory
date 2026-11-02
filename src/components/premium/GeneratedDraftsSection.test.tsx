@@ -435,3 +435,25 @@ describe("the list of tracks tells the truth about what it holds", () => {
     expect(screen.queryByText(en("studio.gen.loadFailed"))).toBeNull();
   });
 });
+
+describe("lot P0: a draft shows its measured length, or says it is unknown", () => {
+  it("a draft with a measured length shows it", async () => {
+    disk.records.set("mine", { ...track("mine", "alice"), durationSec: 83 } as Rec);
+    render(tree());
+    expect((await screen.findByTestId("draft-duration")).textContent).toBe("1:23");
+  });
+
+  it("an older draft that only holds the hand-written 0:20 says the length is unavailable", async () => {
+    render(tree());
+    expect((await screen.findByTestId("draft-duration")).textContent).toBe(en("studio.gen.durationUnknown"));
+    expect(document.body.textContent).not.toContain("0:20");
+  });
+
+  it("an older draft made with 'Instrumental' is named as a synthetic voice, not as an instrumental", async () => {
+    disk.records.set("mine", { ...track("mine", "alice"), voice: "Instrumental" } as Rec);
+    render(tree());
+    await screen.findByTestId("draft-duration");
+    expect(screen.getByText(en("studio.voice"))).toBeTruthy();
+    expect(document.body.textContent).not.toContain("Instrumental");
+  });
+});

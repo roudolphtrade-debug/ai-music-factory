@@ -27,8 +27,8 @@ describe("the texts of Portuguese, Chinese and Arabic are translated, not copied
   // here on purpose. A text copied from English by mistake would not be on this list, and fails.
   const SAME_AS_ENGLISH: Record<"pt" | "zh" | "ar", string[]> = {
     pt: [
-      "nav.demo", "nav.menu", "home.arena.eyebrow", "studio.prompt", "studio.voices.Instrumental",
-      "studio.voices.Soprano", "battles.final", "settings.bio", "charts.regions.Global", "credits.popular",
+      "nav.demo", "nav.menu", "home.arena.eyebrow", "studio.prompt",
+      "battles.final", "settings.bio", "charts.regions.Global", "credits.popular",
       "credits.plans.studio.name", "credits.plans.label.name", "labels.mrr", "avatarLab.persona",
     ],
     zh: ["credits.plans.studio.name", "credits.plans.label.name"],

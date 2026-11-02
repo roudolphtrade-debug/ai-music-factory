@@ -18,6 +18,8 @@ import { PlayButton } from "@/components/audio/PlayButton";
 import { LikeButton } from "@/components/premium/LikeButton";
 import { useGeneratedDrafts, type GeneratedDraft } from "@/library/draftsContext";
 import type { PlayableTrack } from "@/audio/tracks";
+import { formatMeasuredDuration, UNKNOWN_DURATION } from "@/audio/format";
+import { voiceLabelKey } from "@/studio/options";
 import { artistImages, type ArtistId, type RelTime } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
 import { RTL_LANGS } from "@/i18n/translations";
@@ -36,15 +38,22 @@ function toRelTime(ts: number): RelTime {
   return { n: days, u: "d" };
 }
 
+/**
+ * The voice of a draft as words. A draft made with a retired choice ("Instrumental", "Custom voice") was
+ * read by a synthetic voice like the others, so it is named that way, never by the old promise.
+ */
+const draftVoiceKey = (d: GeneratedDraft) => voiceLabelKey(d.voice) ?? "studio.voice";
+
 function draftToTrack(d: GeneratedDraft, t: (k: string) => string): PlayableTrack {
   return {
     id: d.id,
     title: d.title,
-    artist: `${d.genre} · ${t(`studio.voices.${d.voice}`)}`,
+    artist: `${d.genre} · ${t(draftVoiceKey(d))}`,
     artistId: COVER,
     src: d.url,
     cover: artistImages[COVER],
-    duration: d.duration,
+    // only a measured length; the "0:20" older drafts hold was written by hand
+    duration: formatMeasuredDuration(d.durationSec) ?? UNKNOWN_DURATION,
   };
 }
 
@@ -139,7 +148,12 @@ export function GeneratedDraftsSection() {
                 <div className="mt-4 flex flex-wrap items-center gap-2">
                   <GoldBadge variant="outline">{d.genre}</GoldBadge>
                   <GoldBadge variant="outline">{t(`moods.${d.mood}`)}</GoldBadge>
-                  <GoldBadge variant="outline">{t(`studio.voices.${d.voice}`)}</GoldBadge>
+                  <GoldBadge variant="outline">{t(draftVoiceKey(d))}</GoldBadge>
+                  <span data-testid="draft-duration" className="contents">
+                    <GoldBadge variant="outline">
+                      {formatMeasuredDuration(d.durationSec) ?? t("studio.gen.durationUnknown")}
+                    </GoldBadge>
+                  </span>
                 </div>
               </article>
             );

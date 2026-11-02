@@ -11,13 +11,13 @@ export const Route = createFileRoute("/_app/studio")({
   head: () => ({
     meta: [
       { property: "og:title", content: "Creator Studio · Ai Music Factory" },
-      { property: "og:description", content: "Compose, prompt, version and publish AI tracks in a premium creative studio." },
+      { property: "og:description", content: "Write an idea and get a preview: lyrics written by AI, read by a synthetic voice over an instrumental bed made in your browser." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { title: "Creator Studio · Ai Music Factory" },
       {
         name: "description",
-        content: "Compose, prompt, version and publish AI tracks in a premium creative studio.",
+        content: "Write an idea and get a preview: lyrics written by AI, read by a synthetic voice over an instrumental bed made in your browser.",
       },
     ],
   }),

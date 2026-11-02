@@ -12,7 +12,13 @@ export interface GeneratedDraftMeta {
   mood: string;
   voice: string;
   lyrics: string;
+  /**
+   * Kept so that older drafts still read. Drafts saved before the length was measured all hold "0:20",
+   * written by hand whatever the audio, so this field is never shown: `durationSec` is.
+   */
   duration: string;
+  /** The length measured on the audio when the draft was made, in seconds. Absent: unknown. */
+  durationSec?: number;
   createdAt: number;
   /**
    * The account the draft belongs to. The prompt, the lyrics and the audio are the member's own data:

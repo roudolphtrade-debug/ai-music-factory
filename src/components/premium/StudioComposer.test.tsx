@@ -36,7 +36,7 @@ vi.mock("sonner", () => ({
   toast: { error: vi.fn(), success: vi.fn(), message: vi.fn(), warning: vi.fn() },
 }));
 // The drafts store is a stand-in with a switch: the device can keep the track, or cannot.
-const drafts = vi.hoisted(() => ({ fail: false, added: 0, kept: [] as string[] }));
+const drafts = vi.hoisted(() => ({ fail: false, added: 0, kept: [] as string[], metas: [] as Record<string, unknown>[] }));
 vi.mock("@/library/draftsContext", () => ({
   DraftDiscardedError: class DraftDiscardedError extends Error {},
   useGeneratedDrafts: () => ({
@@ -46,6 +46,7 @@ vi.mock("@/library/draftsContext", () => ({
     addDraft: async (meta: object) => {
       if (drafts.fail) throw new Error("quota");
       drafts.added++;
+      drafts.metas.push(meta as Record<string, unknown>);
       return { ...meta, url: "blob:kept" };
     },
     keepUrl: (url: string) => {
@@ -56,7 +57,11 @@ vi.mock("@/library/draftsContext", () => ({
   }),
 }));
 // The instrumental bed is synthesized with the Web Audio API, absent from jsdom: the vocal passes through.
-vi.mock("@/audio/mixTrack", () => ({ composeFinalTrack: async (blob: Blob) => blob }));
+// The mix keeps the vocal as it is. The measured length is what `mixResult.durationSec` says (none by default).
+const mixResult = vi.hoisted(() => ({ durationSec: null as number | null }));
+vi.mock("@/audio/mixTrack", () => ({
+  composeFinalTrack: async (blob: Blob) => ({ blob, durationSec: mixResult.durationSec }),
+}));
 
 const en = (key: string, vars?: Record<string, string | number>) => translate("en", key, vars);
 const DEFAULT_PROMPT_START = "Cinematic ambient pop";
@@ -69,6 +74,8 @@ beforeEach(() => {
   drafts.fail = false;
   drafts.added = 0;
   drafts.kept = [];
+  drafts.metas = [];
+  mixResult.durationSec = null;
   installFakeAudio();
   createdUrls = [];
   vi.stubGlobal(
@@ -1169,5 +1176,80 @@ describe("the example prompt follows the language of the interface", () => {
       within(box).getByRole("button", { name: translate("pt", "studio.gen.prepClearConfirm") }),
     );
     await waitFor(() => expect(promptBox().value).toBe(example("pt")));
+  });
+});
+
+// ------------------------------------------------------------------ lot P0: the studio says what it does
+describe("lot P0: only working voices are offered", () => {
+  const voiceMenu = () => screen.getAllByRole("combobox")[2] as HTMLSelectElement;
+
+  it("the voice menu offers no 'Instrumental' and no 'Custom voice', and starts on the default voice", async () => {
+    mount();
+    await ready();
+    const values = Array.from(voiceMenu().options).map((o) => o.value);
+    expect(values).toEqual(["Warm tenor", "Soprano", "Alto"]);
+    expect(voiceMenu().value).toBe("Warm tenor");
+    const labels = Array.from(voiceMenu().options).map((o) => o.textContent);
+    expect(labels).toEqual([en("studio.voices.Warm tenor"), en("studio.voices.Soprano"), en("studio.voices.Alto")]);
+  });
+
+  it.each(["Instrumental", "Custom voice"])(
+    "a preparation stored with '%s' comes back with the default voice, and that voice is what is sent",
+    async (retired) => {
+      signIn("alice");
+      savePrep(memberOwner("alice"), { prompt: "an older idea", genre: "Trap", mood: moods[0], voice: retired });
+      mount();
+      await waitFor(() => expect(promptBox().value).toBe("an older idea"));
+      expect(voiceMenu().value).toBe("Warm tenor");
+      fireEvent.click(generateButton());
+      await waitFor(() => expect(route).toHaveBeenCalled());
+      expect(JSON.parse(String((route.mock.calls[0][1] as RequestInit).body)).voice).toBe("Warm tenor");
+    },
+  );
+});
+
+describe("lot P0: the length shown is the measured one, or said to be unknown", () => {
+  const generateOnce = async () => {
+    signIn("alice");
+    mount();
+    await ready();
+    fireEvent.click(generateButton());
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith(en("studio.gen.saved")));
+  };
+
+  it("shows the measured length and keeps it with the draft", async () => {
+    mixResult.durationSec = 83.4;
+    await generateOnce();
+    expect(screen.getByTestId("result-duration").textContent).toBe(en("studio.gen.duration", { d: "1:23" }));
+    expect(drafts.metas[0]).toMatchObject({ durationSec: 83.4, duration: "1:23" });
+  });
+
+  it("without a measure, says the length is unavailable and stores none, never a fixed 0:20", async () => {
+    await generateOnce();
+    expect(screen.getByTestId("result-duration").textContent).toBe(en("studio.gen.durationUnknown"));
+    expect(drafts.metas[0]).not.toHaveProperty("durationSec");
+    expect(drafts.metas[0].duration).toBe("");
+    expect(document.body.textContent).not.toContain("0:20");
+  });
+});
+
+describe("lot P0: the progress shows the step really reached, without a timer", () => {
+  it("stays on the first step for as long as the service has not answered", async () => {
+    signIn("alice");
+    let answer: (r: Response) => void = () => {};
+    route.mockImplementation(() => new Promise<Response>((r) => (answer = r)));
+    mount();
+    await ready();
+    fireEvent.click(generateButton());
+    const steps = en("studio.gen.phases").split("|");
+    expect(steps).toHaveLength(3);
+    expect(await screen.findByText(steps[0])).toBeTruthy();
+    await act(async () => void (await new Promise((r) => setTimeout(r, 2500)))); // longer than the old timer
+    expect(screen.getByText(steps[0])).toBeTruthy();
+    expect(screen.queryByText(steps[1])).toBeNull();
+    await act(async () =>
+      answer(new Response(new Uint8Array([1]), { status: 200, headers: { "X-Lyrics": btoa("la") } })),
+    );
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith(en("studio.gen.saved")));
   });
 });

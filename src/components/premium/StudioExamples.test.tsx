@@ -94,3 +94,14 @@ describe("the examples speak the language of the interface and keep the names", 
     }
   });
 });
+
+describe("lot P0: an example idea does not name a voice the form does not offer", () => {
+  it("the instrumental example carries no voice badge, the others carry their timbre", () => {
+    mount();
+    const text = document.body.textContent ?? "";
+    expect(text).not.toContain("Instrumental");
+    for (const p of projects.filter((x) => x.voice !== "Instrumental")) {
+      expect(text).toContain(translate("en", `studio.voices.${p.voice}`));
+    }
+  });
+});

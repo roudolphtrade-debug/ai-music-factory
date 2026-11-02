@@ -538,11 +538,12 @@ describe("lot A.3: what the studio page shows is written in each language, not b
   const visible = [
     "studio.newComposition",
     "studio.saveDraft",
-    "studio.voices.Instrumental",
+    "studio.voice",
     "studio.voices.Warm tenor",
     "studio.voices.Soprano",
     "studio.voices.Alto",
-    "studio.voices.Custom voice",
+    "studio.gen.duration",
+    "studio.gen.durationUnknown",
     "studio.gen.newTrack",
     "studio.uploadTitle",
     "studio.uploadDesc",
@@ -560,5 +561,79 @@ describe("lot A.3: what the studio page shows is written in each language, not b
     for (const key of ["studio.saveDraft", "studio.newComposition"]) {
       expect(own(lang, key), `${lang} ${key}`).not.toBe(own("en", key));
     }
+  });
+});
+
+// ------------------------------------------------------------------ lot P0
+describe("lot P0: the studio does not claim mastering, singing registers or retired choices", () => {
+  const MASTERING: Record<Lang, RegExp> = {
+    fr: /master/i,
+    en: /master/i,
+    es: /master/i,
+    zh: /母带/,
+    pt: /master/i,
+    ar: /ماستر|امستر/,
+  };
+  // A singing register promises a sung voice; the speech service reads the lyrics.
+  const REGISTER: Record<Lang, RegExp> = {
+    fr: /t[ée]nor|soprano|alto/i,
+    en: /tenor|soprano|alto/i,
+    es: /tenor|soprano|contralto/i,
+    zh: /男高音|女高音|女低音/,
+    pt: /tenor|soprano|contralto/i,
+    ar: /تينور|سوبرانو|ألتو/,
+  };
+
+  it.each(langs)("%s: neither the description of the studio nor its progress mentions mastering", (lang) => {
+    expect(t(lang, "studio.desc")).not.toMatch(MASTERING[lang]);
+    expect(t(lang, "studio.gen.phases")).not.toMatch(MASTERING[lang]);
+  });
+
+  it.each(langs)("%s: the progress has three real steps, each written in the language", (lang) => {
+    const steps = t(lang, "studio.gen.phases").split("|");
+    expect(steps).toHaveLength(3);
+    for (const step of steps) expect(step.trim().length).toBeGreaterThan(3);
+    if (lang !== "en") expect(t(lang, "studio.gen.phases")).not.toBe(t("en", "studio.gen.phases"));
+  });
+
+  it.each(langs)("%s: the voices are named by timbre, the field says they are synthetic", (lang) => {
+    for (const voice of ["Warm tenor", "Soprano", "Alto"]) {
+      expect(t(lang, `studio.voices.${voice}`), `${lang} ${voice}`).not.toMatch(REGISTER[lang]);
+    }
+    const synthetic = { fr: /synth[eè]se/i, en: /synthetic/i, es: /sint[eé]tica/i, zh: /合成/, pt: /sint[eé]tica/i, ar: /اصطناعي/ }[lang];
+    expect(t(lang, "studio.voice")).toMatch(synthetic);
+    expect(t(lang, "studio.desc")).toMatch(synthetic);
+  });
+
+  it.each(langs)("%s: no text is left for the retired 'Instrumental' and 'Custom voice' choices", (lang) => {
+    const voices = (translations[lang] as { studio: { voices: Record<string, string> } }).studio.voices;
+    expect(Object.keys(voices).sort()).toEqual(["Alto", "Soprano", "Warm tenor"]);
+  });
+
+  it.each(langs)("%s: the length texts exist, fill their value and carry no dash", (lang) => {
+    expect(translate(lang, "studio.gen.duration", { d: "1:23" })).toContain("1:23");
+    for (const key of ["studio.gen.duration", "studio.gen.durationUnknown", "studio.desc", "studio.gen.phases"]) {
+      expect(t(lang, key), `${lang} ${key}`).not.toContain("—");
+    }
+  });
+
+  it("the page description given to search engines and previews says what the studio does", () => {
+    const route = readFileSync("src/routes/_app.studio.tsx", "utf8");
+    expect(route).not.toMatch(/master|publish|version/i);
+    expect(route).toMatch(/synthetic voice/);
+  });
+});
+
+describe("lot P0: where each part of a track is made", () => {
+  const ONLINE: Record<Lang, RegExp> = {
+    fr: /service en ligne/,
+    en: /online service/,
+    es: /servicio en l[ií]nea/,
+    zh: /在线服务/,
+    pt: /servi[cç]o online/,
+    ar: /خدمة عبر الإنترنت/,
+  };
+  it.each(langs)("%s: the notice says the voice comes from an online service, not from the device", (lang) => {
+    expect(t(lang, "studio.rightsNotice")).toMatch(ONLINE[lang]);
   });
 });

@@ -35,7 +35,8 @@ vi.mock("@/library/draftsContext", () => ({
     eraseMine: async () => true,
   }),
 }));
-vi.mock("@/audio/mixTrack", () => ({ composeFinalTrack: async (blob: Blob) => blob }));
+// The mix keeps the vocal as it is; no length is measured (jsdom has no Web Audio).
+vi.mock("@/audio/mixTrack", () => ({ composeFinalTrack: async (blob: Blob) => ({ blob, durationSec: null }) }));
 
 const en = (key: string) => translate("en", key);
 const STORED = {
@@ -318,11 +319,11 @@ describe("rapid edits and refused writes", () => {
     const release = holdSession("alice");
     mount();
     await settle();
-    fireEvent.change(select(2), { target: { value: "Instrumental" } });
+    fireEvent.change(select(2), { target: { value: "Soprano" } });
     refuseWrites();
     await act(async () => release());
     await settle();
-    expect(select(2).value).toBe("Instrumental");
+    expect(select(2).value).toBe("Soprano");
     expect(promptBox().value).toBe(STORED.prompt); // the stored fields are still what the form shows
     expect(await screen.findByText(en("studio.gen.saveFailed"))).toBeTruthy();
     expect(readPrep(memberOwner("alice"))?.fields).toEqual(STORED); // and the stored copy was not damaged

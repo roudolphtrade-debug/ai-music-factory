@@ -2,6 +2,7 @@ import { SectionHeading } from "@/components/premium/SectionHeading";
 import { GoldBadge } from "@/components/premium/Chips";
 import { projects } from "@/data/mock";
 import { useI18n } from "@/i18n/context";
+import { voiceLabelKey } from "@/studio/options";
 
 /**
  * Demonstration ideas, named as such. They are not the member's creations, so they carry no date, no
@@ -37,7 +38,10 @@ export function StudioExamples() {
             <div className="mt-4 flex flex-wrap gap-2">
               <GoldBadge variant="outline">{p.genre}</GoldBadge>
               <GoldBadge variant="outline">{t(`moods.${p.mood}`)}</GoldBadge>
-              <GoldBadge variant="outline">{t(`studio.voices.${p.voice}`)}</GoldBadge>
+              {/* a voice the form does not offer (an instrumental idea) is not named as a choice */}
+              {voiceLabelKey(p.voice) && (
+                <GoldBadge variant="outline">{t(voiceLabelKey(p.voice)!)}</GoldBadge>
+              )}
             </div>
           </article>
         ))}
