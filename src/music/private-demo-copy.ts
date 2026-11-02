@@ -22,6 +22,13 @@ export interface PrivatePilotCopy {
   spokenNotGuaranteed: string;
   failed: string;
   blocked: string;
+  statusQueued: string;
+  statusRunning: string;
+  statusStored: string;
+  statusNeedsReview: string;
+  statusHalted: string;
+  refresh: string;
+  reviewRequired: string;
 }
 
 export const PRIVATE_PILOT_COPY: Record<Lang, PrivatePilotCopy> = {
@@ -44,9 +51,16 @@ export const PRIVATE_PILOT_COPY: Record<Lang, PrivatePilotCopy> = {
     warning: "Chaque tentative peut être facturée, même si la réponse échoue. Aucun renouvellement automatique.",
     result: "Chanson générée",
     download: "Télécharger le MP3",
-    spokenNotGuaranteed: "Les préférences de voix sont indicatives. Le résultat est conservé uniquement dans cet onglet.",
+    spokenNotGuaranteed: "Les préférences de voix sont indicatives. Le morceau est conservé en privé : il reste disponible après la fermeture de l'onglet.",
     failed: "Génération non terminée. Vérifier le journal avant tout nouvel essai.",
     blocked: "Pilote indisponible ou budget épuisé. Aucun nouvel appel lancé.",
+    statusQueued: "En file d'attente : la génération va commencer. Vous pouvez fermer cet onglet.",
+    statusRunning: "Génération en cours chez Google (environ 30 secondes). Vous pouvez fermer cet onglet.",
+    statusStored: "Morceau prêt et conservé en privé.",
+    statusNeedsReview: "Issue incertaine : aucun nouvel appel ne sera lancé. Vérification par le propriétaire nécessaire.",
+    statusHalted: "Tentative arrêtée avant tout appel au fournisseur.",
+    refresh: "Actualiser l'état",
+    reviewRequired: "Une tentative attend une vérification : le pilote est bloqué jusqu'à votre revue.",
   },
   en: {
     eyebrow: "PRIVATE PILOT · Lyria 3.5",
@@ -67,9 +81,16 @@ export const PRIVATE_PILOT_COPY: Record<Lang, PrivatePilotCopy> = {
     warning: "Each attempt may be billed, even if the response fails. No automatic retry.",
     result: "Generated song",
     download: "Download MP3",
-    spokenNotGuaranteed: "Vocal preferences are best effort. This result stays only in this tab.",
+    spokenNotGuaranteed: "Vocal preferences are best effort. The song is kept privately: it is still there after the tab is closed.",
     failed: "Generation did not complete. Check the ledger before another attempt.",
     blocked: "Pilot unavailable or quota exhausted. No new call was sent.",
+    statusQueued: "Queued: generation is about to start. You can close this tab.",
+    statusRunning: "Generating at Google (about 30 seconds). You can close this tab.",
+    statusStored: "Song ready and kept privately.",
+    statusNeedsReview: "Uncertain outcome: no new call will be made. Owner review needed.",
+    statusHalted: "Attempt stopped before any call to the provider.",
+    refresh: "Refresh status",
+    reviewRequired: "An attempt awaits review: the pilot is blocked until you check it.",
   },
   es: {
     eyebrow: "PILOTO PRIVADO · Lyria 3.5",
@@ -90,9 +111,16 @@ export const PRIVATE_PILOT_COPY: Record<Lang, PrivatePilotCopy> = {
     warning: "Cada intento puede cobrarse aunque falle. Sin reintentos automáticos.",
     result: "Canción generada",
     download: "Descargar MP3",
-    spokenNotGuaranteed: "La voz deseada no está garantizada. El resultado permanece solo en esta pestaña.",
+    spokenNotGuaranteed: "La voz deseada no está garantizada. La canción se guarda en privado y sigue disponible al cerrar la pestaña.",
     failed: "Generación incompleta. Comprueba el registro antes de repetir.",
     blocked: "Piloto no disponible o cuota agotada. No se envió otra solicitud.",
+    statusQueued: "En cola: la generación va a empezar. Puedes cerrar esta pestaña.",
+    statusRunning: "Generando en Google (unos 30 segundos). Puedes cerrar esta pestaña.",
+    statusStored: "Canción lista y guardada en privado.",
+    statusNeedsReview: "Resultado incierto: no se hará ninguna llamada nueva. Revisión del propietario necesaria.",
+    statusHalted: "Intento detenido antes de cualquier llamada al proveedor.",
+    refresh: "Actualizar estado",
+    reviewRequired: "Un intento espera revisión: el piloto queda bloqueado hasta que lo revises.",
   },
   zh: {
     eyebrow: "私人测试 · Lyria 3.5",
@@ -113,9 +141,16 @@ export const PRIVATE_PILOT_COPY: Record<Lang, PrivatePilotCopy> = {
     warning: "即使请求失败也可能收费。不会自动重试。",
     result: "已生成歌曲",
     download: "下载 MP3",
-    spokenNotGuaranteed: "人声偏好不保证满足。结果仅保留在当前标签页。",
+    spokenNotGuaranteed: "人声偏好不保证满足。歌曲会被私密保存，关闭标签页后仍可获取。",
     failed: "生成未完成。再次尝试前请检查记录。",
     blocked: "测试不可用或额度用尽。未发送新请求。",
+    statusQueued: "排队中：即将开始生成。你可以关闭此标签页。",
+    statusRunning: "正在由 Google 生成（约 30 秒）。你可以关闭此标签页。",
+    statusStored: "歌曲已就绪并已私密保存。",
+    statusNeedsReview: "结果不确定：不会再发起新的调用。需要所有者检查。",
+    statusHalted: "该尝试在调用服务商之前已停止。",
+    refresh: "刷新状态",
+    reviewRequired: "有一次尝试等待检查：在你检查之前，试点处于锁定状态。",
   },
   pt: {
     eyebrow: "PILOTO PRIVADO · Lyria 3.5",
@@ -136,9 +171,16 @@ export const PRIVATE_PILOT_COPY: Record<Lang, PrivatePilotCopy> = {
     warning: "Cada tentativa pode ser cobrada mesmo que falhe. Sem repetição automática.",
     result: "Música gerada",
     download: "Baixar MP3",
-    spokenNotGuaranteed: "A preferência vocal não é garantida. O resultado fica apenas nesta aba.",
+    spokenNotGuaranteed: "A preferência vocal não é garantida. A faixa fica guardada em privado e continua disponível após fechar a aba.",
     failed: "Geração não concluída. Verifique o registro antes de tentar novamente.",
     blocked: "Piloto indisponível ou cota esgotada. Nenhuma nova chamada enviada.",
+    statusQueued: "Na fila: a geração vai começar. Você pode fechar esta aba.",
+    statusRunning: "Gerando no Google (cerca de 30 segundos). Você pode fechar esta aba.",
+    statusStored: "Faixa pronta e guardada em privado.",
+    statusNeedsReview: "Resultado incerto: nenhuma nova chamada será feita. Revisão do proprietário necessária.",
+    statusHalted: "Tentativa interrompida antes de qualquer chamada ao fornecedor.",
+    refresh: "Atualizar estado",
+    reviewRequired: "Uma tentativa aguarda revisão: o piloto fica bloqueado até você verificar.",
   },
   ar: {
     eyebrow: "تجربة خاصة · Lyria 3.5",
@@ -159,8 +201,15 @@ export const PRIVATE_PILOT_COPY: Record<Lang, PrivatePilotCopy> = {
     warning: "قد تُحتسب رسوم لكل محاولة حتى عند الفشل. لا توجد إعادة تلقائية.",
     result: "الأغنية المُنشأة",
     download: "تنزيل MP3",
-    spokenNotGuaranteed: "تفضيلات الصوت غير مضمونة. النتيجة محفوظة في علامة التبويب هذه فقط.",
+    spokenNotGuaranteed: "تفضيلات الصوت غير مضمونة. تُحفظ الأغنية بشكل خاص وتبقى متاحة بعد إغلاق علامة التبويب.",
     failed: "لم يكتمل الإنشاء. تحقق من السجل قبل المحاولة مرة أخرى.",
     blocked: "التجربة غير متاحة أو نفدت الحصة. لم يُرسَل طلب جديد.",
+    statusQueued: "في قائمة الانتظار: سيبدأ الإنشاء قريبًا. يمكنك إغلاق علامة التبويب هذه.",
+    statusRunning: "جارٍ الإنشاء لدى Google (نحو 30 ثانية). يمكنك إغلاق علامة التبويب هذه.",
+    statusStored: "الأغنية جاهزة ومحفوظة بشكل خاص.",
+    statusNeedsReview: "النتيجة غير مؤكدة: لن يُرسَل أي طلب جديد. يلزم تحقق المالك.",
+    statusHalted: "توقفت المحاولة قبل أي طلب إلى المزوّد.",
+    refresh: "تحديث الحالة",
+    reviewRequired: "محاولة بانتظار المراجعة: التجربة متوقفة حتى تتحقق منها.",
   },
 };
