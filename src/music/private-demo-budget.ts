@@ -119,3 +119,31 @@ export async function completeOwnerDemoCall(db: BudgetDatabase | null, requestId
     throw new PrivateDemoBudgetError("unavailable");
   }
 }
+
+/** Read-only owner status for the pilot UI. Never reveals request IDs. */
+export async function ownerDemoBudgetStatus(
+  db: BudgetDatabase | null,
+): Promise<{ usedCalls: number; maxCalls: number; busy: boolean }> {
+  if (!db) throw new PrivateDemoBudgetError("unavailable");
+  try {
+    const row = await db.prepare(
+      "SELECT used_calls, active_request_id, request_ids FROM aimf_owner_demo_budget WHERE scope = 'lyria-3.5'",
+    ).first<DemoBudgetState>();
+    if (
+      !row ||
+      !Number.isInteger(row.used_calls) ||
+      row.used_calls < 0 ||
+      row.used_calls > OWNER_DEMO_MAX_CALLS ||
+      typeof row.request_ids !== "string"
+    ) {
+      throw new PrivateDemoBudgetError("unavailable");
+    }
+    const ids: unknown = JSON.parse(row.request_ids);
+    if (!Array.isArray(ids) || ids.length !== row.used_calls) {
+      throw new PrivateDemoBudgetError("unavailable");
+    }
+    return { usedCalls: row.used_calls, maxCalls: OWNER_DEMO_MAX_CALLS, busy: Boolean(row.active_request_id) };
+  } catch {
+    throw new PrivateDemoBudgetError("unavailable");
+  }
+}
