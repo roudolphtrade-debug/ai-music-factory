@@ -74,7 +74,12 @@ export async function handlePrivateLyriaRequest(
 
   // Authentication is read-only; a valid token is not enough unless it belongs to the owner.
   const member = await (deps.verify ?? ((r) => verifyMemberSession(r, {
-    config: memberAuthConfig(bindings),
+    config: memberAuthConfig({
+      SUPABASE_URL: bindings.SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY: bindings.SUPABASE_PUBLISHABLE_KEY,
+      VITE_SUPABASE_URL: bindings.VITE_SUPABASE_URL,
+      VITE_SUPABASE_PUBLISHABLE_KEY: bindings.VITE_SUPABASE_PUBLISHABLE_KEY,
+    }),
   })))(request);
   if (!member.ok) return member.response;
   if (!isOwner(member.userId, bindings.AIMF_PRIVATE_LYRIA_OWNER_ID)) {
