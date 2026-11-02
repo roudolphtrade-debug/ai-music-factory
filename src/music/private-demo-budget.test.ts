@@ -22,7 +22,7 @@ class FakeD1 implements BudgetDatabase {
   failWrites = false;
   lastUpdateSql = "";
   prepare(sql: string): BudgetStatement {
-    const self = this;
+    const owner = () => this;
     let values: (string | number | null)[] = [];
     const statement: BudgetStatement = {
       bind(...args) {
@@ -30,29 +30,29 @@ class FakeD1 implements BudgetDatabase {
         return statement;
       },
       async first<T>() {
-        if (!self.available || self.failWrites) throw new Error("D1 unavailable");
+        if (!owner().available || owner().failWrites) throw new Error("D1 unavailable");
         if (sql.startsWith("UPDATE")) {
-          self.lastUpdateSql = sql;
+          owner().lastUpdateSql = sql;
           const id = values[0];
           if (typeof id !== "string") throw new Error("bad identifier");
           if (sql.includes("SET used_calls")) {
-            if (self.used_calls >= 5 || self.active_request_id || self.request_ids.includes(id)) return null;
-            self.used_calls += 1;
-            self.active_request_id = id;
-            self.request_ids.push(id);
-            return { used_calls: self.used_calls } as T;
+            if (owner().used_calls >= 5 || owner().active_request_id || owner().request_ids.includes(id)) return null;
+            owner().used_calls += 1;
+            owner().active_request_id = id;
+            owner().request_ids.push(id);
+            return { used_calls: owner().used_calls } as T;
           }
           if (sql.includes("SET active_request_id")) {
-            if (self.active_request_id !== id) return null;
-            self.active_request_id = null;
-            return { used_calls: self.used_calls } as T;
+            if (owner().active_request_id !== id) return null;
+            owner().active_request_id = null;
+            return { used_calls: owner().used_calls } as T;
           }
         }
         if (sql.startsWith("SELECT")) {
           return {
-            used_calls: self.used_calls,
-            active_request_id: self.active_request_id,
-            request_ids: JSON.stringify(self.request_ids),
+            used_calls: owner().used_calls,
+            active_request_id: owner().active_request_id,
+            request_ids: JSON.stringify(owner().request_ids),
           } as T;
         }
         throw new Error("unexpected statement");
