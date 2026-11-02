@@ -48,7 +48,7 @@ function StudioPage() {
         </div>
       </section>
 
-      {/* Owner-only pilot is build-disabled by default; its server endpoint is independently protected. */}
+      {/* Owner-only pilot is hidden unless the independently protected server endpoint confirms access. */}
       <PrivateLyriaPilot />
 
       {/* GENERATED DRAFTS (persisted) */}
