@@ -99,7 +99,7 @@ describe("the adapter does exactly one paid-call-shaped request", () => {
     expect(result.estimatedCostUsd).toBe(0.08);
     expect(result.text).toBe("some lyrics");
     expect(mockFetch).toHaveBeenCalledTimes(1);
-    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    const [url, init] = mockFetch.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toBe(LYRIA_INTERACTIONS_URL);
     expect(init.method).toBe("POST");
     expect(new Headers(init.headers).get("x-goog-api-key")).toBe("server-secret-only");
