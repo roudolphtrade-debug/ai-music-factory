@@ -52,7 +52,31 @@ avec une fonctionnalité accessible aux utilisateurs.
 s'assurer que la dépense est autorisée. La réponse audio est vérifiée (MP3 et taille).
 Les paroles éventuellement retournées sont du texte libre, pas une garantie de synchronisation.
 
-Ce lot n'implémente **pas** encore le garde budgétaire, la nouvelle route, l'interface
-ou la gestion de fichiers. La prochaine PR doit les apporter en conservant la sécurité P0
-et les décisions M1/M2. L'architecture du stockage et le mécanisme de réservation atomique
-doivent être validés avant de faire une génération réelle depuis un bouton.
+Ce lot contient désormais le **code préparatoire** du garde budgétaire D1, une route
+privée désactivée par défaut et une interface de pilote cachée par défaut, mais il
+n'active aucune génération en ligne. Les garde-fous sont documentés et testés
+avec des doubles D1 ; **l'atomicité réelle D1 et la configuration serveur
+ne sont pas encore validées**.
+
+- SQL à vérifier et appliquer séparément sur un D1 dédié et isolé :
+  `docs/music/LYRIA-PRIVATE-DEMO-D1.sql`. Aucun changement Supabase.
+- Binding secret D1 : `AIMF_PRIVATE_LYRIA_DB`.
+- Secrets serveur : `GEMINI_API_KEY` et `AIMF_PRIVATE_LYRIA_OWNER_ID`.
+- Activation serveur séparée : `AIMF_PRIVATE_LYRIA_ENABLED=1` (défaut OFF).
+- Activation visuelle à la compilation : `VITE_PRIVATE_LYRIA_PILOT_UI=1` (défaut OFF).
+- Route réservée : `GET/POST /api/studio/lyria-private`, avec vérification
+  de session, comparaison de l'ID propriétaire et limite D1.
+- Le budget comporte **5 tentatives maximum**, à 0,08 USD l'appel selon
+  le tarif publié (0,40 USD de dépenses théoriques hors frais), sous un
+  plafond configuré de 0,50 USD. **Ne pas confondre avec une garantie de
+  facturation du compte Google.**
+- L'appel est comptabilisé dès la réservation, même si la requête échoue ;
+  un doute de facturation fige le pilote jusqu'à revue manuelle.
+- Les MP3 obtenus ne sont accessibles qu'en mémoire dans l'onglet du navigateur.
+  Ils doivent être téléchargés explicitement ; aucun stockage privé distant
+  n'est provisionné dans cette PR.
+
+**Décision :** NO-GO pour activation, déploiement et appel réel tant qu'une
+preuve d'exécution D1 sur environnement isolé, une vérification des variables
+et une revue sécurité indépendante n'ont pas été réalisées. Ne pas fusionner
+sur main avant revue, et ne pas pousser les trois MP3 sur le dépôt public.
