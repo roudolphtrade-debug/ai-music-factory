@@ -53,7 +53,7 @@ s'assurer que la dépense est autorisée. La réponse audio est vérifiée (MP3 
 Les paroles éventuellement retournées sont du texte libre, pas une garantie de synchronisation.
 
 Ce lot contient désormais le **code préparatoire** du garde budgétaire D1, une route
-privée désactivée par défaut et une interface de pilote cachée par défaut, mais il
+privée désactivée par défaut et une interface visible uniquement après validation du propriétaire par le serveur, mais il
 n'active aucune génération en ligne. Les garde-fous sont documentés et testés
 avec des doubles D1 ; **l'atomicité réelle D1 et la configuration serveur
 ne sont pas encore validées**.
@@ -63,7 +63,7 @@ ne sont pas encore validées**.
 - Binding secret D1 : `AIMF_PRIVATE_LYRIA_DB`.
 - Secrets serveur : `GEMINI_API_KEY` et `AIMF_PRIVATE_LYRIA_OWNER_ID`.
 - Activation serveur séparée : `AIMF_PRIVATE_LYRIA_ENABLED=1` (défaut OFF).
-- Activation visuelle à la compilation : `VITE_PRIVATE_LYRIA_PILOT_UI=1` (défaut OFF).
+- Affichage visuel : uniquement après réponse 200 de `GET /api/studio/lyria-private`, qui contrôle le JWT du membre et son identité propriétaire. Aucun nouveau secret ou paramètre `VITE_*`.
 - Route réservée : `GET/POST /api/studio/lyria-private`, avec vérification
   de session, comparaison de l'ID propriétaire et limite D1.
 - Le budget comporte **5 tentatives maximum**, à 0,08 USD l'appel selon
