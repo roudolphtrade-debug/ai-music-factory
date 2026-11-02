@@ -12,6 +12,7 @@ import {
   PrivateDemoBudgetError,
   completeOwnerDemoCall,
   isOwner,
+  ownerDemoBudgetStatus,
   reserveOwnerDemoCall,
   type BudgetDatabase,
 } from "./private-demo-budget";
@@ -63,7 +64,7 @@ export async function handlePrivateLyriaRequest(
   bindings: PrivateLyriaBindings | null | undefined,
   deps: PrivateLyriaDependencies = {},
 ): Promise<Response> {
-  if (request.method !== "POST") return jsonFailure(405, "method_not_allowed");
+  if (request.method !== "POST" && request.method !== "GET") return jsonFailure(405, "method_not_allowed");
   if (!bindings || bindings.AIMF_PRIVATE_LYRIA_ENABLED !== "1") {
     return jsonFailure(503, "pilot_disabled");
   }
@@ -90,6 +91,18 @@ export async function handlePrivateLyriaRequest(
   const db = bindings.AIMF_PRIVATE_LYRIA_DB;
   if (!apiKey || !db || typeof db.prepare !== "function") {
     return jsonFailure(503, "pilot_unconfigured");
+  }
+
+  if (request.method === "GET") {
+    try {
+      const status = await ownerDemoBudgetStatus(db);
+      return Response.json(
+        { enabled: true, model: "lyria-3.5", ...status },
+        { headers: { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } },
+      );
+    } catch {
+      return jsonFailure(503, "pilot_unavailable");
+    }
   }
 
   const requestId = request.headers.get("idempotency-key")?.trim() ?? "";
