@@ -6,7 +6,6 @@ import { PRIVATE_PILOT_COPY } from "@/music/private-demo-copy";
 import { Button } from "@/components/ui/button";
 
 const ENDPOINT = "/api/studio/lyria-private";
-const VISIBLE_IN_THIS_BUILD = import.meta.env.VITE_PRIVATE_LYRIA_PILOT_UI === "1";
 
 interface PilotStatus {
   enabled: boolean;
@@ -31,9 +30,9 @@ interface SongResult {
   generationId: string;
 }
 
-/** Default-hidden shell: no extra auth requests and no UI unless explicitly enabled at build time. */
+/** Default-hidden shell: only the server-verified owner status reveals the UI. */
 export function PrivateLyriaPilot() {
-  return VISIBLE_IN_THIS_BUILD ? <EnabledPrivateLyriaPilot /> : null;
+  return <EnabledPrivateLyriaPilot />;
 }
 
 function EnabledPrivateLyriaPilot() {
