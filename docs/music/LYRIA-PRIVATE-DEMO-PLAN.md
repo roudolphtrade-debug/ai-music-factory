@@ -43,40 +43,40 @@ avec une fonctionnalité accessible aux utilisateurs.
 10. **Aucune action production implicite** : ni fusion, déploiement, migration, activation IA
     ni appel payant sans étape de décision supplémentaire.
 
-## Contrat de l'adaptateur
+## Architecture asynchrone (lot correctif, mode exclusivement simulé)
 
-`src/music/lyria35.ts` expose `buildLyriaPrompt`,
-`parseLyriaInteraction` et `generateLyriaSong`.
+Décidée par la revue du propriétaire sur la PR #18 (GO de développement sans activation).
 
-`generateLyriaSong` envoie **une seule** requête (jamais de retry). L'appelant doit d'abord
-s'assurer que la dépense est autorisée. La réponse audio est vérifiée (MP3 et taille).
-Les paroles éventuellement retournées sont du texte libre, pas une garantie de synchronisation.
+| Pièce | Rôle | Fichiers |
+|---|---|---|
+| Frontal HTTP léger | interrupteur du pilote et arrêt d'urgence `AI_ROUTES_PAUSED` (fermés par défaut), origine, session vérifiée côté serveur, identifiant propriétaire (secret serveur), validation, réservation D1, envoi d'un message contenant **un identifiant seulement**, consultation de l'état, relecture du MP3 en flux depuis R2. **Jamais d'appel Google, jamais d'audio en base64.** | `src/music/private-demo-handler.ts` |
+| Machine d'états D1 | `reserved → queued → running → stored / needs_review`, `reserved/queued → halted` ; `provider_engaged_at` écrit une seule fois ; 5 tentatives au plus (contrainte et déclencheur) ; ni suppression, ni remise à zéro, ni remboursement | `src/music/private-pilot-sql.ts`, `private-pilot-store.ts`, `docs/music/LYRIA-PRIVATE-DEMO-D1.sql` |
+| Consommateur de file | seul endroit où Google peut être appelé ; réclamation atomique avant l'appel : **au plus un appel par identifiant**, malgré les relivraisons, la concurrence ou un redémarrage ; MP3 validé → R2 privé (empreinte SHA-256) → `stored` | `src/music/private-pilot-worker.ts`, `src/server.ts` (`queue()`) |
+| Réconciliation | tentative jamais engagée et inactive : renvoyée dans la file (pilote ouvert seulement) ; tentative engagée et muette depuis plus de 20 min : `stored` si le MP3 est complet dans R2, sinon `needs_review`. **Jamais de nouvel appel Google.** | idem |
+| Interface | suivi de l'état, reprise après fermeture de l'onglet, relecture depuis le stockage privé | `src/components/premium/PrivateLyriaPilot.tsx` |
 
-Ce lot contient désormais le **code préparatoire** du garde budgétaire D1, une route
-privée désactivée par défaut et une interface visible uniquement après validation du propriétaire par le serveur, mais il
-n'active aucune génération en ligne. Les garde-fous sont documentés et testés
-avec des doubles D1 ; **l'atomicité réelle D1 et la configuration serveur
-ne sont pas encore validées**.
+Distinction obligatoire : `provider_engaged_at` NULL = **appel Google jamais engagé** (aucune facturation possible) ;
+NOT NULL = **issue de facturation inconnue** tant que le morceau n'est pas `stored`. Toute issue engagée et non
+stockée devient `needs_review`, qui **bloque le pilote** jusqu'à la revue du propriétaire.
 
-- SQL à vérifier et appliquer séparément sur un D1 dédié et isolé :
-  `docs/music/LYRIA-PRIVATE-DEMO-D1.sql`. Aucun changement Supabase.
-- Binding secret D1 : `AIMF_PRIVATE_LYRIA_DB`.
-- Secrets serveur : `GEMINI_API_KEY` et `AIMF_PRIVATE_LYRIA_OWNER_ID`.
-- Activation serveur séparée : `AIMF_PRIVATE_LYRIA_ENABLED=1` (défaut OFF).
-- Affichage visuel : uniquement après réponse 200 de `GET /api/studio/lyria-private`, qui contrôle le JWT du membre et son identité propriétaire. Aucun nouveau secret ou paramètre `VITE_*`.
-- Route réservée : `GET/POST /api/studio/lyria-private`, avec vérification
-  de session, comparaison de l'ID propriétaire et limite D1.
-- Le budget comporte **5 tentatives maximum**, à 0,08 USD l'appel selon
-  le tarif publié (0,40 USD de dépenses théoriques hors frais), sous un
-  plafond configuré de 0,50 USD. **Ne pas confondre avec une garantie de
-  facturation du compte Google.**
-- L'appel est comptabilisé dès la réservation, même si la requête échoue ;
-  un doute de facturation fige le pilote jusqu'à revue manuelle.
-- Les MP3 obtenus ne sont accessibles qu'en mémoire dans l'onglet du navigateur.
-  Ils doivent être téléchargés explicitement ; aucun stockage privé distant
-  n'est provisionné dans cette PR.
+Liaisons serveur attendues (aucune n'est créée par ce lot) : `AIMF_PRIVATE_LYRIA_DB` (D1 isolée),
+`AIMF_PRIVATE_LYRIA_QUEUE` (producteur et consommateur), `AIMF_PRIVATE_LYRIA_BUCKET` (R2 **privé**), secrets
+`GEMINI_API_KEY` et `AIMF_PRIVATE_LYRIA_OWNER_ID`, interrupteur `AIMF_PRIVATE_LYRIA_ENABLED=1`, et
+`AI_ROUTES_PAUSED` à une valeur ouverte. Ce compteur D1 est **uniquement un coupe-circuit technique du pilote** : il
+ne contient aucun crédit membre et ne remplace jamais le grand livre Supabase M1/M2.
 
-**Décision :** NO-GO pour activation, déploiement et appel réel tant qu'une
-preuve d'exécution D1 sur environnement isolé, une vérification des variables
-et une revue sécurité indépendante n'ont pas été réalisées. Ne pas fusionner
-sur main avant revue, et ne pas pousser les trois MP3 sur le dépôt public.
+## Ce qui reste non prouvé sans ressources réelles
+
+- comportement de D1 réel (écritures sérialisées, concurrence de plusieurs instances) : le SQL est exécuté sur
+  SQLite (`node:sqlite`) dans les tests, pas sur D1 ;
+- livraison Queues réelle (au moins une fois, délais, 30 s de CPU annoncées pour le consommateur) : file simulée ;
+- R2 réel (confirmation d'écriture, métadonnées, flux) : stockage simulé ;
+- lecture de `AI_ROUTES_PAUSED` et des liaisons dans l'environnement d'exécution de l'hébergement Lovable, et prise
+  en charge d'un consommateur `queue()` par cet hébergement ;
+- CPU et mémoire réels du consommateur sur une réponse Lyria d'environ 4 Mo ;
+- facturation par Google d'une requête interrompue ou refusée.
+
+**Décision :** NO-GO pour activation, déploiement et appel réel. Conditions du futur GO réel : isolation Cloudflare
+confirmée, liaisons et conditions fournisseurs vérifiées, tests d'intégration sur ressources isolées autorisés
+séparément, mesure CPU et mémoire, budget validé, autorisation distincte du propriétaire pour la première génération.
+Ne pas fusionner sur `main` avant revue ; ne jamais pousser de MP3 sur le dépôt public.
