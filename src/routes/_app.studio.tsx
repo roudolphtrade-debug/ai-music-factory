@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SectionHeading } from "@/components/premium/SectionHeading";
 import { StudioComposer } from "@/components/premium/StudioComposer";
+import { PrivateLyriaPilot } from "@/components/premium/PrivateLyriaPilot";
 import { GeneratedDraftsSection } from "@/components/premium/GeneratedDraftsSection";
 import { NewTrackButton, StudioUploadZone } from "@/components/premium/StudioActions";
 import { StudioFigures } from "@/components/premium/StudioFigures";
@@ -46,6 +47,9 @@ function StudioPage() {
           <StudioFigures />
         </div>
       </section>
+
+      {/* Owner-only pilot is build-disabled by default; its server endpoint is independently protected. */}
+      <PrivateLyriaPilot />
 
       {/* GENERATED DRAFTS (persisted) */}
       <GeneratedDraftsSection />
