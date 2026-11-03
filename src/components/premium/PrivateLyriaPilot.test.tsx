@@ -69,6 +69,7 @@ const bucket: R2Like = {
 };
 const AUDIO = new Uint8Array([0x49, 0x44, 0x33, 4, 0, 0, 0, 0, 0, 0, 1, 2, 3]);
 let providerCalls = 0;
+let providerFails = false;
 const deliver = async () => {
   const { consumePrivateLyriaBatch } = await import("@/music/private-pilot-worker");
   const messages = env.sent.splice(0).map((body) => ({ body, ack() {} }));
@@ -76,9 +77,16 @@ const deliver = async () => {
     processEnv: {},
     generate: async () => {
       providerCalls++;
+      if (providerFails) throw new Error("provider down");
       return { model: "lyria-3.5", audio: AUDIO, mimeType: "audio/mpeg", text: "la la la", estimatedCostUsd: 0.08 };
     },
   });
+};
+const generateOnce = async () => {
+  const promptBox = await screen.findByLabelText(fr.prompt);
+  fireEvent.change(promptBox, { target: { value: "Une chanson lumineuse" } });
+  await act(async () => fireEvent.submit(promptBox.closest("form") as HTMLFormElement));
+  await screen.findByText(fr.statusQueued);
 };
 
 const fr = PRIVATE_PILOT_COPY.fr;
@@ -100,9 +108,11 @@ beforeEach(() => {
   env.posts = 0;
   env.user = "owner-1";
   providerCalls = 0;
+  providerFails = false;
   env.bindings = {
     AIMF_PRIVATE_LYRIA_ENABLED: "1",
     AI_ROUTES_PAUSED: "0",
+    AIMF_PRIVATE_LYRIA_PROVIDER: "lyria-3.5",
     AIMF_PRIVATE_LYRIA_OWNER_ID: "owner-1",
     GEMINI_API_KEY: "TEST-KEY-not-real-000000000000",
     AIMF_PRIVATE_LYRIA_DB: d1(db),
@@ -147,11 +157,49 @@ afterEach(() => {
     expect(env.posts).toBe(1); // reopening never sends a new attempt
   });
 
+  it("a stored file altered in the bucket is never played: the owner reads the integrity message", async () => {
+    await mount();
+    await generateOnce();
+    await deliver();
+    const key = [...objects.keys()].find((k) => k.endsWith(".mp3")) as string;
+    objects.get(key)!.bytes[11] ^= 0x01; // same size, same metadata
+    cleanup();
+    await mount();
+    expect(await screen.findByText(fr.audioUnavailable)).toBeTruthy();
+    expect(document.querySelector("audio")).toBeNull();
+  });
+
+  it("an attempt in review shows the exact reason, and the fictitious provider is announced", async () => {
+    (env.bindings as PrivateLyriaBindings).AIMF_PRIVATE_LYRIA_PROVIDER = "mock";
+    providerFails = true;
+    await mount();
+    expect(await screen.findByTestId("pilot-mock")).toBeTruthy();
+    await generateOnce();
+    await deliver();
+    cleanup();
+    await mount();
+    expect(await screen.findByText(fr.reviewReasons.provider_failed)).toBeTruthy();
+    expect(screen.getByText(fr.statusNeedsReview)).toBeTruthy();
+    expect(providerCalls).toBe(1);
+  });
+
   it("the texts no longer say the song stays only in the tab, in any language", () => {
     for (const copy of Object.values(PRIVATE_PILOT_COPY)) {
       expect(copy.spokenNotGuaranteed).not.toMatch(/uniquement dans cet onglet|only in this tab|solo en esta pestaña|仅保留在当前标签页|apenas nesta aba|في علامة التبويب هذه فقط/);
-      for (const key of ["statusQueued", "statusRunning", "statusStored", "statusNeedsReview", "statusHalted", "refresh", "reviewRequired"] as const) {
+      for (const key of ["statusQueued", "statusRunning", "statusStored", "statusNeedsReview", "statusHalted", "statusReviewed", "refresh", "reviewRequired", "audioUnavailable", "mockProvider"] as const) {
         expect(copy[key].length).toBeGreaterThan(3);
+      }
+    }
+  });
+
+  it("every review reason has its own text in all six languages, and none promises a refund or a guarantee", () => {
+    for (const copy of Object.values(PRIVATE_PILOT_COPY)) {
+      const texts = Object.values(copy.reviewReasons);
+      expect(texts).toHaveLength(6);
+      expect(new Set(texts).size).toBe(6);
+      for (const text of texts) {
+        expect(text.length).toBeGreaterThan(10);
+        expect(text).not.toMatch(/rembours|refund|reembols|退款|reembolso|استرداد|garanti|guarantee/i);
       }
     }
   });

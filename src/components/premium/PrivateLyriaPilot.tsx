@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 import { useAuth } from "@/auth/context";
 import { aiFetch } from "@/lib/ai-fetch";
 import { useI18n } from "@/i18n/context";
-import { PRIVATE_PILOT_COPY } from "@/music/private-demo-copy";
+import { PRIVATE_PILOT_COPY, reviewReasonKey } from "@/music/private-demo-copy";
 import { Button } from "@/components/ui/button";
 
 const ENDPOINT = "/api/studio/lyria-private";
@@ -12,13 +12,14 @@ const lastJobKey = (memberId: string) => `aimf-lyria-pilot:last:${memberId}`;
 
 interface PilotSummary {
   enabled: boolean;
+  provider?: "lyria-3.5" | "mock";
   usedAttempts: number;
   maxAttempts: number;
   frozen: boolean;
   reviewRequired: boolean;
   activeId: string | null;
 }
-type JobState = "reserved" | "queued" | "running" | "stored" | "needs_review" | "halted";
+type JobState = "reserved" | "queued" | "running" | "stored" | "needs_review" | "reviewed" | "halted";
 interface JobView {
   id: string;
   state: JobState;
@@ -41,6 +42,14 @@ function rememberJob(memberId: string, id: string) {
   }
 }
 
+/** The server streams the song while hashing it; the browser checks the whole file once more before playing it. */
+async function matchesReprDigest(bytes: ArrayBuffer, header: string | null): Promise<boolean> {
+  const expected = header ? /sha-256=:([A-Za-z0-9+/]+=*):/.exec(header)?.[1] : undefined;
+  if (!expected) return false;
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
+  return btoa(String.fromCharCode(...digest)) === expected;
+}
+
 /** Default-hidden: only the server-verified owner status reveals the UI. */
 export function PrivateLyriaPilot() {
   const { lang } = useI18n();
@@ -54,6 +63,7 @@ export function PrivateLyriaPilot() {
   const [job, setJob] = useState<JobView | null>(null);
   const [lyricsText, setLyricsText] = useState<string | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioFailed, setAudioFailed] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [prompt, setPrompt] = useState("");
@@ -111,14 +121,22 @@ export function PrivateLyriaPilot() {
     if (!memberId || job?.state !== "stored") return;
     let url: string | null = null;
     let live = true;
+    setAudioFailed(false);
     void aiFetch(`${ENDPOINT}?job=${encodeURIComponent(job.id)}&audio=1`, { method: "GET", cache: "no-store" })
-      .then((r) => (r.ok ? r.blob() : null))
+      .then(async (r) => {
+        if (!r.ok) throw new Error("audio refused");
+        const bytes = await r.arrayBuffer(); // rejects when the server failed the stream on an integrity error
+        if (!(await matchesReprDigest(bytes, r.headers.get("repr-digest")))) throw new Error("digest mismatch");
+        return new Blob([bytes], { type: "audio/mpeg" });
+      })
       .then((blob) => {
-        if (!live || !blob || currentMember.current !== memberId) return;
+        if (!live || currentMember.current !== memberId) return;
         url = URL.createObjectURL(blob);
         setAudioUrl(url);
       })
-      .catch(() => {});
+      .catch(() => {
+        if (live && currentMember.current === memberId) setAudioFailed(true);
+      });
     return () => {
       live = false;
       if (url) URL.revokeObjectURL(url);
@@ -180,8 +198,11 @@ export function PrivateLyriaPilot() {
     running: copy.statusRunning,
     stored: copy.statusStored,
     needs_review: copy.statusNeedsReview,
+    reviewed: copy.statusReviewed,
     halted: copy.statusHalted,
   };
+  const reasonKey = job?.state === "needs_review" ? reviewReasonKey(job.reviewReason) : null;
+  const isMock = access.provider === "mock";
 
   return (
     <section
@@ -203,6 +224,11 @@ export function PrivateLyriaPilot() {
         </strong>
         <p className="mt-1 text-xs text-neutral-400">{copy.warning}</p>
         {access.reviewRequired && <p className="mt-1 text-xs text-amber-300">{copy.reviewRequired}</p>}
+        {isMock && (
+          <p className="mt-1 text-xs font-semibold text-sky-300" data-testid="pilot-mock">
+            {copy.mockProvider}
+          </p>
+        )}
       </div>
 
       <form className="space-y-4" onSubmit={(event) => void onGenerate(event)}>
@@ -271,6 +297,12 @@ export function PrivateLyriaPilot() {
           <p role="status" className="text-sm text-neutral-200">
             {stateText[job.state]}
           </p>
+          {reasonKey && <p className="text-sm text-amber-300">{copy.reviewReasons[reasonKey]}</p>}
+          {job.state === "stored" && audioFailed && (
+            <p role="alert" className="text-sm text-amber-300">
+              {copy.audioUnavailable}
+            </p>
+          )}
           {(waiting || error) && (
             <Button type="button" variant="ghost-gold" size="sm" onClick={() => memberId && void loadJob(memberId, job.id)}>
               {copy.refresh}
@@ -278,7 +310,9 @@ export function PrivateLyriaPilot() {
           )}
           {job.state === "stored" && audioUrl && (
             <>
-              <h3 className="font-semibold">{copy.result} · lyria-3.5</h3>
+              <h3 className="font-semibold">
+                {copy.result} · {isMock ? "mock" : "lyria-3.5"}
+              </h3>
               <audio aria-label={copy.result} src={audioUrl} controls className="w-full" />
               <a
                 href={audioUrl}
