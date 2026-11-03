@@ -2,7 +2,7 @@ import type { D1Like } from "./private-pilot-bindings";
 import { SQL } from "./private-pilot-sql";
 
 /** The durable state machine of the private pilot, over D1. Every write is ONE conditional statement. */
-export type PilotState = "reserved" | "queued" | "running" | "stored" | "needs_review" | "halted";
+export type PilotState = "reserved" | "queued" | "running" | "stored" | "needs_review" | "reviewed" | "halted";
 
 export interface PilotJob {
   id: string;
@@ -10,6 +10,7 @@ export interface PilotJob {
   request_hash: string;
   state: PilotState;
   provider_engaged_at: number | null;
+  handoffs: number;
   review_reason: string | null;
   audio_key: string | null;
   audio_sha256: string | null;
@@ -77,6 +78,7 @@ export function createPilotStore(db: D1Like, now: () => number = () => Math.floo
       };
     },
     markQueued: (id: string) => one(SQL.markQueued, id, now()),
+    touchRunning: (id: string) => one(SQL.touchRunning, id, now()),
     /** The single provider engagement for this id: a row back means "you, and only you, may call Google". */
     claim: (id: string) => one(SQL.claim, id, now()),
     markStored: (id: string, key: string, sha256: string, bytes: number) =>

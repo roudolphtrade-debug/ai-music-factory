@@ -1,11 +1,21 @@
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { MemberCheck } from "@/lib/member-guard";
 import { handlePrivateLyriaRequest } from "./private-demo-handler";
 import { aiRoutesPaused, type D1Like, type PilotMessage, type PrivateLyriaBindings, type R2Like } from "./private-pilot-bindings";
-import { PILOT_SCHEMA_SQL, SQL } from "./private-pilot-sql";
+import { defaultHasherFactory, hashStream, reprDigestHeader, verifiedStream } from "./private-pilot-integrity";
+import { MOCK_LYRICS } from "./private-pilot-mock";
+import { PILOT_MAX_HANDOFFS, PILOT_SCHEMA_SQL, SQL } from "./private-pilot-sql";
 import { createPilotStore } from "./private-pilot-store";
-import { consumePrivateLyriaBatch, RECONCILE_IDLE_SECONDS, RECONCILE_RUNNING_SECONDS, type GenerateSong } from "./private-pilot-worker";
+import {
+  consumePrivateLyriaBatch,
+  RECONCILE_IDLE_SECONDS,
+  RECONCILE_RUNNING_SECONDS,
+  runScheduledReconciliation,
+  scheduledLogLine,
+  type GenerateSong,
+} from "./private-pilot-worker";
 import { LyriaGenerationError, type LyriaSong } from "./lyria35";
 
 // ---------------------------------------------------------------- the real SQL, on the real SQLite engine
@@ -62,19 +72,28 @@ class MockQueue {
   }
 }
 
+const hex = (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex");
+
 class MockBucket implements R2Like {
   objects = new Map<string, { bytes: Uint8Array; meta: Record<string, string> }>();
   failPuts = 0;
-  async put(key: string, value: Uint8Array | string, options?: { customMetadata?: Record<string, string> }) {
+  failHeads = false;
+  /** Damages the bytes between the Worker and the bucket (the announced `sha256` is left unchanged). */
+  corruptInTransit = false;
+  async put(key: string, value: Uint8Array | string, options?: { customMetadata?: Record<string, string>; sha256?: string }) {
     if (this.failPuts > 0) {
       this.failPuts--;
       throw new Error("injected R2 failure");
     }
-    const bytes = typeof value === "string" ? new TextEncoder().encode(value) : value;
+    const bytes = typeof value === "string" ? new TextEncoder().encode(value) : value.slice();
+    if (this.corruptInTransit && typeof value !== "string") bytes[bytes.length - 1] ^= 0xff;
+    // Like R2: a write whose content does not hash to the announced SHA-256 is refused.
+    if (options?.sha256 && hex(bytes) !== options.sha256) throw new Error("R2: sha256 mismatch");
     this.objects.set(key, { bytes, meta: { ...(options?.customMetadata ?? {}) } });
     return { size: bytes.byteLength, customMetadata: options?.customMetadata };
   }
   async head(key: string) {
+    if (this.failHeads) throw new Error("injected R2 head failure");
     const o = this.objects.get(key);
     return o ? { size: o.bytes.byteLength, customMetadata: o.meta } : null;
   }
@@ -164,6 +183,7 @@ beforeEach(() => {
   bindings = {
     AIMF_PRIVATE_LYRIA_ENABLED: "1",
     AI_ROUTES_PAUSED: "0",
+    AIMF_PRIVATE_LYRIA_PROVIDER: "lyria-3.5", // the provider itself is the injected `generate`: no network
     AIMF_PRIVATE_LYRIA_OWNER_ID: OWNER,
     GEMINI_API_KEY: API_KEY,
     AIMF_PRIVATE_LYRIA_DB: sqliteD1(db, faults),
@@ -202,7 +222,9 @@ describeSql("HTTP front: refusals spend nothing and reserve nothing", () => {
     ["no D1 binding", { AIMF_PRIVATE_LYRIA_DB: undefined }, 503, "pilot_unconfigured"],
     ["no queue binding", { AIMF_PRIVATE_LYRIA_QUEUE: undefined }, 503, "pilot_unconfigured"],
     ["no bucket binding", { AIMF_PRIVATE_LYRIA_BUCKET: undefined }, 503, "pilot_unconfigured"],
-    ["no provider secret", { GEMINI_API_KEY: "" }, 503, "pilot_unconfigured"],
+    ["no provider secret in lyria-3.5 mode", { GEMINI_API_KEY: "" }, 503, "pilot_unconfigured"],
+    ["no provider mode", { AIMF_PRIVATE_LYRIA_PROVIDER: undefined }, 503, "pilot_unconfigured"],
+    ["provider mode not exact", { AIMF_PRIVATE_LYRIA_PROVIDER: "Lyria" }, 503, "pilot_unconfigured"],
   ])("%s: answers %s, code %s", async (_label, patch, status, code) => {
     const res = await call(request("POST", "", { id: uuid(1), body: BODY }), OWNER, { ...bindings, ...patch } as PrivateLyriaBindings);
     expect(res.status).toBe(status);
@@ -270,13 +292,116 @@ describeSql("one attempt, end to end, without any network", () => {
     expect(providerCalls).toBe(1);
   });
 
-  it("the audio is refused while not stored, and refused if the object does not match its recorded fingerprint", async () => {
+  it("the audio is refused while not stored", async () => {
     await post(uuid(1));
     expect((await call(request("GET", `?job=${uuid(1)}&audio=1`))).status).toBe(409);
+  });
+});
+
+// ================================================================ integrity of the stored content
+const audioObject = () => {
+  const key = [...bucket.objects.keys()].find((k) => k.endsWith(".mp3")) as string;
+  return bucket.objects.get(key)!;
+};
+const readAudio = (b: PrivateLyriaBindings = bindings) => call(request("GET", `?job=${uuid(1)}&audio=1`), OWNER, b);
+const serverCheck = (): PrivateLyriaBindings => ({ ...bindings, AIMF_PRIVATE_LYRIA_AUDIO_CHECK: "server" });
+const expectedDigest = `sha-256=:${createHash("sha256").update(AUDIO).digest("base64")}:`;
+
+describeSql("integrity: the content is hashed, the metadata proves nothing", () => {
+  beforeEach(async () => {
+    await post(uuid(1));
     await deliver();
-    const key = [...bucket.objects.keys()].find((k) => k.endsWith(".mp3")) as string;
-    bucket.objects.get(key)!.meta.sha256 = "0".repeat(64);
-    expect((await call(request("GET", `?job=${uuid(1)}&audio=1`))).status).toBe(503);
+  });
+
+  it.each([
+    ["client (default)", () => bindings, "client"],
+    ["server", serverCheck, "server-stream+client"],
+  ])("%s mode: the song streams with the D1 fingerprint in Repr-Digest", async (_label, b, header) => {
+    const res = await readAudio(b());
+    expect(res.status).toBe(200);
+    expect(res.headers.get("repr-digest")).toBe(expectedDigest);
+    expect(res.headers.get("x-aimf-audio-check")).toBe(header);
+    expect(new Uint8Array(await res.arrayBuffer())).toEqual(AUDIO);
+  });
+
+  it("forged metadata on intact content changes nothing: the metadata is neither trusted nor needed", async () => {
+    audioObject().meta.sha256 = "0".repeat(64);
+    for (const b of [bindings, serverCheck()]) {
+      const res = await readAudio(b);
+      expect(res.status).toBe(200);
+      expect(new Uint8Array(await res.arrayBuffer())).toEqual(AUDIO);
+    }
+  });
+
+  it("content altered in place, server mode: the download fails, never a complete wrong file", async () => {
+    audioObject().bytes[5] ^= 0x01;
+    const res = await readAudio(serverCheck());
+    expect(res.status).toBe(200); // the headers leave before the last byte is hashed
+    await expect(res.arrayBuffer()).rejects.toThrow();
+  });
+
+  it("content altered in place, client mode: the bytes no longer match Repr-Digest, which the browser checks", async () => {
+    audioObject().bytes[5] ^= 0x01;
+    const res = await readAudio();
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    expect(`sha-256=:${createHash("sha256").update(bytes).digest("base64")}:`).not.toBe(res.headers.get("repr-digest"));
+  });
+
+  it.each([
+    ["truncated", (b: Uint8Array) => b.slice(0, b.length - 1)],
+    ["extended", (b: Uint8Array) => new Uint8Array([...b, 0])],
+  ])("content %s: refused before any byte is sent", async (_label, change) => {
+    audioObject().bytes = change(audioObject().bytes);
+    const res = await readAudio();
+    expect(res.status).toBe(503);
+    expect((await res.json()).code).toBe("audio_unavailable");
+  });
+
+  it("server mode without an incremental hash in the runtime: refused, never a claimed check that is not made", async () => {
+    const res = await handlePrivateLyriaRequest(request("GET", `?job=${uuid(1)}&audio=1`), serverCheck(), {
+      verify: verifyAs(OWNER),
+      now,
+      processEnv: {},
+      hasher: null,
+    });
+    expect(res.status).toBe(503);
+    expect((await res.json()).code).toBe("audio_unverifiable");
+  });
+});
+
+describe("integrity helpers", () => {
+  const bytes = new Uint8Array(3_000_000).map((_, i) => (i * 31) & 0xff);
+  const stream = () => new Response(bytes.slice()).body as ReadableStream<Uint8Array>;
+  const hasher = defaultHasherFactory();
+
+  it("Node: the node:crypto hash; Cloudflare: the native DigestStream is preferred when present", async () => {
+    expect(hasher).not.toBeNull();
+    expect(await hashStream(stream(), hasher!(), 4_000_000)).toEqual({ sha256: hex(bytes), bytes: bytes.length });
+    class FakeDigestStream extends WritableStream<Uint8Array> {
+      digest: Promise<ArrayBuffer>;
+      constructor(algorithm: string) {
+        const h = createHash(algorithm === "SHA-256" ? "sha256" : "unknown");
+        let done: (b: ArrayBuffer) => void = () => {};
+        super({ write: (c) => void h.update(c), close: () => done(new Uint8Array(h.digest()).buffer) });
+        this.digest = new Promise((r) => (done = r));
+      }
+    }
+    vi.stubGlobal("crypto", Object.assign(Object.create(globalThis.crypto), { DigestStream: FakeDigestStream }));
+    try {
+      const native = defaultHasherFactory();
+      expect(await hashStream(stream(), native!(), 4_000_000)).toEqual({ sha256: hex(bytes), bytes: bytes.length });
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("verifiedStream passes good content through and fails bad content; hashStream stops past its limit", async () => {
+    const good = verifiedStream(stream(), { sha256: hex(bytes), bytes: bytes.length }, hasher!());
+    expect((await new Response(good).arrayBuffer()).byteLength).toBe(bytes.length);
+    const bad = verifiedStream(stream(), { sha256: "f".repeat(64), bytes: bytes.length }, hasher!());
+    await expect(new Response(bad).arrayBuffer()).rejects.toThrow(/digest_mismatch/);
+    await expect(hashStream(stream(), hasher!(), 1000)).rejects.toThrow(/too_large/);
+    expect(reprDigestHeader("00".repeat(32))).toBe(`sha-256=:${"A".repeat(43)}=:`);
   });
 });
 
@@ -420,7 +545,16 @@ describeSql("interruptions: every window, without a blind provider retry", () =>
     expect(providerCalls).toBe(1);
   });
 
-  it("after R2, before D1: the song is safe and the reconciliation records it, without a provider call", async () => {
+  it("a write damaged on its way to the bucket is refused by the bucket itself (sha256 of the put)", async () => {
+    bucket.corruptInTransit = true;
+    await post(uuid(1));
+    expect(await deliver()).toEqual(["needs_review"]);
+    expect(state(uuid(1))).toMatchObject({ state: "needs_review", review_reason: "storage_failed" });
+    expect([...bucket.objects.keys()].some((k) => k.endsWith(".mp3"))).toBe(false);
+    expect(providerCalls).toBe(1);
+  });
+
+  it("after R2, before D1: the song is safe; the reconciliation has its CONTENT hashed, then records it, no call", async () => {
     faults.failOn = SQL.markStored;
     await post(uuid(1));
     expect(await deliver()).toEqual(["stored_unconfirmed"]);
@@ -428,6 +562,9 @@ describeSql("interruptions: every window, without a blind provider retry", () =>
     faults.failOn = null;
     clock += RECONCILE_RUNNING_SECONDS + 1;
     await call(request("GET"));
+    expect(queue.sent).toEqual([{ v: 1, jobId: uuid(1), op: "recover" }]); // the 10 ms request hashes nothing
+    expect(state(uuid(1))?.state).toBe("running");
+    expect(await deliver()).toEqual(["stored"]);
     expect(state(uuid(1))?.state).toBe("stored");
     expect((await call(request("GET", `?job=${uuid(1)}&audio=1`))).status).toBe(200);
     expect(providerCalls).toBe(1);
@@ -473,8 +610,205 @@ describeSql("secrets and private texts never reach the logs", () => {
   });
 });
 
+// ================================================================ Cron: recovery without any visit of the owner
+const cron = (b: PrivateLyriaBindings = bindings) => runScheduledReconciliation(b, { now, processEnv: {} });
+
+describeSql("Cron reconciliation: autonomous, fail-closed, never a provider call", () => {
+  it("pilot switch off: not even a read of D1", async () => {
+    const prepare = vi.fn();
+    const off = { ...bindings, AIMF_PRIVATE_LYRIA_ENABLED: "0", AIMF_PRIVATE_LYRIA_DB: { prepare } as unknown as D1Like };
+    expect(await cron(off)).toEqual({ status: "disabled" });
+    expect(prepare).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["emergency stop on", { AI_ROUTES_PAUSED: "1" }],
+    ["emergency stop missing", { AI_ROUTES_PAUSED: undefined }],
+    ["emergency stop unreadable", { AI_ROUTES_PAUSED: "maybe" }],
+  ])("%s: nothing at all, even with a lost hand-off waiting", async (_label, patch) => {
+    queue.failSends = 1;
+    await post(uuid(1));
+    clock += RECONCILE_IDLE_SECONDS + 1;
+    expect(await cron({ ...bindings, ...patch })).toEqual({ status: "paused" });
+    expect(queue.sent).toHaveLength(0);
+    expect(state(uuid(1))?.state).toBe("reserved");
+  });
+
+  it("a binding missing: nothing", async () => {
+    expect((await cron({ ...bindings, AIMF_PRIVATE_LYRIA_QUEUE: undefined })).status).toBe("unconfigured");
+    expect((await cron({ ...bindings, AIMF_PRIVATE_LYRIA_PROVIDER: undefined })).status).toBe("unconfigured");
+  });
+
+  it("lost hand-off, tab closed, owner never comes back: the Cron hands it over and the song is stored", async () => {
+    queue.failSends = 1;
+    await post(uuid(1));
+    clock += RECONCILE_IDLE_SECONDS + 1;
+    const run = await cron();
+    expect(run).toMatchObject({ status: "ran", requeued: [uuid(1)] });
+    expect(await deliver()).toEqual(["stored"]);
+    expect(providerCalls).toBe(1);
+  });
+
+  it("consumer died after R2, before D1: the Cron has the content checked, then the song is stored, no call", async () => {
+    faults.failOn = SQL.markStored;
+    await post(uuid(1));
+    await deliver();
+    faults.failOn = null;
+    clock += RECONCILE_RUNNING_SECONDS + 1;
+    expect(await cron()).toMatchObject({ status: "ran", recoveryQueued: [uuid(1)] });
+    expect(await cron()).toMatchObject({ status: "ran", recoveryQueued: [] }); // not handed again right away
+    expect(await deliver()).toEqual(["stored"]);
+    expect(providerCalls).toBe(1);
+  });
+
+  it("consumer died after R2 and the stored content was altered: integrity review, never recorded as stored", async () => {
+    faults.failOn = SQL.markStored;
+    await post(uuid(1));
+    await deliver();
+    faults.failOn = null;
+    audioObject().bytes[4] ^= 0x01;
+    clock += RECONCILE_RUNNING_SECONDS + 1;
+    await cron();
+    expect(await deliver()).toEqual(["needs_review"]);
+    expect(state(uuid(1))).toMatchObject({ state: "needs_review", review_reason: "storage_integrity_failed" });
+    expect(providerCalls).toBe(1);
+  });
+
+  it("consumer died after R2 and the metadata is missing: integrity review", async () => {
+    faults.failOn = SQL.markStored;
+    await post(uuid(1));
+    await deliver();
+    faults.failOn = null;
+    audioObject().meta = {};
+    clock += RECONCILE_RUNNING_SECONDS + 1;
+    await cron();
+    expect(await deliver()).toEqual(["needs_review"]);
+    expect(state(uuid(1))?.review_reason).toBe("storage_integrity_failed");
+  });
+
+  it("engaged, then the isolate died before the provider answered: review, zero call", async () => {
+    await post(uuid(1));
+    await createPilotStore(bindings.AIMF_PRIVATE_LYRIA_DB as D1Like, now).claim(uuid(1));
+    queue.sent = [];
+    clock += RECONCILE_RUNNING_SECONDS + 1;
+    expect(await cron()).toMatchObject({ status: "ran", sentToReview: [uuid(1)] });
+    expect(state(uuid(1))).toMatchObject({ state: "needs_review", review_reason: "outcome_unknown" });
+    expect(providerCalls).toBe(0);
+  });
+
+  it("the bucket cannot be read: nothing is concluded (no false 'lost')", async () => {
+    faults.failOn = SQL.markStored;
+    await post(uuid(1));
+    await deliver();
+    faults.failOn = null;
+    bucket.failHeads = true;
+    clock += RECONCILE_RUNNING_SECONDS + 1;
+    expect(await cron()).toMatchObject({ status: "ran", sentToReview: [], recoveryQueued: [] });
+    expect(state(uuid(1))?.state).toBe("running");
+  });
+
+  it(`a hand-off never consumed: at most ${PILOT_MAX_HANDOFFS} messages, then halted (never engaged, never billed)`, async () => {
+    await post(uuid(1)); // hand-off 1, swallowed
+    for (let run = 0; run < 6; run++) {
+      clock += RECONCILE_IDLE_SECONDS + 1;
+      await cron();
+    }
+    expect(queue.sent).toHaveLength(PILOT_MAX_HANDOFFS);
+    expect(state(uuid(1))).toMatchObject({ state: "halted", review_reason: "handoff_exhausted", provider_engaged_at: null });
+    queue.sent = [];
+    expect((await post(uuid(2))).status).toBe(202); // the pilot is free again, and the halted attempt still counts
+    expect(used()).toBe(2);
+    expect(providerCalls).toBe(0);
+  });
+
+  it("a recover message can never engage the provider, and leaves a live consumer alone", async () => {
+    await post(uuid(1));
+    queue.sent = [{ v: 1, jobId: uuid(1), op: "recover" }];
+    expect(await deliver()).toEqual(["not_claimed"]); // queued, not running
+    await createPilotStore(bindings.AIMF_PRIVATE_LYRIA_DB as D1Like, now).claim(uuid(1));
+    queue.sent = [{ v: 1, jobId: uuid(1), op: "recover" }];
+    expect(await deliver()).toEqual(["not_claimed"]); // running but recent: its consumer may still be working
+    queue.sent = [{ v: 1, jobId: uuid(1), op: "erase" } as unknown as PilotMessage];
+    expect(await deliver()).toEqual(["invalid_message"]);
+    expect(state(uuid(1))?.state).toBe("running");
+    expect(providerCalls).toBe(0);
+  });
+
+  it("Cron and an owner visit reconciling at the same instant: two hand-offs at most, one provider call", async () => {
+    queue.failSends = 1;
+    await post(uuid(1));
+    clock += RECONCILE_IDLE_SECONDS + 1;
+    await Promise.all([cron(), call(request("GET"))]);
+    expect(queue.sent.length).toBeGreaterThanOrEqual(1);
+    await deliver();
+    expect(state(uuid(1))?.state).toBe("stored");
+    expect(providerCalls).toBe(1);
+  });
+
+  it("the log line holds counts only", () => {
+    const line = scheduledLogLine({ status: "ran", requeued: [uuid(1)], recoveryQueued: [], sentToReview: [], halted: [] });
+    expect(JSON.parse(line)).toEqual({ event: "aimf_pilot_reconcile", status: "ran", requeued: 1, recoveryQueued: 0, sentToReview: 0, halted: 0 });
+    expect(line).not.toContain(uuid(1));
+  });
+});
+
+// ================================================================ fictitious provider for the Cloudflare recette
+describeSql("mock provider: real size, real parsing, no network, no secret", () => {
+  it("runs end to end without GEMINI_API_KEY, never touches the network, and says it is fictitious", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+    const mock: PrivateLyriaBindings = { ...bindings, AIMF_PRIVATE_LYRIA_PROVIDER: "mock", GEMINI_API_KEY: undefined };
+    const summary = await (await call(request("GET"), OWNER, mock)).json();
+    expect(summary.provider).toBe("mock");
+    expect((await call(request("POST", "", { id: uuid(1), body: BODY }), OWNER, mock)).status).toBe(202);
+    const messages = queue.sent.splice(0).map((body) => ({ body, ack: vi.fn() }));
+    expect(await consumePrivateLyriaBatch({ messages }, mock, { now, processEnv: {} })).toEqual(["stored"]);
+    const view = await (await call(request("GET", `?job=${uuid(1)}`), OWNER, mock)).json();
+    expect(view.lyrics).toBe(MOCK_LYRICS);
+    expect(view.job.audioBytes).toBe(3_000_000);
+    const audio = await call(request("GET", `?job=${uuid(1)}&audio=1`), OWNER, mock);
+    expect((await audio.arrayBuffer()).byteLength).toBe(3_000_000);
+    expect(audioObject().meta.provider).toBe("mock");
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("lyria-3.5 mode without its secret: the consumer engages nothing", async () => {
+    await post(uuid(1));
+    expect(await deliver({ ...bindings, GEMINI_API_KEY: " " })).toEqual(["unconfigured"]);
+    expect(state(uuid(1))?.provider_engaged_at).toBeNull();
+  });
+});
+
+// ================================================================ owner review
+describeSql("the owner closes a reviewed attempt by hand; the code never does", () => {
+  it("needs_review -> reviewed (manual SQL) unblocks the pilot; the attempt stays counted; nothing else is allowed", async () => {
+    providerBehaviour = () => Promise.reject(new LyriaGenerationError("upstream_rejected", 502));
+    await post(uuid(1));
+    await deliver();
+    expect((await post(uuid(2))).status).toBe(423);
+    expect(() => db.exec(`UPDATE aimf_pilot_jobs SET state = 'queued' WHERE id = '${uuid(1)}'`)).toThrow(/forbidden/);
+    db.exec(`UPDATE aimf_pilot_jobs SET state = 'reviewed', updated_at = ${clock} WHERE id = '${uuid(1)}' AND state = 'needs_review'`);
+    expect((await (await getJob(uuid(1))).json()).job.state).toBe("reviewed");
+    expect((await post(uuid(2))).status).toBe(202);
+    expect(used()).toBe(2);
+    expect(() => db.exec(`UPDATE aimf_pilot_jobs SET state = 'needs_review' WHERE id = '${uuid(1)}'`)).toThrow(/forbidden/);
+  });
+
+  it("no statement of the code writes 'reviewed'", () => {
+    expect(Object.values(SQL).join("\n")).not.toContain("'reviewed'");
+  });
+});
+
 describe("the pilot is a technical circuit breaker, never a second credit wallet", () => {
-  const sources = ["private-pilot-sql.ts", "private-pilot-store.ts", "private-pilot-worker.ts", "private-pilot-bindings.ts", "private-demo-handler.ts"]
+  const sources = [
+    "private-pilot-sql.ts",
+    "private-pilot-store.ts",
+    "private-pilot-worker.ts",
+    "private-pilot-bindings.ts",
+    "private-pilot-integrity.ts",
+    "private-pilot-mock.ts",
+    "private-pilot-entry.ts",
+    "private-demo-handler.ts",
+  ]
     .map((f) => readFileSync(`src/music/${f}`, "utf8"))
     .join("\n");
 

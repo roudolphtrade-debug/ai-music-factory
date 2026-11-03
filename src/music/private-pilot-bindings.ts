@@ -30,19 +30,51 @@ export interface R2Like {
   put(
     key: string,
     value: Uint8Array | string,
-    options?: { httpMetadata?: { contentType?: string }; customMetadata?: Record<string, string> },
+    options?: {
+      httpMetadata?: { contentType?: string };
+      customMetadata?: Record<string, string>;
+      /** R2 recomputes the SHA-256 of what it received and refuses the write when it differs. */
+      sha256?: string;
+    },
   ): Promise<R2ObjectLike | null>;
   head(key: string): Promise<R2ObjectLike | null>;
   get(key: string): Promise<R2ObjectBodyLike | null>;
 }
 
+/**
+ * `generate` (default) asks the consumer to engage the provider once; `recover` asks it to check, by hashing the
+ * stored content, an attempt whose consumer went silent. A `recover` message can never engage the provider.
+ */
 export interface PilotMessage {
   v: 1;
   jobId: string;
+  op?: "generate" | "recover";
 }
+
+/**
+ * Which provider the consumer uses, EXACT values only: "lyria-3.5" (Google, may be billed, needs GEMINI_API_KEY) or
+ * "mock" (a fictitious answer of real size, built in memory, no network). Anything else: the pilot is unconfigured.
+ */
+export type PilotProviderMode = "lyria-3.5" | "mock";
+export const providerMode = (bindings: PrivateLyriaBindings | null | undefined): PilotProviderMode | null => {
+  const value = bindings?.AIMF_PRIVATE_LYRIA_PROVIDER;
+  return value === "lyria-3.5" || value === "mock" ? value : null;
+};
+
+/**
+ * Who hashes a stored song when it is played. "client" (default): the bucket body is piped natively (no JavaScript
+ * CPU in the 10 ms request) with the D1 fingerprint in `Repr-Digest`, and the browser checks the whole file before
+ * playing it. "server" (exact value): the Worker also hashes it while it streams, at a measured cost of tens of ms
+ * of CPU for 3 MB, to enable only where the plan's CPU limit allows it.
+ */
+export type AudioCheckMode = "client" | "server";
+export const audioCheckMode = (bindings: PrivateLyriaBindings | null | undefined): AudioCheckMode =>
+  bindings?.AIMF_PRIVATE_LYRIA_AUDIO_CHECK === "server" ? "server" : "client";
 
 export interface PrivateLyriaBindings {
   AIMF_PRIVATE_LYRIA_ENABLED?: string;
+  AIMF_PRIVATE_LYRIA_PROVIDER?: string;
+  AIMF_PRIVATE_LYRIA_AUDIO_CHECK?: string;
   AIMF_PRIVATE_LYRIA_OWNER_ID?: string;
   AIMF_PRIVATE_LYRIA_DB?: D1Like;
   AIMF_PRIVATE_LYRIA_QUEUE?: QueueLike;
@@ -78,7 +110,22 @@ export function aiRoutesPaused(bindings: PrivateLyriaBindings | null | undefined
 export const pilotEnabled = (bindings: PrivateLyriaBindings | null | undefined) =>
   bindings?.AIMF_PRIVATE_LYRIA_ENABLED === "1";
 
+/**
+ * Everything a part of the pilot needs before it may touch D1, the queue or the bucket. The provider key is only
+ * required in "lyria-3.5" mode: the fictitious provider runs without any secret.
+ */
+export function pilotReady(bindings: PrivateLyriaBindings | null | undefined) {
+  const mode = providerMode(bindings);
+  const db = bindings?.AIMF_PRIVATE_LYRIA_DB;
+  const queue = bindings?.AIMF_PRIVATE_LYRIA_QUEUE;
+  const bucket = bindings?.AIMF_PRIVATE_LYRIA_BUCKET;
+  const apiKey = bindings?.GEMINI_API_KEY?.trim() ?? "";
+  if (!mode || !db || !queue || !bucket || (mode === "lyria-3.5" && !apiKey)) return null;
+  return { mode, db, queue, bucket, apiKey };
+}
+
 export const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const SHA256_HEX = /^[0-9a-f]{64}$/;
 
 /** Where a stored song lives in the private bucket. Derived from the job, so a crash cannot lose the address. */
 export const audioKey = (ownerId: string, jobId: string) => `pilot/${encodeURIComponent(ownerId)}/${jobId}.mp3`;

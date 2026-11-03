@@ -6,13 +6,20 @@
  * What the table is, and is not: a TECHNICAL CIRCUIT BREAKER for at most five owner-only attempts of the pilot.
  * It holds no member credit, no balance, no price list; it is never a wallet next to Supabase M1/M2.
  *
- * States: reserved -> queued -> running -> stored | needs_review, and reserved/queued -> halted.
+ * States: reserved -> queued -> running -> stored | needs_review, reserved/queued -> halted, and
+ * needs_review -> reviewed.
  *  - `provider_engaged_at` is written exactly once, at the instant the single provider call is committed to.
  *    NULL means "Google was never engaged"; NOT NULL means "a call may have been billed".
- *  - stored, needs_review and halted are final. Nothing is ever deleted, reset or refunded by the code.
+ *  - stored, reviewed and halted are final; needs_review blocks the pilot. Nothing is ever deleted, reset or
+ *    refunded by the code, and the code NEVER writes `reviewed`: only the owner does, by hand, after the diagnostic
+ *    of `docs/music/LYRIA-PILOT-RECETTE-CLOUDFLARE.md` (the attempt stays counted in the cap).
+ *  - `handoffs` counts the messages handed to the queue for an attempt that was never engaged; past
+ *    PILOT_MAX_HANDOFFS the attempt is halted instead of being handed over forever.
  */
 export const PILOT_SCOPE = "lyria-3.5";
 export const PILOT_HARD_MAX_ATTEMPTS = 5;
+/** One hand-off at the reservation, then at most three by the reconciliation. */
+export const PILOT_MAX_HANDOFFS = 4;
 
 export const PILOT_SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS aimf_pilot_settings (
@@ -27,15 +34,16 @@ CREATE TABLE IF NOT EXISTS aimf_pilot_jobs (
   owner_id TEXT NOT NULL CHECK (length(owner_id) > 0),
   request_hash TEXT NOT NULL CHECK (length(request_hash) = 64),
   input_json TEXT NOT NULL CHECK (json_valid(input_json)),
-  state TEXT NOT NULL CHECK (state IN ('reserved', 'queued', 'running', 'stored', 'needs_review', 'halted')),
+  state TEXT NOT NULL CHECK (state IN ('reserved', 'queued', 'running', 'stored', 'needs_review', 'reviewed', 'halted')),
   provider_engaged_at INTEGER,
+  handoffs INTEGER NOT NULL DEFAULT 0 CHECK (handoffs >= 0),
   review_reason TEXT,
   audio_key TEXT,
   audio_sha256 TEXT,
   audio_bytes INTEGER,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL,
-  CHECK (state NOT IN ('running', 'stored', 'needs_review') OR provider_engaged_at IS NOT NULL),
+  CHECK (state NOT IN ('running', 'stored', 'needs_review', 'reviewed') OR provider_engaged_at IS NOT NULL),
   CHECK (state <> 'halted' OR provider_engaged_at IS NULL),
   CHECK (state <> 'stored' OR (audio_key IS NOT NULL AND length(audio_sha256) = 64 AND audio_bytes > 0))
 );
@@ -50,13 +58,13 @@ BEGIN SELECT RAISE(ABORT, 'provider engagement is written once'); END;
 CREATE TRIGGER IF NOT EXISTS aimf_pilot_jobs_transitions BEFORE UPDATE OF state ON aimf_pilot_jobs
 WHEN NEW.state <> OLD.state AND (OLD.state || '>' || NEW.state) NOT IN (
   'reserved>queued', 'reserved>running', 'queued>running', 'reserved>halted', 'queued>halted',
-  'running>stored', 'running>needs_review')
+  'running>stored', 'running>needs_review', 'needs_review>reviewed')
 BEGIN SELECT RAISE(ABORT, 'forbidden pilot state transition'); END;
 `;
 
 /** Columns a caller may read. Never the input text in a list, never a key or a secret. */
-const JOB_COLUMNS = `id, owner_id, request_hash, state, provider_engaged_at, review_reason, audio_key, audio_sha256,
-  audio_bytes, created_at, updated_at`;
+const JOB_COLUMNS = `id, owner_id, request_hash, state, provider_engaged_at, handoffs, review_reason, audio_key,
+  audio_sha256, audio_bytes, created_at, updated_at`;
 
 export const SQL = {
   /**
@@ -79,8 +87,10 @@ RETURNING ${JOB_COLUMNS}`,
   (SELECT id FROM aimf_pilot_jobs WHERE state IN ('reserved', 'queued', 'running') LIMIT 1) AS active_id
 FROM aimf_pilot_settings s WHERE s.scope = 'lyria-3.5'`,
   /** The message was handed to the queue (or handed again by the reconciliation): Google is still not engaged. */
-  markQueued: `UPDATE aimf_pilot_jobs SET state = 'queued', updated_at = ?2
+  markQueued: `UPDATE aimf_pilot_jobs SET state = 'queued', handoffs = handoffs + 1, updated_at = ?2
 WHERE id = ?1 AND state IN ('reserved', 'queued') AND provider_engaged_at IS NULL RETURNING ${JOB_COLUMNS}`,
+  /** A recovery check was handed to the queue for a silent engaged attempt: not looked at again before long. */
+  touchRunning: `UPDATE aimf_pilot_jobs SET updated_at = ?2 WHERE id = ?1 AND state = 'running' RETURNING ${JOB_COLUMNS}`,
   /** THE commit point of the single provider call: only one caller can ever get a row back for an id. */
   claim: `UPDATE aimf_pilot_jobs SET state = 'running', provider_engaged_at = ?2, updated_at = ?2
 WHERE id = ?1 AND state IN ('reserved', 'queued') AND provider_engaged_at IS NULL RETURNING ${JOB_COLUMNS}`,

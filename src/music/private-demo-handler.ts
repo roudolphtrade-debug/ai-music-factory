@@ -10,7 +10,8 @@
  *
  *   GET  /api/studio/lyria-private                 pilot status (owner only)
  *   GET  /api/studio/lyria-private?job=<id>        one attempt: state, and the lyrics once stored
- *   GET  /api/studio/lyria-private?job=<id>&audio=1  the stored MP3, streamed, private, never cached
+ *   GET  /api/studio/lyria-private?job=<id>&audio=1  the stored MP3, streamed, private, never cached, with its D1
+ *                                                    fingerprint in `Repr-Digest` (checked by the browser)
  *   POST /api/studio/lyria-private  (Idempotency-Key: <uuid>)  202 new attempt, or 200 the same attempt again
  */
 import { readJsonLimited, textField } from "@/lib/api-guard";
@@ -18,11 +19,17 @@ import { memberAuthConfig, verifyMemberSession, type MemberCheck } from "@/lib/m
 import { buildLyriaPrompt, type LyriaSongRequest } from "./lyria35";
 import {
   aiRoutesPaused,
+  audioCheckMode,
+  type AudioCheckMode,
   lyricsKey,
   pilotEnabled,
+  pilotReady,
   UUID_PATTERN,
+  type PilotProviderMode,
   type PrivateLyriaBindings,
+  type R2Like,
 } from "./private-pilot-bindings";
+import { defaultHasherFactory, reprDigestHeader, verifiedStream, type HasherFactory } from "./private-pilot-integrity";
 import { createPilotStore, PilotStoreError, type PilotJob, type PilotStore } from "./private-pilot-store";
 import { reconcilePilot } from "./private-pilot-worker";
 
@@ -32,6 +39,8 @@ export interface PrivateLyriaDependencies {
   verify?: (request: Request) => Promise<MemberCheck>;
   now?: () => number;
   processEnv?: Record<string, string | undefined>;
+  /** Incremental SHA-256 for the verified audio read; `null` = none (the audio is then refused, never unchecked). */
+  hasher?: HasherFactory | null;
 }
 
 const NO_STORE = { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" };
@@ -117,16 +126,19 @@ export async function handlePrivateLyriaRequest(
   if (!member.ok) return member.response;
   if (member.userId !== ownerId) return failure(403, "owner_only");
 
-  const db = bindings?.AIMF_PRIVATE_LYRIA_DB;
-  const queue = bindings?.AIMF_PRIVATE_LYRIA_QUEUE;
-  const bucket = bindings?.AIMF_PRIVATE_LYRIA_BUCKET;
-  if (!db || !queue || !bucket || !bindings?.GEMINI_API_KEY?.trim()) return failure(503, "pilot_unconfigured");
-  const store = createPilotStore(db, deps.now);
+  const ready = pilotReady(bindings);
+  if (!ready) return failure(503, "pilot_unconfigured");
+  const { queue, bucket, mode } = ready;
+  const store = createPilotStore(ready.db, deps.now);
+  const hasher = deps.hasher === undefined ? defaultHasherFactory() : deps.hasher;
 
   try {
-    // Recovery of the windows no single write covers (never a provider call). The pilot is open at this point.
+    // Recovery of the windows no single write covers (never a provider call). The pilot is open at this point. The
+    // Cron entry runs the same reconciliation without any visit, so a closed tab never leaves an attempt behind.
     await reconcilePilot(store, bucket, queue, { canEnqueue: true });
-    if (request.method === "GET") return await handleGet(request, store, bucket, ownerId);
+    if (request.method === "GET") {
+      return await handleGet(request, store, bucket, ownerId, mode, audioCheckMode(bindings), hasher);
+    }
     return await handlePost(request, store, queue, ownerId);
   } catch (error) {
     if (error instanceof PilotStoreError) return failure(503, "pilot_unavailable");
@@ -134,12 +146,20 @@ export async function handlePrivateLyriaRequest(
   }
 }
 
-async function handleGet(request: Request, store: PilotStore, bucket: NonNullable<PrivateLyriaBindings["AIMF_PRIVATE_LYRIA_BUCKET"]>, ownerId: string) {
+async function handleGet(
+  request: Request,
+  store: PilotStore,
+  bucket: R2Like,
+  ownerId: string,
+  mode: PilotProviderMode,
+  check: AudioCheckMode,
+  hasher: HasherFactory | null,
+) {
   const params = new URL(request.url).searchParams;
   const jobId = params.get("job");
   if (jobId === null) {
     const summary = await store.summary();
-    return Response.json({ enabled: true, model: "lyria-3.5", ...summary }, { headers: NO_STORE });
+    return Response.json({ enabled: true, model: "lyria-3.5", provider: mode, ...summary }, { headers: NO_STORE });
   }
   if (!UUID_PATTERN.test(jobId)) return failure(400, "invalid_job");
   const job = await store.getJob(jobId);
@@ -147,15 +167,27 @@ async function handleGet(request: Request, store: PilotStore, bucket: NonNullabl
   if (!job || job.owner_id !== ownerId) return failure(404, "not_found");
 
   if (params.get("audio") === "1") {
-    if (job.state !== "stored" || !job.audio_key) return failure(409, "not_ready");
+    if (job.state !== "stored" || !job.audio_key || !job.audio_sha256 || !job.audio_bytes) return failure(409, "not_ready");
+    // "server" mode without an incremental hash in this runtime: refuse rather than claim a check that is not made.
+    if (check === "server" && !hasher) return failure(503, "audio_unverifiable");
     const object = await bucket.get(job.audio_key);
-    if (!object || object.size !== job.audio_bytes || object.customMetadata?.sha256 !== job.audio_sha256) {
+    // The R2 metadata proves nothing and is not read. The size is only a quick pre-check; the proof is the hash of
+    // the content against the fingerprint D1 recorded when the song was stored: computed by the browser before it
+    // plays (always), and by this Worker while it streams in "server" mode (a mismatch fails the response).
+    if (!object || object.size !== job.audio_bytes) {
+      await object?.body.cancel().catch(() => {});
       return failure(503, "audio_unavailable");
     }
-    return new Response(object.body, {
+    const body =
+      check === "server" && hasher
+        ? verifiedStream(object.body, { sha256: job.audio_sha256, bytes: job.audio_bytes }, hasher())
+        : object.body;
+    return new Response(body, {
       headers: {
         "Content-Type": "audio/mpeg",
-        "Content-Length": String(object.size),
+        "Content-Length": String(job.audio_bytes),
+        "Repr-Digest": reprDigestHeader(job.audio_sha256),
+        "X-AIMF-Audio-Check": check === "server" ? "server-stream+client" : "client",
         "Cache-Control": "private, no-store",
         "X-Content-Type-Options": "nosniff",
         "Content-Disposition": `inline; filename="aimf-lyria-${job.id}.mp3"`,

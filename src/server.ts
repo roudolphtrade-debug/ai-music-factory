@@ -68,4 +68,15 @@ export default {
     const { consumePrivateLyriaBatch } = await import("./music/private-pilot-worker");
     await consumePrivateLyriaBatch(batch, env as import("./music/private-pilot-bindings").PrivateLyriaBindings);
   },
+
+  /**
+   * Cron reconciliation of the private Lyria pilot, so an attempt recovers without any visit of the owner. Without a
+   * Cron trigger configured for this Worker it is never invoked; with the pilot off or paused it reads nothing. It
+   * never calls the provider. Whether the hosting passes Cron to this entry is unproven: the dedicated recette
+   * Worker (`src/music/private-pilot-entry.ts`) does not depend on it.
+   */
+  async scheduled(_controller: unknown, env: unknown) {
+    const { runScheduledReconciliation, scheduledLogLine } = await import("./music/private-pilot-worker");
+    console.log(scheduledLogLine(await runScheduledReconciliation(env as import("./music/private-pilot-bindings").PrivateLyriaBindings)));
+  },
 };
