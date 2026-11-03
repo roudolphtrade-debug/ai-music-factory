@@ -1,0 +1,69 @@
+// AIMF, pilote Lyria privé : configuration Wrangler de RECETTE ISOLÉE. PROPOSITION NON DÉPLOYÉE.
+//
+// - Rangée sous docs/ exprès : ni le build Lovable ni Wrangler ne la lisent sans `--config` explicite.
+// - Non déployable en l'état : les identifiants de ressources sont des marqueurs à remplacer, après un GO séparé,
+//   par ceux de ressources DÉDIÉES (aucune ressource existante d'un autre projet ne doit être réutilisée).
+// - Fermée par défaut : interrupteur à "0", arrêt d'urgence à "1", fournisseur FICTIF ("mock").
+// - Aucun secret ici. Secrets attendus plus tard, par `wrangler secret put`, sur GO séparé uniquement :
+//   AIMF_PRIVATE_LYRIA_OWNER_ID (identifiant Supabase du propriétaire). GEMINI_API_KEY n'est PAS requis en "mock"
+//   et ne doit pas être posé pour la recette.
+// - Pas de route ni de sous-domaine workers.dev : le Worker n'est joignable qu'après un GO qui les ouvre.
+// Mode d'emploi, matrice de tests et critères d'arrêt : docs/music/LYRIA-PILOT-RECETTE-CLOUDFLARE.md
+{
+  "name": "aimf-lyria-pilot-recette",
+  "main": "../../../src/music/private-pilot-entry.ts",
+  "compatibility_date": "2026-10-20",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [],
+  "send_metrics": false,
+  "upload_source_maps": false,
+  "observability": { "enabled": true },
+
+  // Hors de Vite, `import.meta.env` n'existe pas : la vérification de session (src/lib/member-guard.ts) doit alors
+  // lire SUPABASE_URL et SUPABASE_PUBLISHABLE_KEY depuis les liaisons ci-dessous, sans planter.
+  "define": {
+    "import.meta.env.VITE_SUPABASE_URL": "undefined",
+    "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": "undefined"
+  },
+
+  // Producteur et consommateur de la même file dédiée. Le consommateur acquitte chaque message lui-même :
+  // aucune relivraison automatique utile, une seule exécution à la fois.
+  "queues": {
+    "producers": [{ "binding": "AIMF_PRIVATE_LYRIA_QUEUE", "queue": "aimf-lyria-pilot-recette" }],
+    "consumers": [
+      {
+        "queue": "aimf-lyria-pilot-recette",
+        "max_batch_size": 1,
+        "max_batch_timeout": 1,
+        "max_retries": 0,
+        "max_concurrency": 1
+      }
+    ]
+  },
+
+  "d1_databases": [
+    {
+      "binding": "AIMF_PRIVATE_LYRIA_DB",
+      "database_name": "aimf-lyria-pilot-recette",
+      "database_id": "A-RENSEIGNER-APRES-GO-SEPARE"
+    }
+  ],
+
+  // Bucket PRIVÉ : ni domaine public, ni accès r2.dev à activer.
+  "r2_buckets": [{ "binding": "AIMF_PRIVATE_LYRIA_BUCKET", "bucket_name": "aimf-lyria-pilot-recette" }],
+
+  // Réconciliation autonome toutes les 5 minutes (aucun appel au fournisseur, aucune nouvelle tentative).
+  "triggers": { "crons": ["*/5 * * * *"] },
+
+  "vars": {
+    "AIMF_PRIVATE_LYRIA_ENABLED": "0",
+    "AI_ROUTES_PAUSED": "1",
+    "AIMF_PRIVATE_LYRIA_PROVIDER": "mock",
+    // "client" : le navigateur vérifie l'empreinte ; "server" à mesurer en recette (coût CPU, voir la matrice).
+    "AIMF_PRIVATE_LYRIA_AUDIO_CHECK": "client",
+    "SUPABASE_URL": "",
+    "SUPABASE_PUBLISHABLE_KEY": ""
+  }
+}

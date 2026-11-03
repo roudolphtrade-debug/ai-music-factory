@@ -52,17 +52,24 @@ Décidée par la revue du propriétaire sur la PR #18 (GO de développement sans
 | Frontal HTTP léger | interrupteur du pilote et arrêt d'urgence `AI_ROUTES_PAUSED` (fermés par défaut), origine, session vérifiée côté serveur, identifiant propriétaire (secret serveur), validation, réservation D1, envoi d'un message contenant **un identifiant seulement**, consultation de l'état, relecture du MP3 en flux depuis R2. **Jamais d'appel Google, jamais d'audio en base64.** | `src/music/private-demo-handler.ts` |
 | Machine d'états D1 | `reserved → queued → running → stored / needs_review`, `reserved/queued → halted` ; `provider_engaged_at` écrit une seule fois ; 5 tentatives au plus (contrainte et déclencheur) ; ni suppression, ni remise à zéro, ni remboursement | `src/music/private-pilot-sql.ts`, `private-pilot-store.ts`, `docs/music/LYRIA-PRIVATE-DEMO-D1.sql` |
 | Consommateur de file | seul endroit où Google peut être appelé ; réclamation atomique avant l'appel : **au plus un appel par identifiant**, malgré les relivraisons, la concurrence ou un redémarrage ; MP3 validé → R2 privé (empreinte SHA-256) → `stored` | `src/music/private-pilot-worker.ts`, `src/server.ts` (`queue()`) |
-| Réconciliation | tentative jamais engagée et inactive : renvoyée dans la file (pilote ouvert seulement) ; tentative engagée et muette depuis plus de 20 min : `stored` si le MP3 est complet dans R2, sinon `needs_review`. **Jamais de nouvel appel Google.** | idem |
-| Interface | suivi de l'état, reprise après fermeture de l'onglet, relecture depuis le stockage privé | `src/components/premium/PrivateLyriaPilot.tsx` |
+| Réconciliation | tentative jamais engagée et inactive : renvoyée dans la file (pilote ouvert seulement, 4 envois au plus, puis `halted`) ; tentative engagée et muette depuis plus de 20 min : sans objet R2, `needs_review` ; avec objet, contrôle du **contenu** haché par le consommateur avant `stored`. **Jamais de nouvel appel Google.** Déclenchée par le frontal **et par un Cron**, sans visite du propriétaire | idem, `runScheduledReconciliation()` |
+| Intégrité | empreinte D1 de référence ; R2 refuse une écriture altérée (`sha256`) ; lecture : `Repr-Digest`, vérifiée par le navigateur (et par le Worker en mode `server`) | `src/music/private-pilot-integrity.ts` |
+| Fournisseur fictif | mode `mock` : réponse de taille réelle, construite en mémoire, analysée par le vrai code ; aucun réseau, aucun secret | `src/music/private-pilot-mock.ts` |
+| Worker de recette | entrée dédiée `fetch`/`queue`/`scheduled`, configuration inactive | `src/music/private-pilot-entry.ts`, `docs/music/cloudflare/wrangler.recette.jsonc` |
+| Interface | suivi de l'état, reprise après fermeture de l'onglet, relecture depuis le stockage privé, motif exact de chaque revue, contrôle d'empreinte avant lecture | `src/components/premium/PrivateLyriaPilot.tsx` |
+
+Recette Cloudflare, incidents et procédure du propriétaire : `docs/music/LYRIA-PILOT-RECETTE-CLOUDFLARE.md`.
 
 Distinction obligatoire : `provider_engaged_at` NULL = **appel Google jamais engagé** (aucune facturation possible) ;
 NOT NULL = **issue de facturation inconnue** tant que le morceau n'est pas `stored`. Toute issue engagée et non
 stockée devient `needs_review`, qui **bloque le pilote** jusqu'à la revue du propriétaire.
 
 Liaisons serveur attendues (aucune n'est créée par ce lot) : `AIMF_PRIVATE_LYRIA_DB` (D1 isolée),
-`AIMF_PRIVATE_LYRIA_QUEUE` (producteur et consommateur), `AIMF_PRIVATE_LYRIA_BUCKET` (R2 **privé**), secrets
-`GEMINI_API_KEY` et `AIMF_PRIVATE_LYRIA_OWNER_ID`, interrupteur `AIMF_PRIVATE_LYRIA_ENABLED=1`, et
-`AI_ROUTES_PAUSED` à une valeur ouverte. Ce compteur D1 est **uniquement un coupe-circuit technique du pilote** : il
+`AIMF_PRIVATE_LYRIA_QUEUE` (producteur et consommateur), `AIMF_PRIVATE_LYRIA_BUCKET` (R2 **privé**), secret
+`AIMF_PRIVATE_LYRIA_OWNER_ID`, fournisseur `AIMF_PRIVATE_LYRIA_PROVIDER` (`mock` ou `lyria-3.5`, valeurs exactes ;
+`GEMINI_API_KEY` requis seulement pour `lyria-3.5`), interrupteur `AIMF_PRIVATE_LYRIA_ENABLED=1`, contrôle de
+lecture `AIMF_PRIVATE_LYRIA_AUDIO_CHECK` (`client` par défaut), un déclencheur Cron et `AI_ROUTES_PAUSED` à une
+valeur ouverte. Ce compteur D1 est **uniquement un coupe-circuit technique du pilote** : il
 ne contient aucun crédit membre et ne remplace jamais le grand livre Supabase M1/M2.
 
 ## Ce qui reste non prouvé sans ressources réelles
@@ -72,8 +79,11 @@ ne contient aucun crédit membre et ne remplace jamais le grand livre Supabase M
 - livraison Queues réelle (au moins une fois, délais, 30 s de CPU annoncées pour le consommateur) : file simulée ;
 - R2 réel (confirmation d'écriture, métadonnées, flux) : stockage simulé ;
 - lecture de `AI_ROUTES_PAUSED` et des liaisons dans l'environnement d'exécution de l'hébergement Lovable, et prise
-  en charge d'un consommateur `queue()` par cet hébergement ;
-- CPU et mémoire réels du consommateur sur une réponse Lyria d'environ 4 Mo ;
+  en charge d'un consommateur `queue()` et d'un Cron `scheduled()` par cet hébergement (d'où le Worker de recette
+  dédié) ;
+- CPU et mémoire réels du consommateur sur une réponse Lyria d'environ 4 Mo, et coût réel du hachage en flux
+  (mesuré seulement sous workerd local) ;
+- refus réel par R2 d'une écriture dont l'empreinte `sha256` diffère, et taille des segments des corps R2 ;
 - facturation par Google d'une requête interrompue ou refusée.
 
 **Décision :** NO-GO pour activation, déploiement et appel réel. Conditions du futur GO réel : isolation Cloudflare
