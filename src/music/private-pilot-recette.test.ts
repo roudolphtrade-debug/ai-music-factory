@@ -40,7 +40,7 @@ const config = parseJsonc(raw) as {
   vars: Record<string, string>;
   define: Record<string, string>;
   d1_databases: { binding: string; database_name: string; database_id: string }[];
-  r2_buckets: { binding: string; bucket_name: string }[];
+  r2_buckets: { binding: string; bucket_name: string; jurisdiction?: string }[];
   queues: {
     producers: { binding: string; queue: string }[];
     consumers: { queue: string; max_batch_size: number; max_retries: number; max_concurrency: number }[];
@@ -54,19 +54,38 @@ describe("recette Wrangler config: isolated, inactive, without secrets", () => {
     expect(readdirSync(".").filter((f) => /^wrangler\.(jsonc?|toml)$/.test(f))).toEqual([]);
   });
 
-  it("names only dedicated AIMF pilot resources, with placeholders that cannot be deployed as they are", () => {
+  it("keeps its own Worker, D1 and queue, with a D1 placeholder that cannot be deployed as it is", () => {
     expect(config.name).toBe("aimf-lyria-pilot-recette");
-    for (const name of [
-      config.d1_databases[0].database_name,
-      config.r2_buckets[0].bucket_name,
-      config.queues.producers[0].queue,
-      config.queues.consumers[0].queue,
-    ]) {
+    for (const name of [config.d1_databases[0].database_name, config.queues.producers[0].queue, config.queues.consumers[0].queue]) {
       expect(name).toBe("aimf-lyria-pilot-recette");
     }
     expect(config.d1_databases[0].database_id).not.toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-/i);
     expect(config.account_id).toBeUndefined();
     expect(config.env).toBeUndefined(); // no production environment hidden in it
+  });
+
+  it("stores in the existing private AIMF bucket, in the EU jurisdiction, and in no other bucket", () => {
+    expect(config.r2_buckets).toEqual([
+      { binding: "AIMF_PRIVATE_LYRIA_BUCKET", bucket_name: "aimf-media-staging", jurisdiction: "eu" },
+    ]);
+  });
+
+  it("the technical documentation describes the same bucket, jurisdiction and prefix, and never deletes the bucket", () => {
+    for (const doc of ["docs/music/LYRIA-PILOT-RECETTE-CLOUDFLARE.md", "docs/music/LYRIA-PRIVATE-DEMO-PLAN.md"]) {
+      const text = readFileSync(doc, "utf8");
+      expect(text).toContain("aimf-media-staging");
+      expect(text).toContain('jurisdiction: "eu"');
+      expect(text).toContain("pilot/");
+    }
+    expect(readFileSync("docs/music/LYRIA-PILOT-RECETTE-CLOUDFLARE.md", "utf8")).toMatch(/bucket partagé `aimf-media-staging` n'est jamais supprimé/);
+  });
+
+  it("every R2 binding declares the EU jurisdiction (it cannot be changed once a bucket exists)", () => {
+    expect(config.r2_buckets.length).toBeGreaterThan(0);
+    for (const bucket of config.r2_buckets) expect(bucket.jurisdiction).toBe("eu");
+    // The raw file too: no second r2_buckets block hidden further down.
+    expect(raw.match(/"r2_buckets"/g)).toHaveLength(1);
+    expect(raw.match(/"bucket_name"/g)).toHaveLength(1);
   });
 
   it("is reachable by no route, no workers.dev and no preview address", () => {

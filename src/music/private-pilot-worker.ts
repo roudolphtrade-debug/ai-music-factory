@@ -15,6 +15,7 @@ import {
   pilotEnabled,
   pilotReady,
   SHA256_HEX,
+  storableFor,
   UUID_PATTERN,
   type PilotMessage,
   type PilotProviderMode,
@@ -133,6 +134,11 @@ export async function processPilotMessage(
     if (!input) {
       // Google never engaged: final, attempt consumed, nothing to review on the provider side.
       return (await store.markHalted(jobId, "invalid_input")) ? "halted" : "not_claimed";
+    }
+    // Its song could not be kept under `pilot/`: stopped while Google is still not engaged (never billed).
+    const pending = await store.getJob(jobId);
+    if (pending && !storableFor(pending.owner_id, pending.id)) {
+      return (await store.markHalted(jobId, "storage_key_invalid")) ? "halted" : "not_claimed";
     }
     const job = await store.claim(jobId);
     if (!job) return "not_claimed"; // already engaged, final, or unknown: a redelivery calls nothing

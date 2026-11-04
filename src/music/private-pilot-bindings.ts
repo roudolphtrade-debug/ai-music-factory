@@ -121,12 +121,58 @@ export function pilotReady(bindings: PrivateLyriaBindings | null | undefined) {
   const bucket = bindings?.AIMF_PRIVATE_LYRIA_BUCKET;
   const apiKey = bindings?.GEMINI_API_KEY?.trim() ?? "";
   if (!mode || !db || !queue || !bucket || (mode === "lyria-3.5" && !apiKey)) return null;
-  return { mode, db, queue, bucket, apiKey };
+  return { mode, db, queue, bucket: pilotScopedBucket(bucket), apiKey };
+}
+
+/**
+ * The pilot shares the AIMF bucket `aimf-media-staging` (private, EU jurisdiction) and owns ONLY its `pilot/` prefix.
+ * Every bucket access of the pilot goes through `pilotScopedBucket`, applied once in `pilotReady`: a key outside
+ * `pilot/`, with an empty, "." or ".." segment, a control character, a backslash or more than 1024 bytes is refused
+ * before the bucket is reached. The wrapper exposes only put, head and get: the pilot can never list or delete.
+ */
+export const PILOT_PREFIX = "pilot/";
+const MAX_R2_KEY_BYTES = 1024;
+
+export class PilotKeyError extends Error {
+  constructor() {
+    super("bucket key outside the pilot prefix");
+    this.name = "PilotKeyError";
+  }
+}
+
+export function isPilotKey(key: unknown): key is string {
+  if (typeof key !== "string" || !key.startsWith(PILOT_PREFIX)) return false;
+  if (new TextEncoder().encode(key).byteLength > MAX_R2_KEY_BYTES) return false;
+  // eslint-disable-next-line no-control-regex
+  if (/[\u0000-\u001f\u007f\\]/.test(key)) return false;
+  return key
+    .slice(PILOT_PREFIX.length)
+    .split("/")
+    .every((segment) => segment !== "" && segment !== "." && segment !== "..");
+}
+
+export function pilotScopedBucket(bucket: R2Like): R2Like {
+  const checked = (key: string) => {
+    if (!isPilotKey(key)) throw new PilotKeyError();
+    return key;
+  };
+  return {
+    put: async (key, value, options) => bucket.put(checked(key), value, options),
+    head: async (key) => bucket.head(checked(key)),
+    get: async (key) => bucket.get(checked(key)),
+  };
 }
 
 export const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const SHA256_HEX = /^[0-9a-f]{64}$/;
 
 /** Where a stored song lives in the private bucket. Derived from the job, so a crash cannot lose the address. */
-export const audioKey = (ownerId: string, jobId: string) => `pilot/${encodeURIComponent(ownerId)}/${jobId}.mp3`;
-export const lyricsKey = (ownerId: string, jobId: string) => `pilot/${encodeURIComponent(ownerId)}/${jobId}.json`;
+export const audioKey = (ownerId: string, jobId: string) => `${PILOT_PREFIX}${encodeURIComponent(ownerId)}/${jobId}.mp3`;
+export const lyricsKey = (ownerId: string, jobId: string) => `${PILOT_PREFIX}${encodeURIComponent(ownerId)}/${jobId}.json`;
+
+/**
+ * Whether an attempt of this owner can be stored at all. Checked BEFORE any reservation (front) and BEFORE the
+ * provider is engaged (consumer): a key the guard would refuse must never be discovered after a billed call.
+ */
+export const storableFor = (ownerId: string, jobId: string) =>
+  isPilotKey(audioKey(ownerId, jobId)) && isPilotKey(lyricsKey(ownerId, jobId));

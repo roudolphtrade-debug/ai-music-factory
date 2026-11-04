@@ -2,7 +2,8 @@
 
 **Statut : préparation de code seulement.** Rien de ce document n'a été exécuté sur Cloudflare : aucune ressource,
 aucun déploiement, aucun secret, aucune session, aucun appel Google. Chaque étape marquée **GO séparé** exige
-une autorisation explicite du propriétaire, après vérification des coûts et des modalités R2.
+une autorisation explicite du propriétaire, après vérification des coûts.
+Stockage : le bucket AIMF existant `aimf-media-staging` (privé, Standard, juridiction UE), préfixe `pilot/` seulement.
 **NO-GO Cloudflare réel et Lyria payant** tant que cette matrice n'est pas validée.
 
 ## 1. Topologie retenue : un Worker de recette dédié
@@ -22,10 +23,10 @@ lisent sans `--config` explicite (un test vérifie qu'aucun `wrangler.*` n'exist
 
 | Élément | Valeur | Remarque |
 |---|---|---|
-| Nom | `aimf-lyria-pilot-recette` | ressources homonymes, dédiées |
+| Nom | `aimf-lyria-pilot-recette` | Worker, D1 et file dédiés au pilote |
 | D1 | `AIMF_PRIVATE_LYRIA_DB` → `aimf-lyria-pilot-recette` | `database_id` = marqueur, non déployable en l'état |
 | File | producteur et consommateur `aimf-lyria-pilot-recette` | lot de 1, `max_retries` 0, `max_concurrency` 1 |
-| R2 | `AIMF_PRIVATE_LYRIA_BUCKET` → `aimf-lyria-pilot-recette` | **privé** : ni domaine public, ni r2.dev |
+| R2 | `AIMF_PRIVATE_LYRIA_BUCKET` → **`aimf-media-staging`**, **`jurisdiction: "eu"`** | bucket AIMF existant, privé, Standard ; le pilote n'utilise que le préfixe `pilot/` |
 | Cron | `*/5 * * * *` | réconciliation autonome |
 | Routes | aucune ; `workers_dev` et `preview_urls` à `false` | |
 | Variables | `ENABLED=0`, `AI_ROUTES_PAUSED=1`, `PROVIDER=mock`, `AUDIO_CHECK=client`, Supabase vides | fermée par défaut |
@@ -34,6 +35,21 @@ lisent sans `--config` explicite (un test vérifie qu'aucun `wrangler.*` n'exist
 
 Vérifié localement : `wrangler deploy --dry-run` (4.151.3, sans session, dossier de configuration vide) assemble
 l'entrée (40 Kio, 11 Kio gzip), reconnaît les trois liaisons et remplace `import.meta.env`.
+
+### Bucket partagé `aimf-media-staging` (juridiction UE)
+
+- La juridiction est **obligatoire** dans la liaison : elle ne peut pas être changée après la création d'un bucket,
+  et une liaison sans `jurisdiction: "eu"` ne vise pas le bucket UE. Toute commande Wrangler sur ce bucket prend
+  `--jurisdiction eu` ; l'accès S3, s'il servait un jour, passe par `https://<compte>.eu.r2.cloudflarestorage.com`.
+- Le pilote ne possède que **`pilot/`** : `pilotScopedBucket()` (`src/music/private-pilot-bindings.ts`), appliqué
+  une seule fois dans `pilotReady()`, refuse toute clé hors de `pilot/`, tout segment vide, `.` ou `..`, tout
+  caractère de contrôle ou barre oblique inverse et toute clé de plus de 1 024 octets, **avant** d'atteindre le
+  bucket. Il n'expose que `put`, `head` et `get` : le pilote ne peut ni lister ni supprimer.
+- Un identifiant de propriétaire qui ne formerait pas une clé valide est refusé **avant** toute réservation (503),
+  et une tentative déjà réservée pour lui est arrêtée **avant** l'engagement (`halted`, `storage_key_invalid`) :
+  jamais d'appel facturé dont le morceau ne pourrait pas être rangé.
+- Aucune règle de cycle de vie, aucun CORS et aucun accès public du bucket ne doivent viser `pilot/` sans
+  décision du propriétaire ; les autres usages AIMF du bucket (préfixes futurs) ne sont jamais touchés par le pilote.
 
 À décider avant le GO : **quel projet Supabase** sert à vérifier la session du propriétaire (lecture seule
 `GET /auth/v1/user`). Tant que `SUPABASE_URL` est vide, le frontal refuse tout (503).
@@ -112,12 +128,13 @@ Procédure de diagnostic du propriétaire :
 
 ## 6. Matrice des tests d'intégration (planifiée, **non exécutée**)
 
-Prérequis communs (**GO séparé**) : compte et coûts vérifiés, ressources dédiées créées, schéma appliqué sur la D1
-de recette, secret `AIMF_PRIVATE_LYRIA_OWNER_ID` posé, projet Supabase choisi, mode `mock` uniquement.
+Prérequis communs (**GO séparé**) : compte et coûts vérifiés, D1 et file dédiées créées (le bucket
+`aimf-media-staging` existe déjà), schéma appliqué sur la D1 de recette, secret `AIMF_PRIVATE_LYRIA_OWNER_ID`
+posé, projet Supabase choisi, mode `mock` uniquement, jeton limité à ces ressources et au seul bucket.
 
 | # | Test | Procédure | Attendu | Arrêt immédiat si |
 |---|---|---|---|---|
-| T1 | Liaisons | déployer fermé ; GET pilote | 503 `pilot_disabled` ; `wrangler tail` : Cron `disabled` | une liaison manque ou une autre ressource est visée |
+| T1 | Liaisons | déployer fermé ; GET pilote ; vérifier dans le tableau de bord que la liaison R2 vise `aimf-media-staging` en juridiction UE | 503 `pilot_disabled` ; `wrangler tail` : Cron `disabled` | une liaison manque, vise un bucket hors UE ou une autre ressource |
 | T2 | Arrêt d'urgence | ouvrir l'interrupteur, laisser `AI_ROUTES_PAUSED=1` | 503 `ai_paused`, Cron `paused`, consommateur `paused` | une action a lieu en pause |
 | T3 | D1 distante isolée | appliquer le schéma ; tenter 6 insertions, une suppression, `max_attempts=6` | déclencheurs et CHECK refusent | une écriture interdite passe |
 | T4 | Collisions | 20 POST simultanés, clés différentes, consommateur en pause | exactement 1 réservation, 19 refus 409 | plus d'une réservation |
@@ -129,12 +146,13 @@ de recette, secret `AIMF_PRIVATE_LYRIA_OWNER_ID` posé, projet Supabase choisi, 
 | T10 | CPU et mémoire | 3 générations `mock` (3 Mo) en mode `client`, puis `server` | temps CPU par invocation (`wrangler tail`) : frontal, consommateur, Cron | dépassement de limite (erreur 1102) |
 | T11 | R2 privé et altération | aucun accès public ; altérer l'objet stocké | lecture refusée par le navigateur (et le serveur en mode `server`) ; récupération → `storage_integrity_failed` | un fichier altéré est joué |
 | T12 | Écriture R2 contrôlée | écriture avec `sha256` erroné (script de recette) | R2 refuse | l'écriture est acceptée |
-| T13 | Fin de recette | geler, exporter le compte rendu, supprimer la recette (**GO séparé**) | aucune ressource orpheline | |
+| T12b | Préfixe | après T1 à T12, comparer le contenu du bucket hors `pilot/` avant et après la recette (métadonnées seulement) | aucun objet hors `pilot/` créé, modifié ou supprimé | un objet hors `pilot/` a changé |
+| T13 | Fin de recette | geler, exporter le compte rendu ; supprimer le Worker, la D1 et la file de recette, et seulement les objets fictifs sous `pilot/` (**GO séparé**) | aucune ressource orpheline ; **le bucket partagé `aimf-media-staging` n'est jamais supprimé** | |
 
 Coûts à confirmer avant le GO (non vérifiés ici) : Workers, D1 et Queues dans les quotas gratuits pour quelques
-dizaines d'opérations ; R2 dans son offre gratuite (quelques Mo), **mais les modalités d'activation de R2 (moyen
-de paiement exigé ou non) doivent être vérifiées par le propriétaire**. Aucun coût Google : le mode `mock` ne
-contacte aucun réseau (vérifié par test).
+dizaines d'opérations ; R2 : le bucket existe déjà, la recette y ajoute quelques Mo et quelques dizaines
+d'opérations (2 écritures de classe A et quelques lectures de classe B par génération), dans l'offre gratuite
+tant que l'ensemble du compte y reste. Aucun coût Google : le mode `mock` ne contacte aucun réseau (vérifié par test).
 
 ## 7. Preuves locales de ce lot
 

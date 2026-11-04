@@ -65,7 +65,8 @@ NOT NULL = **issue de facturation inconnue** tant que le morceau n'est pas `stor
 stockée devient `needs_review`, qui **bloque le pilote** jusqu'à la revue du propriétaire.
 
 Liaisons serveur attendues (aucune n'est créée par ce lot) : `AIMF_PRIVATE_LYRIA_DB` (D1 isolée),
-`AIMF_PRIVATE_LYRIA_QUEUE` (producteur et consommateur), `AIMF_PRIVATE_LYRIA_BUCKET` (R2 **privé**), secret
+`AIMF_PRIVATE_LYRIA_QUEUE` (producteur et consommateur), `AIMF_PRIVATE_LYRIA_BUCKET` (le bucket AIMF **privé**
+existant `aimf-media-staging`, **`jurisdiction: "eu"`**, préfixe `pilot/` seulement, garde dans le code), secret
 `AIMF_PRIVATE_LYRIA_OWNER_ID`, fournisseur `AIMF_PRIVATE_LYRIA_PROVIDER` (`mock` ou `lyria-3.5`, valeurs exactes ;
 `GEMINI_API_KEY` requis seulement pour `lyria-3.5`), interrupteur `AIMF_PRIVATE_LYRIA_ENABLED=1`, contrôle de
 lecture `AIMF_PRIVATE_LYRIA_AUDIO_CHECK` (`client` par défaut), un déclencheur Cron et `AI_ROUTES_PAUSED` à une

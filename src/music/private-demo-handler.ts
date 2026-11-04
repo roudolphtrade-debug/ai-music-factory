@@ -24,6 +24,7 @@ import {
   lyricsKey,
   pilotEnabled,
   pilotReady,
+  storableFor,
   UUID_PATTERN,
   type PilotProviderMode,
   type PrivateLyriaBindings,
@@ -109,6 +110,8 @@ export async function handlePrivateLyriaRequest(
   if (!isSameOriginRequest(request)) return failure(403, "forbidden");
   const ownerId = bindings?.AIMF_PRIVATE_LYRIA_OWNER_ID?.trim();
   if (!ownerId) return failure(503, "pilot_unconfigured");
+  // An owner id that cannot form a key under `pilot/` would only fail after a billed call: refused before anything.
+  if (!storableFor(ownerId, "00000000-0000-4000-8000-000000000000")) return failure(503, "pilot_unconfigured");
 
   // Authentication is read-only; a valid session is not enough unless it is the owner's.
   const member = await (

@@ -3,7 +3,17 @@ import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { MemberCheck } from "@/lib/member-guard";
 import { handlePrivateLyriaRequest } from "./private-demo-handler";
-import { aiRoutesPaused, type D1Like, type PilotMessage, type PrivateLyriaBindings, type R2Like } from "./private-pilot-bindings";
+import {
+  aiRoutesPaused,
+  isPilotKey,
+  PilotKeyError,
+  pilotReady,
+  pilotScopedBucket,
+  type D1Like,
+  type PilotMessage,
+  type PrivateLyriaBindings,
+  type R2Like,
+} from "./private-pilot-bindings";
 import { defaultHasherFactory, hashStream, reprDigestHeader, verifiedStream } from "./private-pilot-integrity";
 import { MOCK_LYRICS } from "./private-pilot-mock";
 import { PILOT_MAX_HANDOFFS, PILOT_SCHEMA_SQL, SQL } from "./private-pilot-sql";
@@ -795,6 +805,100 @@ describeSql("the owner closes a reviewed attempt by hand; the code never does", 
 
   it("no statement of the code writes 'reviewed'", () => {
     expect(Object.values(SQL).join("\n")).not.toContain("'reviewed'");
+  });
+});
+
+// ================================================================ shared bucket: the pilot owns `pilot/` only
+describe("the pilot's bucket keys stay under pilot/", () => {
+  it.each([
+    ["pilot/owner-1/00000000-0000-4000-8000-000000000001.mp3", true],
+    ["pilot/owner%2F1/00000000-0000-4000-8000-000000000001.json", true],
+    ["members/u1/drafts/a.mp3", false],
+    ["demo/song.mp3", false],
+    ["pilotx/a.mp3", false],
+    ["PILOT/a.mp3", false],
+    ["/pilot/a.mp3", false],
+    ["pilot/", false],
+    ["pilot//a.mp3", false],
+    ["pilot/../members/u1/a.mp3", false],
+    ["pilot/./a.mp3", false],
+    ["pilot/a\\..\\b.mp3", false],
+    ["pilot/a\u0000.mp3", false],
+    [`pilot/${"a".repeat(1100)}.mp3`, false],
+    [42, false],
+  ])("%j -> %s", (key, accepted) => {
+    expect(isPilotKey(key)).toBe(accepted);
+  });
+
+  it("the scoped bucket refuses an outside key BEFORE the bucket is reached, and offers no list or delete", async () => {
+    const inner = { put: vi.fn(), head: vi.fn(), get: vi.fn(), list: vi.fn(), delete: vi.fn() };
+    const scoped = pilotScopedBucket(inner as unknown as R2Like);
+    await expect(scoped.put("members/u1/a.mp3", "x")).rejects.toBeInstanceOf(PilotKeyError);
+    await expect(scoped.head("pilot/../members/u1/a.mp3")).rejects.toBeInstanceOf(PilotKeyError);
+    await expect(scoped.get("demo/a.mp3")).rejects.toBeInstanceOf(PilotKeyError);
+    expect(inner.put).not.toHaveBeenCalled();
+    expect(inner.head).not.toHaveBeenCalled();
+    expect(inner.get).not.toHaveBeenCalled();
+    expect(Object.keys(scoped).sort()).toEqual(["get", "head", "put"]);
+  });
+
+  it("pilotReady hands every part of the pilot the scoped bucket, never the raw binding", async () => {
+    const inner = { put: vi.fn(), head: vi.fn(), get: vi.fn() };
+    const ready = pilotReady({
+      AIMF_PRIVATE_LYRIA_PROVIDER: "mock",
+      AIMF_PRIVATE_LYRIA_DB: {} as D1Like,
+      AIMF_PRIVATE_LYRIA_QUEUE: { send: async () => {} },
+      AIMF_PRIVATE_LYRIA_BUCKET: inner as unknown as R2Like,
+    });
+    expect(ready?.bucket).not.toBe(inner);
+    await expect(ready!.bucket.get("members/u1/a.mp3")).rejects.toBeInstanceOf(PilotKeyError);
+    expect(inner.get).not.toHaveBeenCalled();
+  });
+});
+
+describeSql("shared bucket: a full run touches only pilot/ and never another object", () => {
+  it("POST, store, lyrics, audio, recovery and Cron: every key read or written is under pilot/", async () => {
+    const touched: string[] = [];
+    for (const method of ["put", "head", "get"] as const) {
+      const original = bucket[method].bind(bucket) as (...a: unknown[]) => unknown;
+      vi.spyOn(bucket, method).mockImplementation(((key: string, ...rest: unknown[]) => {
+        touched.push(key);
+        return original(key, ...rest);
+      }) as never);
+    }
+    // An object of another AIMF use case lives in the same bucket and must stay untouched.
+    bucket.objects.set("members/u1/drafts/x.mp3", { bytes: new Uint8Array([1, 2, 3]), meta: {} });
+
+    await post(uuid(1));
+    await deliver();
+    await getJob(uuid(1));
+    await (await readAudio()).arrayBuffer();
+    faults.failOn = SQL.markStored; // a second attempt goes silent after R2, then is recovered
+    await post(uuid(2));
+    await deliver();
+    faults.failOn = null;
+    clock += RECONCILE_RUNNING_SECONDS + 1;
+    await cron();
+    await deliver();
+
+    expect(touched.length).toBeGreaterThan(5);
+    expect(touched.every((key) => key.startsWith("pilot/"))).toBe(true);
+    expect(bucket.objects.get("members/u1/drafts/x.mp3")?.bytes).toEqual(new Uint8Array([1, 2, 3]));
+    expect(state(uuid(2))?.state).toBe("stored");
+  });
+
+  it("an owner id that cannot form a pilot/ key: refused before any reservation, and never engaged", async () => {
+    const res = await call(request("POST", "", { id: uuid(1), body: BODY }), OWNER, { ...bindings, AIMF_PRIVATE_LYRIA_OWNER_ID: ".." });
+    expect(res.status).toBe(503);
+    expect((await res.json()).code).toBe("pilot_unconfigured");
+    expect(used()).toBe(0);
+    // An attempt already reserved for such an owner (configuration changed in between) is halted, not engaged.
+    db.exec(`INSERT INTO aimf_pilot_jobs (id, owner_id, request_hash, input_json, state, created_at, updated_at)
+      VALUES ('${uuid(2)}', '..', '${"a".repeat(64)}', '${JSON.stringify(BODY)}', 'queued', ${clock}, ${clock})`);
+    queue.sent = [{ v: 1, jobId: uuid(2) }];
+    expect(await deliver()).toEqual(["halted"]);
+    expect(state(uuid(2))).toMatchObject({ state: "halted", review_reason: "storage_key_invalid", provider_engaged_at: null });
+    expect(providerCalls).toBe(0);
   });
 });
 

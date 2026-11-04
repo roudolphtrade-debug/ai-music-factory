@@ -1,8 +1,11 @@
 // AIMF, pilote Lyria privé : configuration Wrangler de RECETTE ISOLÉE. PROPOSITION NON DÉPLOYÉE.
 //
 // - Rangée sous docs/ exprès : ni le build Lovable ni Wrangler ne la lisent sans `--config` explicite.
-// - Non déployable en l'état : les identifiants de ressources sont des marqueurs à remplacer, après un GO séparé,
-//   par ceux de ressources DÉDIÉES (aucune ressource existante d'un autre projet ne doit être réutilisée).
+// - Non déployable en l'état : l'identifiant D1 est un marqueur à remplacer, après un GO séparé, par celui d'une
+//   base DÉDIÉE. La file et la base sont propres au pilote ; aucune ressource d'un autre projet n'est réutilisée.
+// - Stockage : le bucket AIMF existant `aimf-media-staging` (privé, Standard, juridiction UE). La juridiction
+//   "eu" est OBLIGATOIRE : elle ne peut pas être changée après la création d'un bucket, et une liaison qui l'omet
+//   ne vise pas le bucket UE. Le pilote n'écrit et ne lit QUE sous le préfixe `pilot/` (garde dans le code).
 // - Fermée par défaut : interrupteur à "0", arrêt d'urgence à "1", fournisseur FICTIF ("mock").
 // - Aucun secret ici. Secrets attendus plus tard, par `wrangler secret put`, sur GO séparé uniquement :
 //   AIMF_PRIVATE_LYRIA_OWNER_ID (identifiant Supabase du propriétaire). GEMINI_API_KEY n'est PAS requis en "mock"
@@ -51,8 +54,11 @@
     }
   ],
 
-  // Bucket PRIVÉ : ni domaine public, ni accès r2.dev à activer.
-  "r2_buckets": [{ "binding": "AIMF_PRIVATE_LYRIA_BUCKET", "bucket_name": "aimf-lyria-pilot-recette" }],
+  // Bucket PRIVÉ et partagé par AIMF : ni domaine public, ni accès r2.dev à activer ; le pilote reste sous `pilot/`.
+  // Aucune règle de cycle de vie du bucket ne doit viser `pilot/` sans décision du propriétaire.
+  "r2_buckets": [
+    { "binding": "AIMF_PRIVATE_LYRIA_BUCKET", "bucket_name": "aimf-media-staging", "jurisdiction": "eu" }
+  ],
 
   // Réconciliation autonome toutes les 5 minutes (aucun appel au fournisseur, aucune nouvelle tentative).
   "triggers": { "crons": ["*/5 * * * *"] },
