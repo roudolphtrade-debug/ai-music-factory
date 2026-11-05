@@ -5,6 +5,7 @@ import { useI18n } from "@/i18n/context";
 import { AI_LIMITS, aiErrorCode, aiErrorKey } from "@/lib/ai-limits";
 import { aiFetch, SignInRequiredError } from "@/lib/ai-fetch";
 import { cn } from "@/lib/utils";
+import { PausedNotice } from "./PausedNotice";
 
 type State = "idle" | "loading" | "playing";
 
@@ -31,6 +32,8 @@ export function ReadAloudButton({
   const { t } = useI18n();
   const [state, setState] = useState<State>("idle");
   const [error, setError] = useState<string | null>(null);
+  // The AI is paused on purpose: a calm notice, not an error. Nothing is retried.
+  const [paused, setPaused] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const urlRef = useRef<string | null>(null);
 
@@ -58,6 +61,7 @@ export function ReadAloudButton({
       return;
     }
     setError(null);
+    setPaused(false);
     setState("loading");
     try {
       const res = await aiFetch("/api/voice/speak", {
@@ -65,7 +69,16 @@ export function ReadAloudButton({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: text.slice(0, AI_LIMITS.speechChars), voice }),
       });
-      if (!res.ok) throw new Error(t(aiErrorKey(res.status, await aiErrorCode(res))));
+      if (!res.ok) {
+        const code = await aiErrorCode(res);
+        if (res.status === 503 && code === "ai_paused") {
+          cleanup();
+          setState("idle");
+          setPaused(true);
+          return;
+        }
+        throw new Error(t(aiErrorKey(res.status, code)));
+      }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       urlRef.current = url;
@@ -101,6 +114,9 @@ export function ReadAloudButton({
         {state === "playing" ? t("voice.stop") : (label ?? t("voice.readAloud"))}
       </Button>
       {error && <span className="text-xs text-destructive">{error}</span>}
+      {paused && (
+        <PausedNotice compact>{t("aiErrors.paused")}</PausedNotice>
+      )}
     </div>
   );
 }
