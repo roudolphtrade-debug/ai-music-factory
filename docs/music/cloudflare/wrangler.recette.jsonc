@@ -1,0 +1,80 @@
+// AIMF, pilote Lyria privé : configuration Wrangler de RECETTE ISOLÉE. PROPOSITION NON DÉPLOYÉE.
+//
+// - Rangée sous docs/ exprès : ni le build Lovable ni Wrangler ne la lisent sans `--config` explicite.
+// - Non déployable en l'état : l'identifiant D1 est un marqueur à remplacer, après un GO séparé, par celui d'une
+//   base DÉDIÉE. La file et la base sont propres au pilote ; aucune ressource d'un autre projet n'est réutilisée.
+// - Stockage : le bucket AIMF existant `aimf-media-staging` (privé, Standard, juridiction UE). La juridiction
+//   "eu" est OBLIGATOIRE : elle ne peut pas être changée après la création d'un bucket, et une liaison qui l'omet
+//   ne vise pas le bucket UE. Le pilote n'écrit et ne lit QUE sous le préfixe `pilot/` (garde dans le code).
+// - Fermée par défaut : interrupteur à "0", arrêt d'urgence à "1", fournisseur FICTIF ("mock").
+// - Aucun secret ici. Secrets attendus plus tard, par `wrangler secret put`, sur GO séparé uniquement :
+//   AIMF_PRIVATE_LYRIA_OWNER_ID (identifiant Supabase du propriétaire) et AIMF_PILOT_HMAC_K1 (secret partagé avec le
+//   relais Lovable, 32 octets au moins, propre à la recette). GEMINI_API_KEY n'est PAS requis en "mock" et ne doit pas
+//   être posé pour la recette.
+// - Le Worker ne sert que le chemin interne /internal/v1/lyria-pilot, signé par le relais Lovable (HMAC, ± 60 s) ;
+//   il est le SEUL consommateur de la file et la seule base du pilote (l'application Lovable n'expose que fetch).
+// - Pas de route ni de sous-domaine workers.dev : le Worker n'est joignable qu'après un GO qui les ouvre.
+// Mode d'emploi, matrice de tests et critères d'arrêt : docs/music/LYRIA-PILOT-RECETTE-CLOUDFLARE.md
+{
+  "name": "aimf-lyria-pilot-recette",
+  "main": "../../../src/music/private-pilot-entry.ts",
+  "compatibility_date": "2026-10-20",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [],
+  "send_metrics": false,
+  "upload_source_maps": false,
+  "observability": { "enabled": true },
+
+  // Hors de Vite, `import.meta.env` n'existe pas : la vérification de session (src/lib/member-guard.ts) doit alors
+  // lire SUPABASE_URL et SUPABASE_PUBLISHABLE_KEY depuis les liaisons ci-dessous, sans planter.
+  "define": {
+    "import.meta.env.VITE_SUPABASE_URL": "undefined",
+    "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": "undefined"
+  },
+
+  // Producteur et consommateur de la même file dédiée. Le consommateur acquitte chaque message lui-même :
+  // aucune relivraison automatique utile, une seule exécution à la fois.
+  "queues": {
+    "producers": [{ "binding": "AIMF_PRIVATE_LYRIA_QUEUE", "queue": "aimf-lyria-pilot-recette" }],
+    "consumers": [
+      {
+        "queue": "aimf-lyria-pilot-recette",
+        "max_batch_size": 1,
+        "max_batch_timeout": 1,
+        "max_retries": 0,
+        "max_concurrency": 1
+      }
+    ]
+  },
+
+  "d1_databases": [
+    {
+      "binding": "AIMF_PRIVATE_LYRIA_DB",
+      "database_name": "aimf-lyria-pilot-recette",
+      "database_id": "A-RENSEIGNER-APRES-GO-SEPARE"
+    }
+  ],
+
+  // Bucket PRIVÉ et partagé par AIMF : ni domaine public, ni accès r2.dev à activer ; le pilote reste sous `pilot/`.
+  // Aucune règle de cycle de vie du bucket ne doit viser `pilot/` sans décision du propriétaire.
+  "r2_buckets": [
+    { "binding": "AIMF_PRIVATE_LYRIA_BUCKET", "bucket_name": "aimf-media-staging", "jurisdiction": "eu" }
+  ],
+
+  // Réconciliation autonome toutes les 5 minutes (aucun appel au fournisseur, aucune nouvelle tentative).
+  "triggers": { "crons": ["*/5 * * * *"] },
+
+  "vars": {
+    "AIMF_PRIVATE_LYRIA_ENABLED": "0",
+    "AI_ROUTES_PAUSED": "1",
+    "AIMF_PRIVATE_LYRIA_PROVIDER": "mock",
+    // "client" : le navigateur vérifie l'empreinte ; "server" à mesurer en recette (coût CPU, voir la matrice).
+    "AIMF_PRIVATE_LYRIA_AUDIO_CHECK": "client",
+    "SUPABASE_URL": "",
+    "SUPABASE_PUBLISHABLE_KEY": "",
+    // Audience de la chaîne signée : une requête signée pour un autre environnement est refusée.
+    "AIMF_PILOT_AUDIENCE": "aimf-lyria-pilot-recette"
+  }
+}
