@@ -85,6 +85,14 @@ export interface PrivateLyriaBindings {
   SUPABASE_PUBLISHABLE_KEY?: string;
   VITE_SUPABASE_URL?: string;
   VITE_SUPABASE_PUBLISHABLE_KEY?: string;
+  /** Service proof of the relay (secrets, `wrangler secret put` only): `k1`, and `k2` during a rotation. */
+  AIMF_PILOT_HMAC_K1?: string;
+  AIMF_PILOT_HMAC_K2?: string;
+  /** Audience this Worker accepts in the signed string (variable, not a secret). */
+  AIMF_PILOT_AUDIENCE?: string;
+  /** Optional Cloudflare Access layer (both or neither; see `private-pilot-access.ts`). */
+  AIMF_PILOT_ACCESS_AUD?: string;
+  AIMF_PILOT_ACCESS_TEAM?: string;
 }
 
 type Env = Record<string, string | undefined>;

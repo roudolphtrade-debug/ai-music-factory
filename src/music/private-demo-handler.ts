@@ -99,15 +99,42 @@ function readInput(body: unknown): LyriaSongRequest | null {
   }
 }
 
-export async function handlePrivateLyriaRequest(
+/**
+ * The pilot contract for an in-process, same-origin caller (the tests of the contract use it). No entry routes it
+ * any more: the dedicated Worker serves only the signed internal path (`handleVerifiedPilotRequest`, through
+ * `private-pilot-service.ts`), and the Lovable application only relays (`private-pilot-relay.ts`).
+ */
+export function handlePrivateLyriaRequest(
   request: Request,
   bindings: PrivateLyriaBindings | null | undefined,
   deps: PrivateLyriaDependencies = {},
 ): Promise<Response> {
+  return handlePilot(request, bindings, deps, "same-origin");
+}
+
+/**
+ * The same contract for a request whose SERVICE PROOF was already verified (HMAC of the relay, and Access when it
+ * is on). Only `private-pilot-service.ts` may call it (a test checks the imports): the same-origin check, meaningless
+ * between two servers, is the only step it skips. The session is still verified here and must be the owner's.
+ */
+export function handleVerifiedPilotRequest(
+  request: Request,
+  bindings: PrivateLyriaBindings | null | undefined,
+  deps: PrivateLyriaDependencies = {},
+): Promise<Response> {
+  return handlePilot(request, bindings, deps, "service-verified");
+}
+
+async function handlePilot(
+  request: Request,
+  bindings: PrivateLyriaBindings | null | undefined,
+  deps: PrivateLyriaDependencies,
+  caller: "same-origin" | "service-verified",
+): Promise<Response> {
   if (request.method !== "POST" && request.method !== "GET") return failure(405, "method_not_allowed");
   if (!pilotEnabled(bindings)) return failure(503, "pilot_disabled");
   if (aiRoutesPaused(bindings, deps.processEnv)) return failure(503, "ai_paused");
-  if (!isSameOriginRequest(request)) return failure(403, "forbidden");
+  if (caller === "same-origin" && !isSameOriginRequest(request)) return failure(403, "forbidden");
   const ownerId = bindings?.AIMF_PRIVATE_LYRIA_OWNER_ID?.trim();
   if (!ownerId) return failure(503, "pilot_unconfigured");
   // An owner id that cannot form a key under `pilot/` would only fail after a billed call: refused before anything.
@@ -191,7 +218,10 @@ async function handleGet(
         "Content-Length": String(job.audio_bytes),
         "Repr-Digest": reprDigestHeader(job.audio_sha256),
         "X-AIMF-Audio-Check": check === "server" ? "server-stream+client" : "client",
-        "Cache-Control": "private, no-store",
+        // Always the whole file (a Range request is ignored): the browser hashes all of it before playing it.
+        // `no-transform`: no intermediary may recompress it, which would break the fingerprint.
+        "Accept-Ranges": "none",
+        "Cache-Control": "private, no-store, no-transform",
         "X-Content-Type-Options": "nosniff",
         "Content-Disposition": `inline; filename="aimf-lyria-${job.id}.mp3"`,
       },

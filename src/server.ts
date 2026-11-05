@@ -37,15 +37,20 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
   });
 }
 
+/**
+ * The application exposes `fetch` ONLY. The private Lyria pilot's queue consumer and Cron reconciliation live in the
+ * dedicated Worker (`src/music/private-pilot-entry.ts`) and nowhere else, so the pilot has a single consumer, a single
+ * database and a single cap of five attempts (correction C-2).
+ */
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
-      // Private Lyria pilot: not a TanStack public route. OFF without explicit server bindings, and closed by the
-      // shared emergency stop AI_ROUTES_PAUSED. The handler checks the owner, reserves in D1 and only enqueues:
-      // Google is called by the queue consumer below, never inside this request.
+      // Private Lyria pilot: not a TanStack public route. This application only RELAYS it, signed, to the dedicated
+      // Worker; it holds no D1, queue or bucket and never calls the provider. Closed by the shared emergency stop
+      // AI_ROUTES_PAUSED, and by an absent or incomplete relay configuration.
       if (new URL(request.url).pathname === "/api/studio/lyria-private") {
-        const { handlePrivateLyriaRequest } = await import("./music/private-demo-handler");
-        return await handlePrivateLyriaRequest(request, env as import("./music/private-demo-handler").PrivateLyriaBindings);
+        const { relayPrivateLyriaRequest } = await import("./music/private-pilot-relay");
+        return await relayPrivateLyriaRequest(request, env);
       }
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
@@ -57,26 +62,5 @@ export default {
         headers: { "content-type": "text/html; charset=utf-8" },
       });
     }
-  },
-
-  /**
-   * Cloudflare Queues consumer of the private Lyria pilot. Without a queue binding configured for this Worker it is
-   * never invoked. Every message is acknowledged after handling; the consumer itself guarantees at most one provider
-   * call per attempt, whatever the queue redelivers.
-   */
-  async queue(batch: { messages: readonly { body: unknown; ack(): void }[] }, env: unknown) {
-    const { consumePrivateLyriaBatch } = await import("./music/private-pilot-worker");
-    await consumePrivateLyriaBatch(batch, env as import("./music/private-pilot-bindings").PrivateLyriaBindings);
-  },
-
-  /**
-   * Cron reconciliation of the private Lyria pilot, so an attempt recovers without any visit of the owner. Without a
-   * Cron trigger configured for this Worker it is never invoked; with the pilot off or paused it reads nothing. It
-   * never calls the provider. Whether the hosting passes Cron to this entry is unproven: the dedicated recette
-   * Worker (`src/music/private-pilot-entry.ts`) does not depend on it.
-   */
-  async scheduled(_controller: unknown, env: unknown) {
-    const { runScheduledReconciliation, scheduledLogLine } = await import("./music/private-pilot-worker");
-    console.log(scheduledLogLine(await runScheduledReconciliation(env as import("./music/private-pilot-bindings").PrivateLyriaBindings)));
   },
 };

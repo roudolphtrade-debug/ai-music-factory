@@ -292,19 +292,22 @@ export async function reconcilePilot(
         if (await sendToReview(store, job.id, "outcome_unknown")) report.sentToReview.push(job.id);
       } else if (options.canEnqueue && queue) {
         try {
+          // C-1: lease first, by compare-and-set; a concurrent reconciliation that read the same row gets nothing.
+          if (!(await store.leaseRecover(job.id, Number(job.updated_at)))) continue;
           await queue.send({ v: 1, jobId: job.id, op: "recover" });
-          await store.touchRunning(job.id);
           report.recoveryQueued.push(job.id);
         } catch {
-          /* checked again by the next reconciliation */
+          /* checked again by a later reconciliation (a recover message never engages the provider) */
         }
       }
     } else if (Number(job.handoffs) >= PILOT_MAX_HANDOFFS) {
       if (await store.markHalted(job.id, "handoff_exhausted").catch(() => null)) report.halted.push(job.id);
     } else if (options.canEnqueue && queue) {
       try {
+        // C-1: exactly one reconciliation wins the lease, counts the hand-off and sends the message. If the send then
+        // fails, the hand-off stays counted (never engaged, never billed) and a later reconciliation tries again.
+        if (!(await store.leaseHandoff(job.id, Number(job.updated_at)))) continue;
         await queue.send({ v: 1, jobId: job.id });
-        await store.markQueued(job.id);
         report.requeued.push(job.id);
       } catch {
         /* still not engaged: the next reconciliation tries again */

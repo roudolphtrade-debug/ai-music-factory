@@ -8,8 +8,11 @@
 //   ne vise pas le bucket UE. Le pilote n'écrit et ne lit QUE sous le préfixe `pilot/` (garde dans le code).
 // - Fermée par défaut : interrupteur à "0", arrêt d'urgence à "1", fournisseur FICTIF ("mock").
 // - Aucun secret ici. Secrets attendus plus tard, par `wrangler secret put`, sur GO séparé uniquement :
-//   AIMF_PRIVATE_LYRIA_OWNER_ID (identifiant Supabase du propriétaire). GEMINI_API_KEY n'est PAS requis en "mock"
-//   et ne doit pas être posé pour la recette.
+//   AIMF_PRIVATE_LYRIA_OWNER_ID (identifiant Supabase du propriétaire) et AIMF_PILOT_HMAC_K1 (secret partagé avec le
+//   relais Lovable, 32 octets au moins, propre à la recette). GEMINI_API_KEY n'est PAS requis en "mock" et ne doit pas
+//   être posé pour la recette.
+// - Le Worker ne sert que le chemin interne /internal/v1/lyria-pilot, signé par le relais Lovable (HMAC, ± 60 s) ;
+//   il est le SEUL consommateur de la file et la seule base du pilote (l'application Lovable n'expose que fetch).
 // - Pas de route ni de sous-domaine workers.dev : le Worker n'est joignable qu'après un GO qui les ouvre.
 // Mode d'emploi, matrice de tests et critères d'arrêt : docs/music/LYRIA-PILOT-RECETTE-CLOUDFLARE.md
 {
@@ -70,6 +73,8 @@
     // "client" : le navigateur vérifie l'empreinte ; "server" à mesurer en recette (coût CPU, voir la matrice).
     "AIMF_PRIVATE_LYRIA_AUDIO_CHECK": "client",
     "SUPABASE_URL": "",
-    "SUPABASE_PUBLISHABLE_KEY": ""
+    "SUPABASE_PUBLISHABLE_KEY": "",
+    // Audience de la chaîne signée : une requête signée pour un autre environnement est refusée.
+    "AIMF_PILOT_AUDIENCE": "aimf-lyria-pilot-recette"
   }
 }

@@ -289,7 +289,7 @@ describeSql("one attempt, end to end, without any network", () => {
     const audio = await call(request("GET", `?job=${uuid(1)}&audio=1`));
     expect(audio.status).toBe(200);
     expect(audio.headers.get("content-type")).toBe("audio/mpeg");
-    expect(audio.headers.get("cache-control")).toBe("private, no-store");
+    expect(audio.headers.get("cache-control")).toBe("private, no-store, no-transform");
     expect(new Uint8Array(await audio.arrayBuffer())).toEqual(AUDIO);
   });
 
@@ -744,12 +744,13 @@ describeSql("Cron reconciliation: autonomous, fail-closed, never a provider call
     expect(providerCalls).toBe(0);
   });
 
-  it("Cron and an owner visit reconciling at the same instant: two hand-offs at most, one provider call", async () => {
+  it("Cron and an owner visit reconciling at the same instant: ONE hand-off (C-1 lease), one provider call", async () => {
     queue.failSends = 1;
     await post(uuid(1));
     clock += RECONCILE_IDLE_SECONDS + 1;
     await Promise.all([cron(), call(request("GET"))]);
-    expect(queue.sent.length).toBeGreaterThanOrEqual(1);
+    expect(queue.sent).toHaveLength(1);
+    expect((db.prepare("SELECT handoffs FROM aimf_pilot_jobs WHERE id = ?").get(uuid(1)) as { handoffs: number }).handoffs).toBe(1);
     await deliver();
     expect(state(uuid(1))?.state).toBe("stored");
     expect(providerCalls).toBe(1);

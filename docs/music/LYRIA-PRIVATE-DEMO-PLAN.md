@@ -51,7 +51,9 @@ Décidée par la revue du propriétaire sur la PR #18 (GO de développement sans
 |---|---|---|
 | Frontal HTTP léger | interrupteur du pilote et arrêt d'urgence `AI_ROUTES_PAUSED` (fermés par défaut), origine, session vérifiée côté serveur, identifiant propriétaire (secret serveur), validation, réservation D1, envoi d'un message contenant **un identifiant seulement**, consultation de l'état, relecture du MP3 en flux depuis R2. **Jamais d'appel Google, jamais d'audio en base64.** | `src/music/private-demo-handler.ts` |
 | Machine d'états D1 | `reserved → queued → running → stored / needs_review`, `reserved/queued → halted` ; `provider_engaged_at` écrit une seule fois ; 5 tentatives au plus (contrainte et déclencheur) ; ni suppression, ni remise à zéro, ni remboursement | `src/music/private-pilot-sql.ts`, `private-pilot-store.ts`, `docs/music/LYRIA-PRIVATE-DEMO-D1.sql` |
-| Consommateur de file | seul endroit où Google peut être appelé ; réclamation atomique avant l'appel : **au plus un appel par identifiant**, malgré les relivraisons, la concurrence ou un redémarrage ; MP3 validé → R2 privé (empreinte SHA-256) → `stored` | `src/music/private-pilot-worker.ts`, `src/server.ts` (`queue()`) |
+| Consommateur de file | seul endroit où Google peut être appelé ; réclamation atomique avant l'appel : **au plus un appel par identifiant**, malgré les relivraisons, la concurrence ou un redémarrage ; MP3 validé → R2 privé (empreinte SHA-256) → `stored` ; **uniquement dans le Worker dédié** (C-2) | `src/music/private-pilot-worker.ts`, `src/music/private-pilot-entry.ts` (`queue()`) |
+| Relais Lovable (P3a) | même contrat navigateur ; contrôles, signature HMAC, un seul envoi, flux audio sans tampon ; `src/server.ts` n'expose plus que `fetch` | `src/music/private-pilot-relay.ts`, `src/server.ts` |
+| Façade signée du Worker (P3a) | chemin interne `/internal/v1/lyria-pilot` ; HMAC (fenêtre ± 60 s, `Idempotency-Key` signée) avant toute E/S ; Access facultatif ; session revérifiée | `src/music/private-pilot-service.ts`, `private-pilot-hmac.ts`, `private-pilot-access.ts` |
 | Réconciliation | tentative jamais engagée et inactive : renvoyée dans la file (pilote ouvert seulement, 4 envois au plus, puis `halted`) ; tentative engagée et muette depuis plus de 20 min : sans objet R2, `needs_review` ; avec objet, contrôle du **contenu** haché par le consommateur avant `stored`. **Jamais de nouvel appel Google.** Déclenchée par le frontal **et par un Cron**, sans visite du propriétaire | idem, `runScheduledReconciliation()` |
 | Intégrité | empreinte D1 de référence ; R2 refuse une écriture altérée (`sha256`) ; lecture : `Repr-Digest`, vérifiée par le navigateur (et par le Worker en mode `server`) | `src/music/private-pilot-integrity.ts` |
 | Fournisseur fictif | mode `mock` : réponse de taille réelle, construite en mémoire, analysée par le vrai code ; aucun réseau, aucun secret | `src/music/private-pilot-mock.ts` |
@@ -79,9 +81,9 @@ ne contient aucun crédit membre et ne remplace jamais le grand livre Supabase M
   SQLite (`node:sqlite`) dans les tests, pas sur D1 ;
 - livraison Queues réelle (au moins une fois, délais, 30 s de CPU annoncées pour le consommateur) : file simulée ;
 - R2 réel (confirmation d'écriture, métadonnées, flux) : stockage simulé ;
-- lecture de `AI_ROUTES_PAUSED` et des liaisons dans l'environnement d'exécution de l'hébergement Lovable, et prise
-  en charge d'un consommateur `queue()` et d'un Cron `scheduled()` par cet hébergement (d'où le Worker de recette
-  dédié) ;
+- lecture de `AI_ROUTES_PAUSED` et des variables serveur du relais dans l'environnement d'exécution de
+  l'hébergement Lovable, connectivité réelle de Lovable vers le Worker, écart d'horloge réel et comportement en flux
+  du relais sur cet hébergement (mesurés seulement en local) ;
 - CPU et mémoire réels du consommateur sur une réponse Lyria d'environ 4 Mo, et coût réel du hachage en flux
   (mesuré seulement sous workerd local) ;
 - refus réel par R2 d'une écriture dont l'empreinte `sha256` diffère, et taille des segments des corps R2 ;

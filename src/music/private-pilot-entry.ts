@@ -1,24 +1,23 @@
 /**
  * Entry of the DEDICATED recette Worker of the private Lyria pilot (`docs/music/cloudflare/wrangler.recette.jsonc`).
- * It holds only the pilot: the light HTTP front, the queue consumer and the Cron reconciliation, so the integration
- * tests on isolated Cloudflare resources depend on nothing the Lovable hosting may or may not offer. Not deployed:
+ * It holds the whole pilot: the signed HTTP front, the queue consumer and the Cron reconciliation. Not deployed:
  * deployment, resources and activation each require a separate owner GO.
  *
- * `src/server.ts` exposes the same three handlers for the day the hosting is proven to pass the bindings, `queue()`
- * and `scheduled()` to it; until then, this file is the only tested way to run the pilot on Cloudflare.
+ *  - `fetch`: only `/internal/v1/lyria-pilot`, and only for a request signed by the Lovable relay
+ *    (`private-pilot-service.ts`). Any other path, the old public `/api/studio/lyria-private` included: 404.
+ *  - `queue` and `scheduled`: this Worker is the ONLY consumer of the pilot queue and the only reconciler of its
+ *    database (correction C-2: the Lovable application no longer exposes either), so there is one cap of five.
  */
-import { handlePrivateLyriaRequest } from "./private-demo-handler";
 import type { PrivateLyriaBindings } from "./private-pilot-bindings";
+import { PILOT_INTERNAL_PATH } from "./private-pilot-hmac";
+import { handlePilotServiceRequest } from "./private-pilot-service";
 import { consumePrivateLyriaBatch, runScheduledReconciliation, scheduledLogLine } from "./private-pilot-worker";
 
-export const PILOT_PATH = "/api/studio/lyria-private";
+export const PILOT_PATH = PILOT_INTERNAL_PATH;
 
 export default {
   async fetch(request: Request, env: PrivateLyriaBindings): Promise<Response> {
-    if (new URL(request.url).pathname !== PILOT_PATH) {
-      return new Response("Not found", { status: 404, headers: { "Cache-Control": "no-store" } });
-    }
-    return handlePrivateLyriaRequest(request, env);
+    return handlePilotServiceRequest(request, env);
   },
 
   async queue(batch: { messages: readonly { body: unknown; ack(): void }[] }, env: PrivateLyriaBindings): Promise<void> {

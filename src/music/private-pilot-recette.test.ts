@@ -139,9 +139,12 @@ describe("recette Wrangler config: isolated, inactive, without secrets", () => {
 describe("dedicated recette Worker entry, with the config's own values", () => {
   const recette = config.vars as PrivateLyriaBindings;
 
-  it("answers nothing but the pilot path", async () => {
+  it("answers nothing but the signed internal pilot path (the old public path included)", async () => {
     const res = await entry.fetch(new Request("https://recette.test/"), recette);
     expect(res.status).toBe(404);
+    expect(PILOT_PATH).toBe("/internal/v1/lyria-pilot");
+    expect((await entry.fetch(new Request("https://recette.test/api/studio/lyria-private"), recette)).status).toBe(404);
+    expect(config.vars.AIMF_PILOT_AUDIENCE).toBe("aimf-lyria-pilot-recette");
     const pilot = await entry.fetch(new Request(`https://recette.test${PILOT_PATH}`), recette);
     expect(pilot.status).toBe(503);
     expect((await pilot.json()).code).toBe("pilot_disabled");

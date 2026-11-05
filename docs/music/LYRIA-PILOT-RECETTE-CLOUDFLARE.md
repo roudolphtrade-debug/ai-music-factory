@@ -10,11 +10,40 @@ Stockage : le bucket AIMF existant `aimf-media-staging` (privé, Standard, jurid
 
 | Option | Description | Décision |
 |---|---|---|
-| A. Worker dédié `aimf-lyria-pilot-recette` | entrée `src/music/private-pilot-entry.ts` : `fetch` (chemin `/api/studio/lyria-private` seulement), `queue`, `scheduled` | **retenue pour la recette** : elle ne suppose rien de l'hébergement Lovable |
-| B. Worker de l'application (`src/server.ts`) | expose les mêmes `fetch`, `queue()` et `scheduled()` | **non prouvée** : on ignore si l'hébergement Lovable transmet les liaisons, `queue()` et Cron ; à vérifier séparément, sans toucher au Worker existant |
+| A. Worker dédié `aimf-lyria-pilot-recette` | entrée `src/music/private-pilot-entry.ts` : `fetch` (chemin interne `/internal/v1/lyria-pilot` seulement, requête signée par le relais), `queue`, `scheduled` | **retenue** : seul consommateur de la file et seule base, donc un seul plafond de cinq |
+| B. Application Lovable (`src/server.ts`) | `fetch` seulement : **relais signé** du chemin `/api/studio/lyria-private` vers le Worker dédié (P3a) | `queue()` et `scheduled()` **retirés** (correction C-2) : aucun second consommateur possible |
 
 Le Worker existant du compte n'est ni lu, ni modifié, ni réutilisé. Le Worker dédié a son propre nom, ses propres
 ressources et aucune route : il n'est joignable qu'après un GO qui en ouvre une.
+
+### Liaison Lovable → Worker (P3a, code local, non déployé)
+
+- **Navigateur → Lovable : contrat inchangé** (même chemin, `Authorization: Bearer`, `Idempotency-Key`, mêmes réponses).
+- **Relais** (`src/music/private-pilot-relay.ts`) : arrêt d'urgence, même origine, configuration, session Supabase,
+  propriétaire, 60 requêtes par minute et par instance, corps ≤ 8 Kio, **puis** signature et un seul envoi, jamais
+  de nouvelle tentative. Il retire cookies, `Range`, `If-*` et `Accept-Encoding` du navigateur, ne suit aucune
+  redirection, attend les en-têtes 10 s au plus et transmet le corps en flux, sans tampon. Un refus de la preuve de
+  service par le Worker devient `503 pilot_unavailable` pour le navigateur.
+- **Façade du Worker** (`src/music/private-pilot-service.ts`) : chemin et méthode, interrupteur et arrêt d'urgence,
+  secrets, taille, **HMAC-SHA256** (`src/music/private-pilot-hmac.ts`), Access facultatif
+  (`src/music/private-pilot-access.ts`), puis le contrat existant, **session revérifiée** et propriétaire compris.
+  Tout échec de preuve : `401 service_auth_failed`, un seul corps quel que soit le motif.
+- **Chaîne signée** : `AIMF-PILOT-HMAC-SHA256-v1`, audience, méthode, chemin interne, paramètres triés, horodatage
+  (fenêtre ± 60 s), `Idempotency-Key` (ou `-`), SHA-256 du corps exact, SHA-256 du jeton de session.
+- **Audio** : toujours le fichier complet (`Range` ignoré), `Accept-Ranges: none`,
+  `Cache-Control: private, no-store, no-transform` ; le relais refuse un `206`, un `Content-Range`, un corps
+  compressé ou une réponse sans longueur ni empreinte (`502 audio_unavailable`).
+- **C-1** : la réconciliation réserve chaque nouveau relais par comparaison-échange sur `updated_at`
+  (`leaseHandoff`, `leaseRecover`) : un seul message et un seul relais comptés, même avec Cron et visites simultanés.
+
+| Variable | Côté | Nature |
+|---|---|---|
+| `AIMF_PILOT_WORKER_URL` | Lovable | adresse `https://` du Worker, sans chemin |
+| `AIMF_PILOT_HMAC_K1` (`_K2` et `AIMF_PILOT_HMAC_KEY_ID=k2` pendant une rotation) | Lovable et Worker | **secret**, 32 octets au moins, propre à l'environnement |
+| `AIMF_PRIVATE_LYRIA_OWNER_ID` | Lovable et Worker | secret existant (le relais refuse tout autre membre) |
+| `AIMF_PILOT_AUDIENCE` | Lovable et Worker | variable ; `aimf-lyria-pilot-recette` par défaut |
+| `AIMF_PILOT_ACCESS_CLIENT_ID` / `_SECRET` | Lovable | **secrets**, seulement si Access est retenu (P4) |
+| `AIMF_PILOT_ACCESS_AUD`, `AIMF_PILOT_ACCESS_TEAM` | Worker | variables, les deux ou aucune |
 
 ## 2. Configuration proposée (non déployée)
 
@@ -30,7 +59,8 @@ lisent sans `--config` explicite (un test vérifie qu'aucun `wrangler.*` n'exist
 | Cron | `*/5 * * * *` | réconciliation autonome |
 | Routes | aucune ; `workers_dev` et `preview_urls` à `false` | |
 | Variables | `ENABLED=0`, `AI_ROUTES_PAUSED=1`, `PROVIDER=mock`, `AUDIO_CHECK=client`, Supabase vides | fermée par défaut |
-| Secret attendu (GO séparé) | `AIMF_PRIVATE_LYRIA_OWNER_ID` | `GEMINI_API_KEY` **non requis et non posé** en mode `mock` |
+| Secrets attendus (GO séparé) | `AIMF_PRIVATE_LYRIA_OWNER_ID`, `AIMF_PILOT_HMAC_K1` | `GEMINI_API_KEY` **non requis et non posé** en mode `mock` ; sans `AIMF_PILOT_HMAC_K1` utilisable, toute requête reçoit 503 |
+| Audience | `AIMF_PILOT_AUDIENCE=aimf-lyria-pilot-recette` | une autre audience (production) est refusée |
 | `define` | `import.meta.env.VITE_SUPABASE_*` → `undefined` | hors de Vite, la vérification de session lit les liaisons |
 
 Vérifié localement : `wrangler deploy --dry-run` (4.151.3, sans session, dossier de configuration vide) assemble
@@ -129,8 +159,8 @@ Procédure de diagnostic du propriétaire :
 ## 6. Matrice des tests d'intégration (planifiée, **non exécutée**)
 
 Prérequis communs (**GO séparé**) : compte et coûts vérifiés, D1 et file dédiées créées (le bucket
-`aimf-media-staging` existe déjà), schéma appliqué sur la D1 de recette, secret `AIMF_PRIVATE_LYRIA_OWNER_ID`
-posé, projet Supabase choisi, mode `mock` uniquement, jeton limité à ces ressources et au seul bucket.
+`aimf-media-staging` existe déjà), schéma appliqué sur la D1 de recette, secrets `AIMF_PRIVATE_LYRIA_OWNER_ID` et
+`AIMF_PILOT_HMAC_K1` posés, projet Supabase choisi, mode `mock` uniquement, jeton limité à ces ressources et au seul bucket.
 
 | # | Test | Procédure | Attendu | Arrêt immédiat si |
 |---|---|---|---|---|

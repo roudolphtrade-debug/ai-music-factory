@@ -78,7 +78,10 @@ export function createPilotStore(db: D1Like, now: () => number = () => Math.floo
       };
     },
     markQueued: (id: string) => one(SQL.markQueued, id, now()),
-    touchRunning: (id: string) => one(SQL.touchRunning, id, now()),
+    /** C-1: a row back means "you, and only you, hand this attempt over again" (compare-and-set on `seenUpdatedAt`). */
+    leaseHandoff: (id: string, seenUpdatedAt: number) => one(SQL.leaseHandoff, id, now(), seenUpdatedAt),
+    /** C-1: a row back means "you, and only you, send the `recover` check for this silent attempt". */
+    leaseRecover: (id: string, seenUpdatedAt: number) => one(SQL.leaseRecover, id, now(), seenUpdatedAt),
     /** The single provider engagement for this id: a row back means "you, and only you, may call Google". */
     claim: (id: string) => one(SQL.claim, id, now()),
     markStored: (id: string, key: string, sha256: string, bytes: number) =>

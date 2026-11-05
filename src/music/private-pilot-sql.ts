@@ -86,11 +86,20 @@ RETURNING ${JOB_COLUMNS}`,
   (SELECT count(*) FROM aimf_pilot_jobs WHERE state = 'needs_review') AS review_count,
   (SELECT id FROM aimf_pilot_jobs WHERE state IN ('reserved', 'queued', 'running') LIMIT 1) AS active_id
 FROM aimf_pilot_settings s WHERE s.scope = 'lyria-3.5'`,
-  /** The message was handed to the queue (or handed again by the reconciliation): Google is still not engaged. */
+  /** The first message was handed to the queue by the reservation: Google is still not engaged. */
   markQueued: `UPDATE aimf_pilot_jobs SET state = 'queued', handoffs = handoffs + 1, updated_at = ?2
 WHERE id = ?1 AND state IN ('reserved', 'queued') AND provider_engaged_at IS NULL RETURNING ${JOB_COLUMNS}`,
-  /** A recovery check was handed to the queue for a silent engaged attempt: not looked at again before long. */
-  touchRunning: `UPDATE aimf_pilot_jobs SET updated_at = ?2 WHERE id = ?1 AND state = 'running' RETURNING ${JOB_COLUMNS}`,
+  /**
+   * Correction C-1, lease of a NEW hand-off by the reconciliation, by compare-and-set on the `updated_at` it read
+   * (?3): of several reconciliations that saw the same idle attempt, exactly one gets a row back, counts the hand-off
+   * and sends the message. The new `updated_at` is always later (only rows idle for RECONCILE_IDLE_SECONDS are read).
+   */
+  leaseHandoff: `UPDATE aimf_pilot_jobs SET state = 'queued', handoffs = handoffs + 1, updated_at = ?2
+WHERE id = ?1 AND state IN ('reserved', 'queued') AND provider_engaged_at IS NULL AND updated_at = ?3
+RETURNING ${JOB_COLUMNS}`,
+  /** Same compare-and-set before a `recover` message for a silent engaged attempt: one reconciler sends it. */
+  leaseRecover: `UPDATE aimf_pilot_jobs SET updated_at = ?2 WHERE id = ?1 AND state = 'running' AND updated_at = ?3
+RETURNING ${JOB_COLUMNS}`,
   /** THE commit point of the single provider call: only one caller can ever get a row back for an id. */
   claim: `UPDATE aimf_pilot_jobs SET state = 'running', provider_engaged_at = ?2, updated_at = ?2
 WHERE id = ?1 AND state IN ('reserved', 'queued') AND provider_engaged_at IS NULL RETURNING ${JOB_COLUMNS}`,
