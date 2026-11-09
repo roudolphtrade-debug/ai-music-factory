@@ -1,8 +1,9 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
-import entry, { PILOT_PATH } from "./private-pilot-entry";
+import entry from "./private-pilot-entry";
 import type { PrivateLyriaBindings } from "./private-pilot-bindings";
+import { PILOT_INTERNAL_PATH as PILOT_PATH } from "./private-pilot-hmac";
 
 const CONFIG_PATH = "docs/music/cloudflare/wrangler.recette.jsonc";
 

@@ -7,13 +7,14 @@
  *    (`private-pilot-service.ts`). Any other path, the old public `/api/studio/lyria-private` included: 404.
  *  - `queue` and `scheduled`: this Worker is the ONLY consumer of the pilot queue and the only reconciler of its
  *    database (correction C-2: the Lovable application no longer exposes either), so there is one cap of five.
+ *
+ * Correction E-1: this module exports `default` and nothing else. workerd reads every export of the main module as
+ * an entrypoint and refuses to start on a value that is neither a class nor a handler object (a constant included:
+ * "Incorrect type for map entry ..."). Constants stay in their own module (`PILOT_INTERNAL_PATH`, private-pilot-hmac).
  */
 import type { PrivateLyriaBindings } from "./private-pilot-bindings";
-import { PILOT_INTERNAL_PATH } from "./private-pilot-hmac";
 import { handlePilotServiceRequest } from "./private-pilot-service";
 import { consumePrivateLyriaBatch, runScheduledReconciliation, scheduledLogLine } from "./private-pilot-worker";
-
-export const PILOT_PATH = PILOT_INTERNAL_PATH;
 
 export default {
   async fetch(request: Request, env: PrivateLyriaBindings): Promise<Response> {
