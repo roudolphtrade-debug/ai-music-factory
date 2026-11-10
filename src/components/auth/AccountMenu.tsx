@@ -56,14 +56,14 @@ export function AccountMenu() {
 
   if (status === "signedOut") {
     return (
-      <div className="col-span-4 flex min-w-0 items-center justify-end gap-2 pb-2 sm:pb-0">
-        <Button asChild variant="ghost-gold" size="sm" className="h-11 shrink-0 px-2.5 sm:h-9 sm:px-3.5">
+      <div className="flex shrink-0 items-center justify-end gap-2">
+        <Button asChild variant="ghost-gold" size="sm" className="h-10 w-10 shrink-0 px-0 min-[380px]:h-11 min-[380px]:w-11 sm:h-9 sm:w-auto sm:px-3.5">
           <Link to={AUTH_PATHS.signIn} aria-label={t("signIn")}>
             <LogIn aria-hidden="true" />
-            <span>{t("signIn")}</span>
+            <span className="hidden sm:inline">{t("signIn")}</span>
           </Link>
         </Button>
-        <Button asChild variant="gold" size="sm" className="h-11 shrink-0 px-2.5 sm:h-9 sm:px-3.5">
+        <Button asChild variant="gold" size="sm" className="hidden h-9 shrink-0 px-3.5 sm:inline-flex">
           <Link to={AUTH_PATHS.signUp}>{t("signUp")}</Link>
         </Button>
         </div>

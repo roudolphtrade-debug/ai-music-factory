@@ -1,8 +1,16 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Search, AudioWaveform, Library, Menu } from "lucide-react";
+import { Home, Compass, AudioWaveform, Library, Radio } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/context";
-import { Button } from "@/components/ui/button";
+
+const TAB_LABELS = {
+  fr: { discover: "Découvrir", create: "Créer" },
+  en: { discover: "Discover", create: "Create" },
+  es: { discover: "Descubrir", create: "Crear" },
+  zh: { discover: "发现", create: "创作" },
+  pt: { discover: "Descobrir", create: "Criar" },
+  ar: { discover: "اكتشف", create: "أنشئ" },
+} as const;
 
 /**
  * Mobile-first primary navigation. Replaces "hamburger as the only way to
@@ -15,18 +23,12 @@ import { Button } from "@/components/ui/button";
  */
 export function MobileTabBar({ onMenu, compact = false }: { onMenu: () => void; compact?: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
 
   const isActive = (to: string, exact?: boolean) =>
     exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
 
-  const items = [
-    { label: t("nav.home"), to: "/", icon: Home, exact: true },
-  ] as const;
-
-  const trailingItems = [
-    { label: t("nav.library"), to: "/library", icon: Library, exact: false },
-  ] as const;
+  const labels = TAB_LABELS[lang as keyof typeof TAB_LABELS] ?? TAB_LABELS.fr;
 
   return (
     <nav
@@ -35,48 +37,22 @@ export function MobileTabBar({ onMenu, compact = false }: { onMenu: () => void; 
       aria-label={t("nav.menu")}
     >
       <div className={cn("grid grid-cols-5 items-center px-1", compact && "h-14")}>
-        {items.map((item) => (
-          <TabLink key={item.to} {...item} active={isActive(item.to, item.exact)} />
-        ))}
-        <Button variant="ghost"
-          type="button"
-          onClick={() => window.dispatchEvent(new Event("afm:open-search"))}
-          className="h-14 min-w-0 flex-col gap-1 rounded-none px-0 text-muted-foreground active:text-gold"
-        >
-          <Search className="h-5 w-5" />
-          <span className="text-[0.65rem] font-medium">{t("nav.search")}</span>
-        </Button>
-
-        {/* Raised center action — the core "create" flow gets visual priority */}
-        <Link
-          to="/studio"
-          className="relative flex flex-col items-center justify-end pb-2"
-          aria-label={t("nav.studio")}
-        >
+        <TabLink label={t("nav.home")} to="/" icon={Home} active={isActive("/", true)} />
+        <TabLink label={labels.discover} to="/artists" icon={Compass} active={isActive("/artists")} />
+        <Link to="/studio" className="relative flex flex-col items-center justify-end gap-1 pb-1.5" aria-label={t("nav.studio")}>
           <span
             className={cn(
               "grid place-items-center rounded-full bg-gold-gradient text-primary-foreground shadow-glow transition-transform duration-[var(--duration-fast)] active:scale-90 motion-reduce:active:scale-100",
-              compact ? "h-11 w-11" : "-mt-6 h-14 w-14",
+              compact ? "h-9 w-9" : "-mt-5 h-12 w-12",
               isActive("/studio") && "ring-2 ring-gold ring-offset-2 ring-offset-background",
             )}
           >
-            <AudioWaveform className="h-6 w-6" />
+            <AudioWaveform className="h-5 w-5" aria-hidden="true" />
           </span>
+          <span className={cn("text-[0.65rem] font-medium", isActive("/studio") ? "text-gold" : "text-muted-foreground")}>{labels.create}</span>
         </Link>
-
-        {trailingItems.map((item) => (
-          <TabLink key={item.to} {...item} active={isActive(item.to)} />
-        ))}
-
-        <Button variant="ghost"
-          type="button"
-          onClick={onMenu}
-          className="h-14 min-w-0 flex-col gap-1 rounded-none px-0 text-muted-foreground active:text-gold"
-          aria-label={t("nav.menu")}
-        >
-          <Menu className="h-5 w-5" />
-          <span className="text-[0.65rem] font-medium">{t("nav.menu")}</span>
-        </Button>
+        <TabLink label={t("nav.radio")} to="/radio" icon={Radio} active={isActive("/radio")} />
+        <TabLink label={t("nav.library")} to="/library" icon={Library} active={isActive("/library")} />
       </div>
     </nav>
   );
@@ -96,12 +72,13 @@ function TabLink({
   return (
     <Link
       to={to}
+      aria-current={active ? "page" : undefined}
       className={cn(
         "flex flex-col items-center gap-1 py-2.5 transition-colors active:scale-95 motion-reduce:active:scale-100",
         active ? "text-gold" : "text-muted-foreground",
       )}
     >
-      <Icon className="h-5 w-5" />
+      <Icon className="h-5 w-5" aria-hidden="true" />
       <span className="text-[0.65rem] font-medium">{label}</span>
     </Link>
   );
