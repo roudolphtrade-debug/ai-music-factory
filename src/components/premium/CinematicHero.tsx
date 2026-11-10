@@ -114,15 +114,17 @@ export function CinematicHero({
           </div>
           <nav
             aria-label={t("home.hero.shortcuts")}
-            className="mt-5 grid grid-cols-4 overflow-hidden rounded-xl border border-foreground/15 bg-background/50 backdrop-blur-sm sm:flex sm:flex-wrap sm:gap-2 sm:overflow-visible sm:rounded-none sm:border-0 sm:bg-transparent sm:backdrop-blur-none"
+            className="mt-5 grid grid-cols-4 gap-1 sm:flex sm:flex-wrap sm:gap-2 sm:overflow-visible sm:rounded-none sm:border-0 sm:bg-transparent sm:backdrop-blur-none"
           >
             {shortcuts.map(({ to, label, icon: Icon }) => (
               <Link
                 key={to}
                 to={to}
-                className="flex min-w-0 flex-col items-center justify-center gap-1 border-foreground/10 px-1 py-2.5 text-center text-[0.68rem] font-medium leading-tight text-foreground/85 transition-colors [&:not(:last-child)]:border-e hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold sm:inline-flex sm:h-9 sm:flex-row sm:gap-2 sm:rounded-full sm:border sm:border-foreground/20 sm:bg-background/40 sm:px-3.5 sm:py-0 sm:text-xs sm:backdrop-blur-sm sm:[&:not(:last-child)]:border-e sm:hover:border-[color-mix(in_oklab,var(--gold)_50%,transparent)]"
+                className="flex min-w-0 flex-col items-center justify-center group/sc gap-1.5 rounded-lg px-1 py-1 text-center text-[0.68rem] font-medium leading-tight text-foreground/85 transition-colors hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold sm:inline-flex sm:h-9 sm:flex-row sm:gap-2 sm:rounded-full sm:border sm:border-foreground/20 sm:bg-background/40 sm:px-3.5 sm:py-0 sm:text-xs sm:backdrop-blur-sm sm:[&:not(:last-child)]:border-e sm:hover:border-[color-mix(in_oklab,var(--gold)_50%,transparent)]"
               >
-                <Icon className="h-4 w-4 shrink-0 text-gold sm:h-3.5 sm:w-3.5" aria-hidden="true" />
+                <span aria-hidden="true" className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-[color-mix(in_oklab,var(--gold)_60%,transparent)] bg-background/60 shadow-[0_0_14px_color-mix(in_oklab,var(--gold)_25%,transparent)] sm:contents">
+                  <Icon className="h-5 w-5 shrink-0 text-gold sm:h-3.5 sm:w-3.5" />
+                </span>
                 {label}
               </Link>
             ))}
