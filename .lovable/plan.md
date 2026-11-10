@@ -1,90 +1,52 @@
-# Lot UI Accueil — « Cinematic Discovery » (plan révisé)
+# Plan d'exécution — Fidélité aux cinq maquettes officielles
 
-Référence : maquette officielle « Accueil cinématographique », ordinateur et mobile. Captures de l'état actuel prises à 1280 et 390 px, sans aucun débordement constaté. Elles seront copiées dans Fichiers (`Lot-Accueil-Reference/`) dès l'autorisation, car le mode Plan bloque l'écriture.
-Branche active : `edit/edt-5aa8e25c-…`, branche isolée de Lovable, différente de `main`. Si vous voulez une branche nommée, sélectionnez-la dans Paramètres → Git. Aucune publication, aucune intervention sur Supabase, Cloudflare ni Lyria.
+Branche isolée actuelle : `edit/edt-d6b4081c…` (commit 038ce79). Aucune publication, aucune intervention sur main, Lovable Cloud/Supabase ou Cloudflare. Chaque lot s'arrête sur une validation explicite avant le suivant.
 
-## 1. Hero recomposé, fidèle à la maquette
-- Nouvelle scène : une artiste au casque doré, de profil, à droite, entourée d'un halo doré. Un spectre musical doré horizontal part du texte et rejoint la scène. Fond noir profond.
-- Le visuel est une nouvelle illustration originale, générée pour la marque. La maquette n'est jamais utilisée comme image. L'image du concert actuel est archivée, pas supprimée.
-- Le spectre est décoratif : il est fixe avec la réduction des animations, pulse doucement sinon, et ne prétend jamais réagir au son. Il ne gêne ni la lecture du texte ni les clics.
-- Promesse validée conservée : « La musique entre dans une nouvelle ère. », avec « une nouvelle ère » en or et en Cormorant.
-- Deux CTA conservés, avec leurs destinations actuelles : « Explorer la musique » (principal, doré) et « Commencer à créer » (contour). Les libellés de la maquette, « Créer maintenant » et « Découvrir », ne sont pas repris, pour garder la promesse validée.
-- Sous les CTA, une ligne de quatre raccourcis avec icône dorée : Créer, Radio, Artistes, Défis. Ils mènent vers des pages existantes.
-- La ligne « À la une » (lecture et favori) sort du hero et devient le lecteur de la carte principale (section 2).
-- Diversité : la représentation reste non stéréotypée, sans costume folklorique ni caricature. L'ensemble des portraits de la page doit équilibrer les genres, les origines et les profils (artistes humains, hybrides et virtuels).
+## Audit de l'existant (à ne pas reconstruire)
 
-## 2. Réorganisation sans duplication (aucune rangée ajoutée)
-Architecture cible sur ordinateur, avec la même hauteur totale ou moins qu'aujourd'hui :
-```text
-[ HERO : texte + 2 CTA + 4 raccourcis | artiste au casque + spectre ]
-[ Studio ][ AI Radio ][ Artistes ][ Collections ] | [ Concours & Awards ]
-[ Sélections du moment (carrousel)            ]   | [ Top communauté x3 ]
-                                                   | [ Rejoindre la communauté ]
-[ Classements / Genres / Tendances / Jury (onglets existants) ]
-[ Reprendre l'écoute · Favoris · Onboarding ] (existant, conditionnel)
-[ Cinq piliers ]
-```
-- Les cinq destinations remplacent la grille actuelle de `EditorialSelection` : les mêmes images et le même gabarit Bento sont réaffectés, rien n'est empilé. Collections mène à la Bibliothèque. Concours & Awards mène aux Défis et au Temple.
-- « Sélections du moment » reprend les quatre titres de la sélection éditoriale (avec lecture et favori), en carrousel accessible avec des flèches et le balayage au doigt.
-- Le Top communauté compact reprend les trois premiers titres du classement existant, sans nombre d'écoutes, avec le badge Démo. Le classement complet de dix titres reste dans les onglets existants.
-- « Rejoindre la communauté » reprend le contenu actuel de `CreateAndConnect` et de `DiscoveryCompanions`, qui disparaissent de leur place actuelle. Rien n'est en double.
-- Les cinq piliers, la reprise d'écoute, les favoris, l'onboarding et les défis restent en place, à leur rang actuel.
-- Sur mobile, l'ordre est : hero, raccourcis, carrousel « Sélections du moment », Top communauté, cinq destinations en grille de 2 colonnes, puis la suite inchangée.
+| Écran | Page actuelle | Déjà validé / réutilisable | Écart principal |
+|---|---|---|---|
+| Accueil | `/` | Hero artiste au casque (étape 2), carrousel, Top, cinq destinations (étape 3 en attente) | Barre mobile, en-tête sur 2 lignes, vide sous carrousel, mini-lecteur 320 px, flèche RTL |
+| Radio « Vinyl Signature » | `/radio` | Stations filtrables, file, shuffle/repeat, lecteur partagé | Pas de platine, spectre décoratif, file non rétractable (cadrage 2.2 déjà validé) |
+| Artist Universe | `/artists/$artistId` | Profil, titres, lecture, favoris | Bannière immersive, discographie, univers visuel |
+| Artist Command Center | aucune page dédiée (`/analytics` = Statistiques) | Statistiques, Bibliothèque, Crédits | Écran entier à composer : KPI, courbe, répartition, contenus récents, projets |
+| Studio de création | `/studio` | Composer, brouillons, exemples, génération (routes IA en pause) | Hero studio, 4 onglets, stepper 5 étapes, cartes Idée/Style/Voix, brouillon avec waveform |
 
-## 3. Navigation mobile : analyse et proposition
-Constaté :
-- La barre du bas s'affiche sur toutes les pages, sauf la connexion et l'inscription (pages à part).
-- Elle est plus compacte sur l'accueil.
-- Elle contient : Accueil, Rechercher, Créer (central), Bibliothèque, Menu. Le menu complet est aussi accessible par le bouton de l'en-tête.
+Règle commune : fonctions non opérationnelles = bouton désactivé « Bientôt disponible » ; chiffres et artistes fictifs = badge « Démo » ; aucune capacité inventée (Clip, Mastering, Revenus, Campagnes restent « Bientôt disponible »).
 
-Cible :
-- Accueil, Découvrir (Artistes), Créer (central), Radio, Bibliothèque. C'est l'ordre de la maquette, avec Bibliothèque à la place de Profil.
-- La recherche reste dans l'en-tête sur toutes les pages, avec le même raccourci. Il faut vérifier que le champ ou son icône reste visible à 320 px.
-- Le menu complet reste accessible par le bouton de l'en-tête sur chaque page.
+## Lot 1 — Accueil « Cinematic Discovery » (finalisation)
+- Clore l'étape 3 (vide sous carrousel), puis étape 4 : en-tête mobile sur une ligne, barre mobile cinq destinations, mini-lecteur à 320 px, flèche CTA en arabe.
+- Fidélité : hero, carrousel, Top et cinq cartes conformes aux proportions de la maquette.
 
-États de connexion :
-- Visiteur : la Bibliothèque reste accessible (données locales), comme aujourd'hui. Créer mène au Studio, qui gère déjà son propre accès.
-- Membre connecté : la barre est identique. Le compte reste dans l'en-tête.
-- Comptes non configurés : la barre ne change pas et rien ne mène à une impasse.
-- En-tête mobile : aujourd'hui, « Se connecter » et « Créer un compte » passent sur une deuxième ligne. Ils deviennent un seul bouton de compte compact, sur une seule ligne, à toutes les tailles mobiles.
+## Lot 2 — AI Radio « Vinyl Signature »
+- Exécuter les sous-lots déjà cadrés : 2.2-A platine détaillée et composition, 2.2-B spectre réactif si l'audio le permet (sinon décoratif, mentionné), file desktop rétractable, 2.2-C recette.
+- Stations restent marquées « Démo ».
 
-Pages à vérifier : Accueil, Artistes, page artiste, Radio, Studio, Avatar Lab, Communauté, Défis, Temple, Statistiques, Labels, Bibliothèque, Paramètres, Crédits, Bienvenue, ainsi que l'onglet actif sur chacune.
+## Lot 3 — Artist Universe
+- Bannière plein cadre avec portrait, nom, statut neutre (humain / hybride / virtuel seulement si utile), actions Écouter / Suivre / Partager.
+- Titres populaires, discographie en cartes, univers visuel, labels liés. « Suivre » marqué « Bientôt disponible » si non raccordé.
 
-## Composants concernés
-- `CinematicHero.tsx` : recomposition et raccourcis.
-- Nouvel élément décoratif `HeroSpectrum.tsx`, réservé à l'accueil.
-- Nouvelle image `src/assets/hero-headphones.jpg`.
-- `HomeEditorial.tsx` : destinations, carrousel et Top compact, en réutilisant les blocs existants.
-- `_app.index.tsx` : nouvel ordre des sections, suppression des doublons déplacés.
-- `MobileTabBar.tsx` : les cinq destinations.
-- `AccountMenu.tsx` / `Topbar.tsx` : présentation mobile compacte seulement.
-- `home-editorial.ts` : nouveaux textes dans les six langues.
+## Lot 4 — Artist Command Center
+- Nouvelle page privée (accès connecté), sans toucher `/analytics` : barre latérale (Tableau de bord, Mes contenus, Statistiques, Communauté, Campagnes, Monétisation, Opportunités, Paramètres), 4 KPI, courbe d'écoutes, répartition d'audience en anneau, contenus récents, projets.
+- Données réelles uniquement si traçables (favoris, historique, brouillons) ; tout le reste badgé « Démo ». Campagnes, Monétisation, Opportunités, Revenus : « Bientôt disponible ».
+- Mobile : onglets Vue d'ensemble / Contenus / Stats et KPI empilés avec mini-courbes.
+- Point à valider avant ce lot : adresse de la page et entrée dans le menu « Vous ».
 
-Ne changent pas : moteur audio, lecteur, favoris, playlists, données, routes, logo, sélecteur de langues, cinq piliers, pages Radio, Studio et Artistes.
+## Lot 5 — Studio de création
+- Hero studio (visuel micro + artiste, à générer et valider seul d'abord, représentation diverse), onglets Création / Paroles & Voix / Clip & Visuels / Mon projet, stepper 5 étapes.
+- Cartes Votre idée, Style & Ambiance, Voix IA, bouton « Générer mon titre » branché sur le flux existant (toujours en pause côté serveur, message honnête).
+- Brouillon avec waveform ; Éditer/Mixer/Effets/Mastering/Clip = « Bientôt disponible ». Carte crédits reprenant le solde réel.
+- Mobile : onglets icônes, stepper compact, cartes empilées.
 
-## Risques
-- Le nouveau visuel s'écarte de la direction validée au Lot 1.1. Je vous soumets d'abord l'image seule, pour validation avant intégration.
-- Supprimer Rechercher et Menu de la barre peut faire perdre des repères. L'en-tête doit garantir les deux à 320 px, en RTL et dans chaque état de connexion.
-- La réaffectation du Bento peut faire perdre les tests et ancres existants. Il faut contrôler les liens et les tests actuels de l'accueil.
-- Les libellés longs (PT, ES) et l'arabe peuvent poser problème dans les raccourcis, le carrousel et la barre.
-- Performance : le hero est chargé en priorité, le reste est chargé progressivement, et le spectre décoratif ne doit pas peser.
+## Critères de fidélité (chaque lot)
+- Composition et ordre des blocs identiques à la maquette ; proportions comparées par superposition de captures à 1440 et 390 px.
+- Palette noir/blanc/or uniquement via les variables de thème ; Cormorant pour les titres, police fonctionnelle pour les contrôles ; logo A original intact.
+- Halo doré, cartes arrondies à bord lumineux discret, motion respectant « réduire les animations ».
 
-## Critères de recette
-- Fidélité : composition comparée côte à côte avec la maquette, sur ordinateur et mobile. Hauteur totale de l'accueil inférieure ou égale à l'actuelle. Aucun bloc en double.
-- Six langues, à 320, 390, 768, 1093, 1280 et 1527 px : aucun débordement, cibles d'au moins 44 px, RTL pour l'arabe uniquement.
-- Clavier sur les raccourcis, le carrousel, le Top et la barre, avec focus visible. Réduction des animations respectée. Contrastes AA sur le hero.
-- Lecture, pause et favori depuis le carrousel et le Top. Favori retrouvé après rechargement. Lecture continue en changeant de page.
-- Barre mobile : onglet actif juste sur toutes les pages listées. Recherche et menu atteignables, en visiteur comme en membre.
-- Contenus fictifs toujours identifiés comme Démo. Aucun chiffre d'audience ajouté.
-- Tests existants, nouveaux tests de la barre mobile, compilation, captures avant/après et compte rendu factuel.
+## Recette par lot
+- Captures desktop 1440/1024 et mobile 390/320, en FR, AR (RTL), et une langue asiatique ; contrôle d'absence de débordement.
+- Non-régression : lecture/pause/suivant, favoris, connexion/déconnexion, solde de crédits, persistance de langue, tests existants (vitest) relancés.
+- Compte rendu : réalisé / préservé / testé / non testé (appareil réel, Safari, lecteur d'écran) ; arrêt et attente de validation.
 
-## Étapes
-1. Génération du visuel hero, soumis seul pour validation.
-2. Recomposition du hero.
-3. Réorganisation des sections.
-4. Barre mobile et en-tête.
-5. Recette complète et compte rendu, puis arrêt.
-
-## Hors lot (décisions notées)
-- Artist Command Center privé distinct, à partir des statistiques existantes.
-- Studio : fonctions non opérationnelles marquées « Bientôt disponible ».
+## Détails techniques
+- Composants dans `src/components/premium/`, traductions dans les catalogues six langues séparés existants, aucune migration, aucun appel IA, aucune nouvelle dépendance serveur.
