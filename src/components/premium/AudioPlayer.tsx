@@ -134,7 +134,7 @@ export function AudioPlayer({ compact = false }: { compact?: boolean }) {
 
         {/* Right: time + volume + equalizer */}
         <div className="hidden flex-1 items-center justify-end gap-4 lg:flex">
-          <span className="font-mono text-xs tabular-nums text-muted-foreground">
+          <span dir="ltr" className="font-mono text-xs tabular-nums text-muted-foreground">
             {elapsed} / {total}
           </span>
           <WaveBars active={isPlaying} />

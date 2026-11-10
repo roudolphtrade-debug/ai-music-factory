@@ -66,9 +66,14 @@ export function CinematicHero({
           alt=""
           width={1920}
           height={1088}
-          className="h-full w-full object-cover object-[74%_30%] motion-safe:animate-[hero-zoom_24s_ease-out_forwards] sm:object-[72%_center]"
+          className="h-full w-full object-cover object-[74%_30%] motion-safe:animate-[hero-zoom_24s_ease-out_forwards] sm:object-[72%_center] sm:rtl:-scale-x-100"
         />
-        <div className="absolute inset-0 hidden bg-gradient-to-r from-background via-background/70 to-transparent sm:block" />
+        <div className="absolute inset-0 hidden bg-gradient-to-r from-background via-background/70 to-transparent sm:block rtl:bg-gradient-to-l" />
+        {/* Golden halo behind the artist, echoing the artwork's bloom. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 hidden sm:block bg-[radial-gradient(ellipse_38%_60%_at_72%_42%,color-mix(in_oklab,var(--gold)_20%,transparent),transparent_72%)] rtl:bg-[radial-gradient(ellipse_38%_60%_at_28%_42%,color-mix(in_oklab,var(--gold)_20%,transparent),transparent_72%)]"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30" />
       </div>
       <div className="hero-grain pointer-events-none absolute inset-0" />
@@ -87,11 +92,11 @@ export function CinematicHero({
           </p>
           <h1 className="font-display text-4xl font-semibold leading-[1.04] tracking-normal text-foreground sm:text-5xl xl:text-6xl">
             <span className="sr-only">{t("home.hero.titleLead")} </span>
-            <span className="block whitespace-nowrap italic">
+            <span className="block whitespace-nowrap">
               {words.map((w, i) => (
                 <span
                   key={i}
-                  className="gold-text inline-block motion-safe:animate-[word-in_0.9s_ease-out_both]"
+                  className={`${i === words.length - 1 ? "gold-text" : "text-foreground"} inline-block motion-safe:animate-[word-in_0.9s_ease-out_both]`}
                   style={{ animationDelay: `${0.25 + i * 0.18}s` }}
                 >
                     {w}{i < words.length - 1 ? "\u00a0" : ""}
