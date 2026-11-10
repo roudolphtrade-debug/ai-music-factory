@@ -35,9 +35,9 @@ export function HomeDiscovery() {
     { key: 'dCollections', to: '/library', icon: Library, image: artistImages['art-2'], demo: false },
     { key: 'dContests', to: '/battles', icon: Trophy, image: stageImage, demo: true },
   ] as const;
-  return <section className="home-discovery grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(15rem,1.35fr)] lg:gap-x-3 lg:gap-y-6">
+  return <section className="home-discovery grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(19rem,1.7fr)] lg:gap-x-3 lg:gap-y-6">
     <nav aria-label={t('editorial.destinations')} className="order-3 grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3 lg:order-1 lg:col-span-5 lg:grid-cols-subgrid">
-      {destinations.map(({ key, to, icon: Icon, image, demo }, i) => <Link key={key} to={to} className={`group relative isolate flex min-h-36 min-w-0 flex-col justify-end overflow-hidden rounded-lg border border-border bg-card p-4 shadow-card transition-colors hover:border-[color-mix(in_oklab,var(--gold)_45%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold sm:min-h-44 ${i === 4 ? 'col-span-2 sm:col-span-1' : ''} ${i === 0 ? 'border-[color-mix(in_oklab,var(--gold)_55%,transparent)] shadow-[0_0_32px_-12px_var(--gold)]' : ''}`}>
+      {destinations.map(({ key, to, icon: Icon, image, demo }, i) => <Link key={key} to={to} className={`group relative isolate flex min-h-36 min-w-0 flex-col justify-end overflow-hidden rounded-lg border ${i === 0 ? '' : 'border-border'} bg-card p-4 shadow-card transition-colors hover:border-[color-mix(in_oklab,var(--gold)_45%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold sm:min-h-44 ${i === 4 ? 'col-span-2 sm:col-span-1' : ''} ${i === 0 ? 'border-[color-mix(in_oklab,var(--gold)_55%,transparent)] shadow-[0_0_32px_-12px_var(--gold)]' : ''}`}>
         <img src={image} alt="" loading="lazy" className="absolute inset-0 -z-20 h-full w-full object-cover object-[center_25%] transition-transform duration-500 motion-safe:group-hover:scale-105" />
         <div className="absolute inset-0 -z-10 bg-gradient-to-t from-background via-background/70 to-background/10" />
         <Icon className="mb-2 h-5 w-5 text-gold" aria-hidden="true" />
