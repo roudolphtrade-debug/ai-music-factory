@@ -21,5 +21,5 @@
 - [x] Language selector micro-lot: verify six languages, reload persistence, keyboard and desktop/tablet/mobile; no publication.
 
 ## Lot UI Accueil « Cinematic Discovery » (plan V2 validé)
-- [ ] Étape 1 : visuel hero généré, soumis seul pour validation
-- [ ] Étapes 2-5 : hero, réorganisation, barre mobile, recette (bloqué : validation du visuel)
+- [x] Étape 1 : visuel hero généré (1920x1088, sans texte ni artefact), soumis seul pour validation
+- [ ] Étapes 2-5 : hero, réorganisation, barre mobile, recette (bloqué : validation du visuel hero par l'utilisateur)
