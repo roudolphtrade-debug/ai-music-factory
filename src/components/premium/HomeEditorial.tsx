@@ -78,7 +78,7 @@ function PicksCarousel({ picks }: { picks: typeof chartTracks }) {
     const step = (el.firstElementChild as HTMLElement | null)?.offsetWidth ?? 240;
     el.scrollBy({ left: dir * (step + 12) * (rtl ? -1 : 1), behavior: 'smooth' });
   };
-  return <section aria-roledescription="carousel" aria-label={t('editorial.moment')} className="order-1 min-w-0 lg:order-2">
+  return <section aria-roledescription="carousel" aria-label={t('editorial.moment')} className="order-1 flex min-w-0 flex-col lg:order-2">
     <div className="mb-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
       <div className="flex min-w-0 items-center gap-2"><h2 className="truncate font-display text-2xl font-semibold sm:text-3xl">{t('editorial.moment')}</h2><DemoBadge className="shrink-0" /></div>
       <div className="flex gap-2">
@@ -86,8 +86,8 @@ function PicksCarousel({ picks }: { picks: typeof chartTracks }) {
         <Button variant="outline" size="icon" className="h-11 w-11" aria-label={t('editorial.next')} onClick={() => move(1)}><ChevronRight className="h-4 w-4 rtl:-scale-x-100" /></Button>
       </div>
     </div>
-    <ul ref={ref} className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      {picks.map((track, i) => <li key={track.id} aria-roledescription="slide" aria-label={`${i + 1} / ${picks.length}`} className="group relative isolate aspect-[4/5] w-[68%] shrink-0 snap-start overflow-hidden rounded-lg border border-border bg-card shadow-card sm:w-[42%] lg:w-[31%]">
+    <ul ref={ref} className="flex flex-1 snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {picks.map((track, i) => <li key={track.id} aria-roledescription="slide" aria-label={`${i + 1} / ${picks.length}`} className="group relative isolate aspect-[4/5] w-[68%] shrink-0 lg:aspect-auto lg:min-h-[22rem] snap-start overflow-hidden rounded-lg border border-border bg-card shadow-card sm:w-[42%] lg:w-[31%]">
         <Link to="/artists/$artistId" params={{ artistId: track.artistId }} className="absolute inset-0 -z-20 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold"><img loading="lazy" src={track.cover} alt={track.artist} className="h-full w-full object-cover object-[center_25%] transition-transform duration-500 motion-safe:group-hover:scale-105" /></Link>
         <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-background via-background/10 to-transparent" />
         <span className="pointer-events-none absolute start-4 top-3 font-display text-xl text-gold">{String(i + 1).padStart(2, '0')}</span>
