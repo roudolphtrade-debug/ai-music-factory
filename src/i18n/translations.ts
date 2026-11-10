@@ -151,6 +151,7 @@ const fr: Dict = {
         "Créez, découvrez et partagez la musique à l'ère de l'intelligence artificielle : pour les artistes humains, hybrides et IA, les producteurs, les fans et les professionnels.",
       startCreating: "Commencer à créer",
       exploreArtists: "Explorer la musique",
+      shortcuts: "Accès rapides",
     },
     stats: {
       tracksPublished: "Titres publiés",
@@ -922,6 +923,7 @@ const en: Dict = {
         "Create, discover and share music in the age of artificial intelligence: for human, hybrid and AI artists, producers, fans and professionals.",
       startCreating: "Start creating",
       exploreArtists: "Explore music",
+      shortcuts: "Quick access",
     },
     stats: {
       tracksPublished: "Tracks Published",
@@ -1687,6 +1689,7 @@ const es: Dict = {
         "Crea, descubre y comparte música en la era de la inteligencia artificial: para artistas humanos, híbridos e IA, productores, fans y profesionales.",
       startCreating: "Empezar a crear",
       exploreArtists: "Explorar música",
+      shortcuts: "Accesos rápidos",
     },
     stats: {
       tracksPublished: "Temas publicados",
@@ -2460,6 +2463,7 @@ const zh: Dict = {
         "在人工智能时代创作、发现和分享音乐：面向人类、混合与 AI 艺人、制作人、乐迷和专业人士。",
       startCreating: "开始创作",
       exploreArtists: "探索音乐",
+      shortcuts: "快捷入口",
     },
     stats: {
       tracksPublished: "已发布曲目",
@@ -3229,6 +3233,7 @@ const pt: Dict = {
         "Crie, descubra e compartilhe música na era da inteligência artificial: para artistas humanos, híbridos e IA, produtores, fãs e profissionais.",
       startCreating: "Começar a criar",
       exploreArtists: "Explorar música",
+      shortcuts: "Acessos rápidos",
     },
     stats: {
       tracksPublished: "Faixas publicadas",
@@ -4006,6 +4011,7 @@ const ar: Dict = {
         "أنشئ واكتشف وشارك الموسيقى في عصر الذكاء الاصطناعي: للفنانين البشر والهجينين والذكاء الاصطناعي والمنتجين والمعجبين والمحترفين.",
       startCreating: "ابدأ الإنشاء",
       exploreArtists: "استكشف الموسيقى",
+      shortcuts: "وصول سريع",
     },
     stats: {
       tracksPublished: "مقاطع منشورة",

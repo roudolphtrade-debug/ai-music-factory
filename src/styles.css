@@ -663,6 +663,25 @@
   from { opacity: 0; transform: translateY(0.4em); filter: blur(6px); }
   to { opacity: 1; transform: none; filter: none; }
 }
+/* Decorative gold spectrum under the hero artwork (purely visual, aria-hidden). */
+@keyframes hero-spectrum-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.9; }
+}
+@utility hero-spectrum {
+  opacity: 0.5;
+  background-image: repeating-linear-gradient(
+    to right,
+    transparent 0 3px,
+    color-mix(in oklab, var(--gold) 55%, transparent) 3px 5px,
+    transparent 5px 9px
+  );
+  mask-image: linear-gradient(to top, black 0%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to top, black 0%, transparent 100%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero-spectrum { animation: hero-spectrum-pulse 3.2s ease-in-out infinite; }
+}
 @utility hero-grain {
   opacity: 0.08;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
