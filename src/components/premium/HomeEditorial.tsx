@@ -33,11 +33,10 @@ export function HomeDiscovery() {
     { key: 'dRadio', to: '/radio', icon: Radio, image: artistImages['art-6'], demo: false },
     { key: 'dArtists', to: '/artists', icon: Users, image: artistImages['art-1'], demo: false },
     { key: 'dCollections', to: '/library', icon: Library, image: artistImages['art-2'], demo: false },
-    { key: 'dContests', to: '/battles', icon: Trophy, image: stageImage, demo: true },
   ] as const;
-  return <section className="home-discovery grid min-w-0 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(17rem,1fr)] lg:gap-x-4 lg:gap-y-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(19rem,1.7fr)] xl:gap-x-3">
-    <nav aria-label={t('editorial.destinations')} className="order-3 grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3 lg:order-1 lg:col-span-2 lg:grid-cols-5 xl:col-span-5 xl:grid-cols-subgrid">
-      {destinations.map(({ key, to, icon: Icon, image, demo }, i) => <Link key={key} to={to} className={`group relative isolate flex min-h-36 min-w-0 flex-col justify-end overflow-hidden rounded-lg border ${i === 0 ? '' : 'border-border'} bg-card p-4 shadow-card transition-colors hover:border-[color-mix(in_oklab,var(--gold)_45%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold sm:min-h-44 ${i === 4 ? 'col-span-2 sm:col-span-1' : ''} ${i === 0 ? 'border-[color-mix(in_oklab,var(--gold)_55%,transparent)] shadow-[0_0_32px_-12px_var(--gold)]' : ''}`}>
+  return <section className="home-discovery grid min-w-0 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(17rem,1fr)] lg:gap-x-4 lg:gap-y-6 xl:grid-cols-[repeat(4,minmax(0,1fr))_minmax(19rem,1.4fr)] xl:gap-x-3">
+    <nav aria-label={t('editorial.destinations')} className="order-3 grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-4 lg:order-1 lg:col-span-2 xl:col-span-4 xl:grid-cols-subgrid">
+      {destinations.map(({ key, to, icon: Icon, image, demo }, i) => <Link key={key} to={to} className={`group relative isolate flex min-h-36 min-w-0 flex-col justify-end overflow-hidden rounded-lg border ${i === 0 ? '' : 'border-border'} bg-card p-4 shadow-card transition-colors hover:border-[color-mix(in_oklab,var(--gold)_45%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold sm:min-h-44 ${i === 0 ? 'border-[color-mix(in_oklab,var(--gold)_55%,transparent)] shadow-[0_0_32px_-12px_var(--gold)]' : ''}`}>
         <img src={image} alt="" loading="lazy" className="absolute inset-0 -z-20 h-full w-full object-cover object-[center_25%] transition-transform duration-500 motion-safe:group-hover:scale-105" />
         <div className="absolute inset-0 -z-10 bg-gradient-to-t from-background via-background/70 to-background/10" />
         <Icon className="mb-2 h-5 w-5 text-gold" aria-hidden="true" />
@@ -47,6 +46,14 @@ export function HomeDiscovery() {
     </nav>
     <PicksCarousel picks={picks} />
     <aside className="order-2 grid min-w-0 content-start gap-3 lg:order-3">
+      {/* Concours & Awards, placed above the community top as in the mockup. */}
+      <Link to="/battles" className="group relative isolate flex min-h-28 min-w-0 flex-col justify-end overflow-hidden rounded-lg border border-border bg-card p-3 shadow-card transition-colors hover:border-[color-mix(in_oklab,var(--gold)_45%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold">
+        <img src={stageImage} alt="" loading="lazy" className="absolute inset-0 -z-20 h-full w-full object-cover object-[center_25%] transition-transform duration-500 motion-safe:group-hover:scale-105" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-background via-background/70 to-background/10" />
+        <Trophy className="mb-1.5 h-5 w-5 text-gold" aria-hidden="true" />
+        <span className="flex flex-wrap items-center gap-2 break-words font-display text-lg font-semibold leading-tight text-foreground">{t('editorial.dContests')}<DemoBadge className="shrink-0" /></span>
+        <span className="mt-0.5 text-xs leading-snug text-foreground/80">{t('editorial.dContestsDesc')}</span>
+      </Link>
       <div className="rounded-lg border border-border bg-card p-3">
         <div className="mb-1 flex items-center justify-between gap-2"><h2 className="min-w-0 font-display text-xl font-semibold">{t('editorial.top')}</h2><DemoBadge className="shrink-0" /></div>
         <ol className="divide-y divide-border/60">
