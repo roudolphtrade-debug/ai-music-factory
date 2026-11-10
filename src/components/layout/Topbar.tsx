@@ -21,7 +21,7 @@ export function Topbar({ onMenu, compact = false }: { onMenu: () => void; compac
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-xl">
-      <div className={cn("grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto_auto_auto] items-center gap-2 px-3 md:flex sm:gap-3 sm:px-6", compact ? "min-h-14 md:h-16" : "min-h-16 md:h-16")}>
+      <div className={cn("flex min-w-0 items-center gap-1.5 px-3 sm:gap-3 sm:px-6", compact ? "min-h-14 md:h-16" : "min-h-16 md:h-16")}>
         <Link to="/" aria-label={t("nav.home")} className="shrink-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold lg:hidden">
           <Logo showWordmark={false} />
         </Link>
@@ -30,7 +30,7 @@ export function Topbar({ onMenu, compact = false }: { onMenu: () => void; compac
           type="button"
           onClick={() => setSearchOpen(true)}
           aria-label={t("topbar.searchPlaceholder")}
-          className="relative h-11 w-11 min-w-0 justify-center justify-self-end px-0 sm:w-auto sm:flex-1 sm:justify-start gap-2 border-input bg-secondary/30 text-start text-sm text-muted-foreground sm:h-9 sm:max-w-md sm:px-3.5"
+          className="relative h-11 w-11 min-w-0 ms-auto shrink-0 justify-center px-0 sm:ms-0 sm:shrink sm:w-auto sm:flex-1 sm:justify-start gap-2 border-input bg-secondary/30 text-start text-sm text-muted-foreground sm:h-9 sm:max-w-md sm:px-3.5"
         >
           <Search className="h-4 w-4 shrink-0" />
           <span className="hidden min-w-0 flex-1 truncate sm:inline">{t("topbar.searchPlaceholder")}</span>
@@ -41,7 +41,7 @@ export function Topbar({ onMenu, compact = false }: { onMenu: () => void; compac
 
         <SearchPalette open={searchOpen} onOpenChange={setSearchOpen} />
 
-        <div className="ms-auto flex shrink-0 items-center gap-1.5 sm:gap-3">
+        <div className="flex shrink-0 sm:ms-auto items-center gap-1.5 sm:gap-3">
           <LanguageSelector />
 
           <Button asChild variant="gold" className="hidden xl:inline-flex">
