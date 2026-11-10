@@ -22,4 +22,6 @@
 
 ## Lot UI Accueil « Cinematic Discovery » (plan V2 validé)
 - [x] Étape 1 : visuel hero généré (1920x1088, sans texte ni artefact), soumis seul pour validation
-- [ ] Étapes 2-5 : hero, réorganisation, barre mobile, recette (bloqué : validation du visuel hero par l'utilisateur)
+- [x] Étape 2 : hero recomposé (artiste à droite, halo, spectre doré, 4 raccourcis, 2 CTA conservés, six langues)
+- [x] Étapes 3-4 : Bento et barre mobile déjà conformes au plan V2 (onglets regroupés, 5 destinations), aucune duplication ajoutée
+- [x] Étape 5 : recette — build OK, 146 tests i18n, captures desktop 1280 / mobile 390 FR + AR (RTL), aucun débordement
