@@ -66,9 +66,9 @@ export function CinematicHero({
           alt=""
           width={1920}
           height={1088}
-          className="h-full w-full object-cover object-[74%_30%] motion-safe:animate-[hero-zoom_24s_ease-out_forwards] sm:object-[72%_center] rtl:-scale-x-100"
+          className="h-full w-full object-cover object-[74%_30%] motion-safe:animate-[hero-zoom_24s_ease-out_forwards] sm:object-[72%_center]"
         />
-        <div className="absolute inset-0 hidden bg-gradient-to-r from-background via-background/70 to-transparent sm:block rtl:bg-gradient-to-l" />
+        <div className="absolute inset-0 hidden bg-gradient-to-r from-background via-background/70 to-transparent sm:block" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30" />
       </div>
       <div className="hero-grain pointer-events-none absolute inset-0" />
