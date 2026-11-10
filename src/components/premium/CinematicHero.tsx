@@ -10,6 +10,31 @@ import { usePlayer } from "@/audio/PlayerProvider";
 import { useI18n } from "@/i18n/context";
 import type { PlayableTrack } from "@/audio/tracks";
 
+// Deterministic bar heights (no randomness → SSR-safe), shaped like a waveform.
+const SPECTRUM = Array.from({ length: 96 }, (_, i) => {
+  const x = i / 95;
+  const env = Math.sin(Math.PI * x) ** 0.8;
+  const ripple = 0.55 + 0.45 * Math.abs(Math.sin(i * 0.47) * Math.cos(i * 0.13));
+  return Math.max(0.08, env * ripple);
+});
+
+function HeroSpectrum() {
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-x-0 bottom-3 flex h-10 items-center justify-between gap-px px-6 opacity-70 sm:bottom-5 sm:h-12 sm:px-12"
+    >
+      {SPECTRUM.map((h, i) => (
+        <span
+          key={i}
+          className="hero-spectrum-bar w-px rounded-full"
+          style={{ height: `${Math.round(h * 100)}%`, animationDelay: `${(i % 12) * -0.27}s` }}
+        />
+      ))}
+    </div>
+  );
+}
+
 /** Full-bleed cinematic opening scene of the home page. */
 export function CinematicHero({
   featured,
@@ -34,28 +59,31 @@ export function CinematicHero({
 
   return (
     <section className="relative -mx-4 -mt-6 home-opening overflow-hidden sm:-mx-6 lg:-mx-10">
-      <img
-        src={heroHeadphones}
-        alt=""
-        width={1920}
-        height={1088}
-        className="absolute inset-0 h-full w-full object-cover object-[72%_center] motion-safe:animate-[hero-zoom_24s_ease-out_forwards]"
-      />
-      <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/40" />
-      {/* Decorative gold spectrum, echoing the hero artwork. */}
-      <div aria-hidden="true" className="hero-spectrum pointer-events-none absolute inset-x-0 bottom-0 h-24 sm:h-32" />
+      {/* Mobile: portrait band on top, so text never covers the face. Desktop: full-bleed. */}
+      <div className="relative h-[68vw] max-h-[420px] overflow-hidden sm:absolute sm:inset-0 sm:h-full sm:max-h-none">
+        <img
+          src={heroHeadphones}
+          alt=""
+          width={1920}
+          height={1088}
+          className="h-full w-full object-cover object-[74%_30%] motion-safe:animate-[hero-zoom_24s_ease-out_forwards] sm:object-[72%_center] rtl:-scale-x-100"
+        />
+        <div className="absolute inset-0 hidden bg-gradient-to-r from-background via-background/70 to-transparent sm:block rtl:bg-gradient-to-l" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30" />
+      </div>
       <div className="hero-grain pointer-events-none absolute inset-0" />
+      {/* Decorative gold spectrum (not audio-reactive), echoing the artwork. */}
+      <HeroSpectrum />
 
-      <div className="relative flex home-opening flex-col justify-center gap-5 px-6 py-7 sm:px-10 sm:py-10 lg:px-12">
+      <div className="relative -mt-10 flex home-opening flex-col justify-center gap-5 px-5 pb-12 pt-0 sm:mt-0 sm:px-10 sm:py-10 sm:pb-16 lg:px-12">
         <div className="max-w-xl lg:max-w-2xl">
           <p className="eyebrow mb-3 flex items-center gap-3 text-muted-foreground">
             <span className="inline-block h-px w-10 bg-gold-gradient" />
             Ai Music Factory
           </p>
           <h1 className="font-display text-4xl font-semibold leading-[1.04] tracking-normal text-foreground sm:text-5xl xl:text-6xl">
-            {t("home.hero.titleLead")}{" "}
-            <span className="italic">
+            <span className="block">{t("home.hero.titleLead")}</span>
+            <span className="block whitespace-nowrap italic">
               {words.map((w, i) => (
                 <span
                   key={i}
@@ -80,14 +108,17 @@ export function CinematicHero({
               <Link to="/studio">{t("home.hero.startCreating")}</Link>
             </Button>
           </div>
-          <nav aria-label={t("home.hero.shortcuts")} className="mt-5 flex flex-wrap gap-2">
+          <nav
+            aria-label={t("home.hero.shortcuts")}
+            className="mt-5 grid grid-cols-4 overflow-hidden rounded-xl border border-foreground/15 bg-background/50 backdrop-blur-sm sm:flex sm:flex-wrap sm:gap-2 sm:overflow-visible sm:rounded-none sm:border-0 sm:bg-transparent sm:backdrop-blur-none"
+          >
             {shortcuts.map(({ to, label, icon: Icon }) => (
               <Link
                 key={to}
                 to={to}
-                className="inline-flex h-9 items-center gap-2 rounded-full border border-foreground/20 bg-background/40 px-3.5 text-xs font-medium text-foreground/85 backdrop-blur-sm transition-colors hover:border-[color-mix(in_oklab,var(--gold)_50%,transparent)] hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                className="flex min-w-0 flex-col items-center justify-center gap-1 border-foreground/10 px-1 py-2.5 text-center text-[0.68rem] font-medium leading-tight text-foreground/85 transition-colors [&:not(:last-child)]:border-e hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold sm:inline-flex sm:h-9 sm:flex-row sm:gap-2 sm:rounded-full sm:border sm:border-foreground/20 sm:bg-background/40 sm:px-3.5 sm:py-0 sm:text-xs sm:backdrop-blur-sm sm:[&:not(:last-child)]:border-e sm:hover:border-[color-mix(in_oklab,var(--gold)_50%,transparent)]"
               >
-                <Icon className="h-3.5 w-3.5 text-gold" aria-hidden="true" />
+                <Icon className="h-4 w-4 shrink-0 text-gold sm:h-3.5 sm:w-3.5" aria-hidden="true" />
                 {label}
               </Link>
             ))}
