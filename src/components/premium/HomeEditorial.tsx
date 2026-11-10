@@ -87,15 +87,15 @@ function PicksCarousel({ picks }: { picks: typeof chartTracks }) {
   };
   return <section aria-roledescription="carousel" aria-label={t('editorial.moment')} className="order-1 min-w-0 lg:order-2 xl:col-span-4">
     <div className="mb-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-      <div className="flex min-w-0 items-center gap-2"><h2 className="truncate font-display text-2xl font-semibold sm:text-3xl">{t('editorial.moment')}</h2><DemoBadge className="shrink-0" /></div>
+      <div className="flex min-w-0 flex-wrap items-center gap-2"><h2 className="font-display text-xl font-semibold sm:text-2xl lg:text-3xl">{t('editorial.moment')}</h2><DemoBadge className="shrink-0" /></div>
       <div className="flex items-center gap-2">
-        <Button asChild variant="outline" size="sm" className="hidden h-9 xl:inline-flex"><Link to="/artists">{t('common.viewAll')}<ArrowUpRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" /></Link></Button>
+        <Button asChild variant="outline" size="sm" className="h-9"><Link to="/artists">{t('common.viewAll')}<ArrowUpRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" /></Link></Button>
         <Button variant="outline" size="icon" className="h-11 w-11" aria-label={t('editorial.prev')} onClick={() => move(-1)}><ChevronLeft className="h-4 w-4 rtl:-scale-x-100" /></Button>
         <Button variant="outline" size="icon" className="h-11 w-11" aria-label={t('editorial.next')} onClick={() => move(1)}><ChevronRight className="h-4 w-4 rtl:-scale-x-100" /></Button>
       </div>
     </div>
     <ul ref={ref} className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      {picks.map((track, i) => <li key={track.id} aria-roledescription="slide" aria-label={`${i + 1} / ${picks.length}`} className="group relative isolate aspect-[5/6] w-[31%] min-w-[7.5rem] shrink-0 lg:min-w-0 snap-start overflow-hidden rounded-lg border border-border bg-card shadow-card sm:w-[23%] lg:w-[calc((100%-2.25rem)/4)] xl:w-[calc((100%-3.75rem)/6)]">
+      {picks.map((track, i) => <li key={track.id} aria-roledescription="slide" aria-label={`${i + 1} / ${picks.length}`} className="group relative isolate aspect-square w-[46%] shrink-0 snap-start overflow-hidden rounded-lg border border-border bg-card shadow-card sm:w-[31%] lg:w-[calc((100%-2.25rem)/4)]">
         <Link to="/artists/$artistId" params={{ artistId: track.artistId }} className="absolute inset-0 -z-20 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold"><img loading="lazy" src={track.cover} alt={track.artist} className="h-full w-full object-cover object-[center_25%] transition-transform duration-500 motion-safe:group-hover:scale-105" /></Link>
         <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-background via-background/10 to-transparent" />
         <span className="pointer-events-none absolute start-2.5 top-2 font-display text-base text-gold">{String(i + 1).padStart(2, '0')}</span>
