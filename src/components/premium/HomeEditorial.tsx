@@ -82,7 +82,7 @@ function PicksCarousel({ picks }: { picks: typeof chartTracks }) {
     <div className="mb-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
       <div className="flex min-w-0 items-center gap-2"><h2 className="truncate font-display text-2xl font-semibold sm:text-3xl">{t('editorial.moment')}</h2><DemoBadge className="shrink-0" /></div>
       <div className="flex items-center gap-2">
-        <Button asChild variant="outline" size="sm" className="hidden h-9 sm:inline-flex"><Link to="/artists">{t('common.viewAll')}<ArrowUpRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" /></Link></Button>
+        <Button asChild variant="outline" size="sm" className="hidden h-9 xl:inline-flex"><Link to="/artists">{t('common.viewAll')}<ArrowUpRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" /></Link></Button>
         <Button variant="outline" size="icon" className="h-11 w-11" aria-label={t('editorial.prev')} onClick={() => move(-1)}><ChevronLeft className="h-4 w-4 rtl:-scale-x-100" /></Button>
         <Button variant="outline" size="icon" className="h-11 w-11" aria-label={t('editorial.next')} onClick={() => move(1)}><ChevronRight className="h-4 w-4 rtl:-scale-x-100" /></Button>
       </div>
