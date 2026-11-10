@@ -1,5 +1,6 @@
 import { SkipBack, SkipForward, Heart, Shuffle, Repeat, Repeat1, Loader2, AlertCircle, RotateCw } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Maximize2, Minimize2 } from "lucide-react";
 import { usePlayer, formatTime } from "@/audio/PlayerProvider";
 import { radioQueue } from "@/audio/tracks";
 import { PlayButton } from "@/components/audio/PlayButton";
@@ -138,6 +139,7 @@ export function AudioPlayer({ compact = false }: { compact?: boolean }) {
           </span>
           <WaveBars active={isPlaying} />
           <VolumeControl />
+          <FullscreenToggle />
         </div>
       </div>
     </div>
@@ -171,5 +173,39 @@ function PlayerIcon({
     >
       {children}
     </Button>
+  );
+}
+
+const FS_LABELS: Record<string, [string, string]> = {
+  fr: ["Plein écran", "Quitter le plein écran"],
+  en: ["Full screen", "Exit full screen"],
+  es: ["Pantalla completa", "Salir de pantalla completa"],
+  zh: ["全屏", "退出全屏"],
+  pt: ["Tela cheia", "Sair da tela cheia"],
+  ar: ["ملء الشاشة", "الخروج من ملء الشاشة"],
+};
+
+function FullscreenToggle() {
+  const { lang } = useI18n();
+  const [on, setOn] = useState(false);
+  const [supported, setSupported] = useState(false);
+  useEffect(() => {
+    setSupported(typeof document !== "undefined" && !!document.documentElement.requestFullscreen);
+    const sync = () => setOn(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", sync);
+    return () => document.removeEventListener("fullscreenchange", sync);
+  }, []);
+  if (!supported) return null;
+  const [enter, exit] = FS_LABELS[lang] ?? FS_LABELS.fr;
+  return (
+    <PlayerIcon
+      aria-label={on ? exit : enter}
+      onClick={() => {
+        if (document.fullscreenElement) void document.exitFullscreen();
+        else void document.documentElement.requestFullscreen().catch(() => {});
+      }}
+    >
+      {on ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+    </PlayerIcon>
   );
 }

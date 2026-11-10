@@ -78,11 +78,15 @@ export function CinematicHero({
       <div className="relative -mt-10 flex home-opening flex-col justify-center gap-5 px-5 pb-12 pt-0 sm:mt-0 sm:px-10 sm:py-10 sm:pb-16 lg:px-12">
         <div className="max-w-xl lg:max-w-2xl">
           <p className="eyebrow mb-3 flex items-center gap-3 text-muted-foreground">
-            <span className="inline-block h-px w-10 bg-gold-gradient" />
-            Ai Music Factory
+            <span aria-hidden="true" className="flex h-3 items-end gap-[2px]">
+              {[5, 9, 6, 12, 8, 4, 10, 7].map((h, i) => (
+                <span key={i} className="hero-spectrum-bar w-px rounded-full" style={{ height: `${h}px`, animationDelay: `${i * 0.12}s` }} />
+              ))}
+            </span>
+            <span aria-hidden="true" className="text-gold">{t("home.hero.titleLead")}</span>
           </p>
           <h1 className="font-display text-4xl font-semibold leading-[1.04] tracking-normal text-foreground sm:text-5xl xl:text-6xl">
-            <span className="block">{t("home.hero.titleLead")}</span>
+            <span className="sr-only">{t("home.hero.titleLead")} </span>
             <span className="block whitespace-nowrap italic">
               {words.map((w, i) => (
                 <span
@@ -101,7 +105,7 @@ export function CinematicHero({
           <div className="mt-5 grid gap-2 sm:flex sm:flex-wrap sm:gap-3">
             <Button asChild variant="gold" size="lg">
               <Link to="/artists">
-                {t("home.hero.exploreArtists")} <ArrowRight className="h-4 w-4" />
+                {t("home.hero.exploreArtists")} <ArrowRight className="h-4 w-4 rtl:-scale-x-100" />
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="border-foreground/30 bg-transparent backdrop-blur-sm">
