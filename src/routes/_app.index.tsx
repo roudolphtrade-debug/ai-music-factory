@@ -21,7 +21,7 @@ import { SectionHeading } from "@/components/premium/SectionHeading";
 import { homeLaureates } from "@/i18n/home-editorial";
 import labelMaisonNoir from "@/assets/label-maison-noir.webp";
 import stageImage from "@/assets/hero-stage.jpg";
-import { EditorialSelection, ArtistDiscovery, CreateAndConnect, DiscoveryCompanions } from "@/components/premium/HomeEditorial";
+import { HomeDiscovery, ArtistDiscovery } from "@/components/premium/HomeEditorial";
 import { CinematicHero } from "@/components/premium/CinematicHero";
 import { PillarBand } from "@/components/premium/PillarBand";
 import { DemoBadge } from "@/components/premium/DemoBadge";
@@ -109,14 +109,14 @@ function HomePage() {
   return (
     <div className="space-y-8 sm:space-y-12">
       <CinematicHero featured={chartQueue[0]} queue={chartQueue} cover={artistImages[charts[0].artistId]} />
-      <EditorialSelection />
+      <HomeDiscovery />
 
 
       {/* DISCOVER — Charts, Genres, Trending Artists and Leaderboard/Activity
           used to be four separate stacked full-width sections back to back.
           Same content, same routes, same features — grouped under one set of
           tabs so the homepage has one scroll-stop here instead of four. */}
-      <Reveal as="section" className="grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(0,2.1fr)_minmax(0,1fr)]">
+      <Reveal as="section" className="min-w-0">
         <Tabs defaultValue="charts" className="home-discovery-tabs min-w-0">
           <TabsList className="flex h-auto w-full flex-wrap justify-start">
             <TabsTrigger value="charts">{t("home.charts.eyebrow")}</TabsTrigger>
@@ -277,7 +277,6 @@ function HomePage() {
             </div>
           </TabsContent>
         </Tabs>
-        <DiscoveryCompanions />
       </Reveal>
 
       {/* CONTINUE LISTENING */}
@@ -321,7 +320,6 @@ function HomePage() {
       )}
 
       <ArtistDiscovery />
-      <CreateAndConnect />
       <OnboardingChecklist />
 
       {/* CURRENT BATTLES + CONTEST */}

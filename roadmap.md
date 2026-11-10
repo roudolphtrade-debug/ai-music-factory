@@ -25,3 +25,5 @@
 - [x] Étape 2 : hero recomposé (artiste à droite, halo, spectre doré, 4 raccourcis, 2 CTA conservés, six langues)
 - [x] Étapes 3-4 : Bento et barre mobile déjà conformes au plan V2 (onglets regroupés, 5 destinations), aucune duplication ajoutée
 - [x] Étape 5 : recette — build OK, 146 tests i18n, captures desktop 1280 / mobile 390 FR + AR (RTL), aucun débordement
+- [x] Étape 3 (relance) : 5 destinations, carrousel « Sélections du moment », Top communauté compact, « Rejoindre la communauté » déplacé ; page plus courte
+- [ ] Étape 4 : barre mobile + en-tête mobile une ligne, mini-lecteur 320 px, flèche RTL du CTA (bloqué : validation visuelle étape 3)
