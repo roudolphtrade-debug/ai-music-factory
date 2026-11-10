@@ -88,7 +88,7 @@ function PicksCarousel({ picks }: { picks: typeof chartTracks }) {
       </div>
     </div>
     <ul ref={ref} className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      {picks.map((track, i) => <li key={track.id} aria-roledescription="slide" aria-label={`${i + 1} / ${picks.length}`} className="group relative isolate aspect-[5/6] w-[31%] min-w-[7.5rem] shrink-0 snap-start overflow-hidden rounded-lg border border-border bg-card shadow-card sm:w-[23%] lg:w-[calc((100%-2.25rem)/4)] xl:w-[calc((100%-3.75rem)/6)]">
+      {picks.map((track, i) => <li key={track.id} aria-roledescription="slide" aria-label={`${i + 1} / ${picks.length}`} className="group relative isolate aspect-[5/6] w-[31%] min-w-[7.5rem] shrink-0 lg:min-w-0 snap-start overflow-hidden rounded-lg border border-border bg-card shadow-card sm:w-[23%] lg:w-[calc((100%-2.25rem)/4)] xl:w-[calc((100%-3.75rem)/6)]">
         <Link to="/artists/$artistId" params={{ artistId: track.artistId }} className="absolute inset-0 -z-20 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold"><img loading="lazy" src={track.cover} alt={track.artist} className="h-full w-full object-cover object-[center_25%] transition-transform duration-500 motion-safe:group-hover:scale-105" /></Link>
         <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-background via-background/10 to-transparent" />
         <span className="pointer-events-none absolute start-2.5 top-2 font-display text-base text-gold">{String(i + 1).padStart(2, '0')}</span>
