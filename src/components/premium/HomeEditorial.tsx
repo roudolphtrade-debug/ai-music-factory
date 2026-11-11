@@ -101,8 +101,8 @@ function PicksCarousel({ picks }: { picks: typeof chartTracks }) {
         <span className="pointer-events-none absolute start-2.5 top-2 font-display text-base text-gold">{String(i + 1).padStart(2, '0')}</span>
         <div className="pointer-events-none absolute inset-x-0 bottom-0 p-2.5">
           <div className="min-w-0"><Link to="/artists/$artistId" params={{ artistId: track.artistId }} className="pointer-events-auto line-clamp-2 break-words text-sm font-semibold leading-tight text-foreground hover:text-gold">{track.title}</Link><p className="mt-0.5 truncate text-[0.7rem] text-foreground/80">{track.artist} · {globalGenre(track.id)}</p></div>
-          <div className="pointer-events-auto absolute end-2 top-2 flex items-center gap-1"><LikeButton trackId={track.id} size="sm" /><PlayButton track={track} queue={chartTracks} size="sm" label={t('charts.playTrack', { title: track.title, artist: track.artist })} /></div>
         </div>
+        <div className="pointer-events-auto absolute end-2 top-2 flex items-center gap-1"><LikeButton trackId={track.id} size="sm" /><PlayButton track={track} queue={chartTracks} size="sm" label={t('charts.playTrack', { title: track.title, artist: track.artist })} /></div>
       </li>)}
     </ul>
   </section>;
