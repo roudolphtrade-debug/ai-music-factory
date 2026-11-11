@@ -45,7 +45,7 @@ export function HomeDiscovery() {
       </Link>)}
     </nav>
     <PicksCarousel picks={picks} />
-    <aside className="order-2 grid min-w-0 content-start gap-3 lg:order-3">
+    <aside className="order-2 grid min-w-0 content-start gap-3 lg:order-3 xl:col-start-5 xl:row-span-2 xl:row-start-1">
       {/* Concours & Awards, placed above the community top as in the mockup. */}
       <Link to="/battles" className="group relative isolate flex min-h-28 min-w-0 flex-col justify-end overflow-hidden rounded-lg border border-border bg-card p-3 shadow-card transition-colors hover:border-[color-mix(in_oklab,var(--gold)_45%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold">
         <img src={stageImage} alt="" loading="lazy" className="absolute inset-0 -z-20 h-full w-full object-cover object-[center_25%] transition-transform duration-500 motion-safe:group-hover:scale-105" />
@@ -98,9 +98,8 @@ function PicksCarousel({ picks }: { picks: typeof chartTracks }) {
       {picks.map((track, i) => <li key={track.id} aria-roledescription="slide" aria-label={`${i + 1} / ${picks.length}`} className="group relative isolate aspect-square w-[46%] shrink-0 snap-start overflow-hidden rounded-lg border border-border bg-card shadow-card sm:w-[31%] lg:w-[calc((100%-1.5rem)/3)] xl:w-[calc((100%-3.75rem)/6)]">
         <Link to="/artists/$artistId" params={{ artistId: track.artistId }} className="absolute inset-0 -z-20 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold"><img loading="lazy" src={track.cover} alt={track.artist} className="h-full w-full object-cover object-[center_25%] transition-transform duration-500 motion-safe:group-hover:scale-105" /></Link>
         <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-background via-background/10 to-transparent" />
-        <span className="pointer-events-none absolute start-2.5 top-2 font-display text-base text-gold">{String(i + 1).padStart(2, '0')}</span>
         <div className="pointer-events-none absolute inset-x-0 bottom-0 p-2.5">
-          <div className="min-w-0"><Link to="/artists/$artistId" params={{ artistId: track.artistId }} className="pointer-events-auto line-clamp-2 break-words text-sm font-semibold leading-tight text-foreground hover:text-gold">{track.title}</Link><p className="mt-0.5 truncate text-[0.7rem] text-foreground/80">{track.artist} · {globalGenre(track.id)}</p></div>
+          <div className="min-w-0"><span className="block font-display text-sm leading-none text-gold">{String(i + 1).padStart(2, '0')}</span><Link to="/artists/$artistId" params={{ artistId: track.artistId }} className="pointer-events-auto mt-0.5 line-clamp-2 break-words text-sm font-semibold leading-tight text-foreground hover:text-gold">{track.title}</Link><p className="mt-0.5 truncate text-[0.7rem] text-foreground/80">{track.artist} · {globalGenre(track.id)}</p></div>
         </div>
         <div className="pointer-events-auto absolute end-2 top-2 flex items-center gap-1"><LikeButton trackId={track.id} size="sm" /><PlayButton track={track} queue={chartTracks} size="sm" label={t('charts.playTrack', { title: track.title, artist: track.artist })} /></div>
       </li>)}
