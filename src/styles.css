@@ -700,16 +700,17 @@
 .home-presentation .font-display { letter-spacing: 0; }
 /* Local photographic light, not artwork replacement or genre/artist color coding. */
 .home-discovery {
-  --content-copper: oklch(0.68 0.16 43);
-  --content-magenta: oklch(0.61 0.19 335);
-  --content-blue: oklch(0.57 0.13 258);
-  --content-cyan: oklch(0.76 0.1 211);
+  --content-copper: oklch(0.76 0.17 43);
+  --content-magenta: oklch(0.68 0.22 335);
+  --content-blue: oklch(0.65 0.19 265);
+  --content-cyan: oklch(0.81 0.13 211);
+  --content-violet: oklch(0.66 0.2 303);
   --content-ink: oklch(0.135 0.004 70);
 }
-.home-discovery .home-content-image { filter: brightness(1.18) saturate(1.15); }
+.home-discovery .home-content-image { filter: brightness(1.3) saturate(1.25); }
 .home-discovery .home-content-light {
   mix-blend-mode: screen;
-  background: linear-gradient(125deg, color-mix(in oklab, var(--content-light-a) 60%, transparent), transparent 55%, color-mix(in oklab, var(--content-light-b) 38%, transparent));
+  background: linear-gradient(125deg, color-mix(in oklab, var(--content-light-a) 78%, transparent), color-mix(in oklab, var(--content-light-a) 16%, transparent) 42%, color-mix(in oklab, var(--content-light-b) 58%, transparent));
 }
 .home-discovery nav > a:nth-child(4n + 1),
 .home-discovery li[aria-roledescription="slide"]:nth-child(3n + 1) {
@@ -719,7 +720,7 @@
 .home-discovery nav > a:nth-child(4n + 2),
 .home-discovery li[aria-roledescription="slide"]:nth-child(3n + 2) {
   --content-light-a: var(--content-magenta);
-  --content-light-b: var(--content-cyan);
+  --content-light-b: var(--content-violet);
 }
 .home-discovery nav > a:nth-child(4n + 3),
 .home-discovery li[aria-roledescription="slide"]:nth-child(3n) {
@@ -735,7 +736,7 @@
   --content-light-b: var(--content-magenta);
 }
 .home-discovery .home-destination-shade {
-  background: linear-gradient(to top, var(--content-ink), color-mix(in oklab, var(--content-ink) 84%, transparent) 38%, transparent 78%);
+  background: linear-gradient(to top, var(--content-ink), color-mix(in oklab, var(--content-ink) 88%, transparent) 30%, color-mix(in oklab, var(--content-ink) 25%, transparent) 58%, transparent 80%);
 }
 .home-discovery .home-pick-shade {
   background: linear-gradient(to top, var(--content-ink), transparent 75%);
