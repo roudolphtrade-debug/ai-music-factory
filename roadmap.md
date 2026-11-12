@@ -27,4 +27,5 @@
 - [x] Étape 5 : recette — build OK, 146 tests i18n, captures desktop 1280 / mobile 390 FR + AR (RTL), aucun débordement
 - [x] Étape 3 (relance) : 5 destinations, carrousel « Sélections du moment », Top communauté compact, « Rejoindre la communauté » déplacé ; page plus courte
 - [ ] Étape 4 : barre mobile + en-tête mobile une ligne, mini-lecteur 320 px, flèche RTL du CTA (bloqué : validation visuelle étape 3)
-- [ ] Dernière passe Accueil : lumière chromatique locale, composition inchangée, contrôle de « Tout voir », mesures FR/AR/ZH et six langues, lecture/favoris, comparaisons et tests ; arrêt pour validation.
+- [x] Dernière passe Accueil : lumière chromatique locale, composition inchangée, contrôle de « Tout voir », mesures FR/AR/ZH et six langues, lecture/favoris, comparaisons et tests ; arrêt pour validation.
+- [ ] Validation graphique finale Accueil et décision sur « Tout voir » (bloqué : accord du directeur de projet ; aucun démarrage Radio autorisé).
