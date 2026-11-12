@@ -698,6 +698,51 @@
 .home-discovery-tabs [role="tablist"] { border-radius: var(--radius); margin-bottom: 18px; }
 .home-discovery-tabs [role="tab"] { min-height: 44px; white-space: normal; }
 .home-presentation .font-display { letter-spacing: 0; }
+/* Local photographic light, not artwork replacement or genre/artist color coding. */
+.home-discovery {
+  --content-copper: oklch(0.68 0.16 43);
+  --content-magenta: oklch(0.61 0.19 335);
+  --content-blue: oklch(0.57 0.13 258);
+  --content-cyan: oklch(0.76 0.1 211);
+  --content-ink: oklch(0.135 0.004 70);
+}
+.home-discovery .home-content-image { filter: brightness(1.18) saturate(1.15); }
+.home-discovery .home-content-light {
+  mix-blend-mode: screen;
+  background: linear-gradient(125deg, color-mix(in oklab, var(--content-light-a) 60%, transparent), transparent 55%, color-mix(in oklab, var(--content-light-b) 38%, transparent));
+}
+.home-discovery nav > a:nth-child(4n + 1),
+.home-discovery li[aria-roledescription="slide"]:nth-child(3n + 1) {
+  --content-light-a: var(--content-copper);
+  --content-light-b: var(--content-blue);
+}
+.home-discovery nav > a:nth-child(4n + 2),
+.home-discovery li[aria-roledescription="slide"]:nth-child(3n + 2) {
+  --content-light-a: var(--content-magenta);
+  --content-light-b: var(--content-cyan);
+}
+.home-discovery nav > a:nth-child(4n + 3),
+.home-discovery li[aria-roledescription="slide"]:nth-child(3n) {
+  --content-light-a: var(--content-blue);
+  --content-light-b: var(--content-copper);
+}
+.home-discovery nav > a:nth-child(4n) {
+  --content-light-a: var(--content-cyan);
+  --content-light-b: var(--content-magenta);
+}
+.home-discovery .home-contest-light {
+  --content-light-a: var(--content-copper);
+  --content-light-b: var(--content-magenta);
+}
+.home-discovery .home-destination-shade {
+  background: linear-gradient(to top, var(--content-ink), color-mix(in oklab, var(--content-ink) 84%, transparent) 38%, transparent 78%);
+}
+.home-discovery .home-pick-shade {
+  background: linear-gradient(to top, var(--content-ink), transparent 75%);
+}
+.home-discovery .home-pick-caption {
+  background: linear-gradient(to top, var(--content-ink) 45%, color-mix(in oklab, var(--content-ink) 94%, transparent) 78%, transparent);
+}
 @media (min-width: 640px) {
   .home-selection-grid { grid-template-columns: minmax(0, 1.3fr) repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, 180px); }
   .home-selection-lead { grid-column: 1; grid-row: 1 / 3; aspect-ratio: auto; }
