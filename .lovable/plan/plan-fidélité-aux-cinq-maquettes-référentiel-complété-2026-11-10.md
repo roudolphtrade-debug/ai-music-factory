@@ -45,3 +45,12 @@ Livrable : captures comparatives maquette / rendu côte à côte, desktop et mob
 
 ## Recette par lot
 Captures 1440 / 1024 / 390 / 320 px en FR, AR, ZH, à côté de la maquette ; débordements ; lecture/pause/suivant, favoris, connexion, crédits ; tests relancés ; arrêt pour validation.
+
+## Addendum transversal — Couleur et lumière (décision validée le 12/11/2026)
+
+La fidélité aux cinq maquettes comprend **la richesse chromatique et l'éclairage cinématographique**, et pas seulement la grille, les dimensions ou la palette système. Le socle des interfaces, de la navigation, des cadres et des contrôles reste **noir / anthracite / blanc / or** ; les pochettes, portraits, visuels de stations, univers artistiques, clips et bannières peuvent retrouver les accents **ambre, cuivre, orange, violet, magenta, bleu et autres couleurs pertinentes** des références. Intensité lumineuse ciblée, pas de néons généralisés ni de stéréotypes chromatiques par genre ou origine. Le logo architectural A demeure inchangé.
+
+Ce principe est à contrôler **écran par écran** lors des validations UI-first ; il ne déclenche pas de refonte générale ni de nouvelle fonctionnalité. Les couleurs secondaires exactes sont à arbitrer au vu des captures, pas à déclarer déjà implémentées.
+
+- Référentiel fonctionnel : [docs/design/DIRECTION_ARTISTIQUE_FONCTIONNELLE.md](../../docs/design/DIRECTION_ARTISTIQUE_FONCTIONNELLE.md)
+- Référentiel technique : [docs/design/DESIGN_SYSTEM_TECHNIQUE.md](../../docs/design/DESIGN_SYSTEM_TECHNIQUE.md)
