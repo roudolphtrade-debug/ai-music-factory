@@ -29,3 +29,4 @@
 - [ ] Étape 4 : barre mobile + en-tête mobile une ligne, mini-lecteur 320 px, flèche RTL du CTA (bloqué : validation visuelle étape 3)
 - [x] Dernière passe Accueil : lumière chromatique locale, composition inchangée, contrôle de « Tout voir », mesures FR/AR/ZH et six langues, lecture/favoris, comparaisons et tests ; arrêt pour validation.
 - [ ] Validation graphique finale Accueil et décision sur « Tout voir » (bloqué : accord du directeur de projet ; aucun démarrage Radio autorisé).
+- [x] Nouvelle passe Accueil : lumière plus expressive, état honnête de « Tout voir », captures avant/après, recette et bilan ; aucun autre lot.

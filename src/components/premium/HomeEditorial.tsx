@@ -4,6 +4,7 @@ import { ArrowUpRight, AudioWaveform, ChevronLeft, ChevronRight, Library, Radio,
 import { chartTracks } from '@/audio/tracks';
 import { artists, artistImages, globalCharts } from '@/data/mock';
 import { useI18n } from '@/i18n/context';
+import { useDemoHonesty } from '@/i18n/demo-honesty';
 import { Button } from '@/components/ui/button';
 import { PlayButton } from '@/components/audio/PlayButton';
 import { LikeButton } from './LikeButton';
@@ -79,6 +80,7 @@ export function HomeDiscovery() {
 
 function PicksCarousel({ picks }: { picks: typeof chartTracks }) {
   const { t } = useI18n();
+  const honesty = useDemoHonesty();
   const ref = useRef<HTMLUListElement>(null);
   const move = (dir: 1 | -1) => {
     const el = ref.current;
@@ -91,7 +93,10 @@ function PicksCarousel({ picks }: { picks: typeof chartTracks }) {
     <div className="mb-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
       <div className="flex min-w-0 flex-wrap items-center gap-2"><h2 className="font-display text-xl font-semibold sm:text-2xl lg:text-3xl">{t('editorial.moment')}</h2><DemoBadge className="shrink-0" /></div>
       <div className="flex items-center gap-2">
-        <Button asChild variant="outline" size="sm" className="h-9"><Link to="/artists">{t('common.viewAll')}<ArrowUpRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" /></Link></Button>
+        <div className="flex min-w-0 flex-col items-center gap-1">
+          <Button disabled variant="outline" size="sm" className="h-9" title={honesty.soon}>{t('common.viewAll')}<ArrowUpRight className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" /></Button>
+          <span className="max-w-24 text-center text-[0.65rem] leading-tight text-muted-foreground">{honesty.soon}</span>
+        </div>
         <Button variant="outline" size="icon" className="h-11 w-11" aria-label={t('editorial.prev')} onClick={() => move(-1)}><ChevronLeft className="h-4 w-4 rtl:-scale-x-100" /></Button>
         <Button variant="outline" size="icon" className="h-11 w-11" aria-label={t('editorial.next')} onClick={() => move(1)}><ChevronRight className="h-4 w-4 rtl:-scale-x-100" /></Button>
       </div>
