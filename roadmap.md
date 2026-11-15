@@ -11,7 +11,8 @@
 - [x] Lot 1.1: deliver captures and factual Muify comparison.
 - [x] Lot 2: player shuffle/repeat/queue/error states, Radio filters and demo stations, Library playlists editing.
 - [x] Lot 2: player shuffle/repeat/queue/error states, Radio filters and demo stations, Library playlists editing.
-- [ ] Lot 2A authorized 2026-11-15: isolated Radio vinyl stage, optional needle ambience, decorative spectrum, existing queue/controls/stations; verify and deliver comparisons, then stop.
+- [x] Lot 2A authorized 2026-11-15: isolated Radio vinyl stage, optional needle ambience, decorative spectrum, existing queue/controls/stations; Chromium responsive/interaction checks and 1778 tests passed, comparisons delivered; stop for validation.
+- [ ] Radio 2A final visual approval and official B3 pack integration (blocked: director approval and official raster files).
 - [ ] Lot 2.2-B: real Web Audio frequency analysis and synced animations (blocked: 2.2-A done; graceful fallback if CORS blocks AnalyserNode).
 - [ ] Lot 2.2-C: responsive/a11y/performance recipe across six languages (blocked: 2.2-B done).
 - [ ] Lot 3: start only after Lot 2 validation (blocked: user approval).
