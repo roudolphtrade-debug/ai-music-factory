@@ -18,3 +18,4 @@
 - Keep player, Radio and Library strings in a separate browser-safe six-language listening catalog so these screens evolve without touching the main dictionary.
 
 - Keep global language selector presentation in its dedicated layout component using the existing I18n provider and Radix radio menu; this isolates header styling from translations, persistence and other global controls.
+- Keep the vinyl stage, decorative spectrum, optional gesture-gated needle sound and visual tokens local to Radio; reuse shared playback controls and QueuePanel so the global audio engine and other screens remain unchanged.
