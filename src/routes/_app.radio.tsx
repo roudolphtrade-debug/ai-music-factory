@@ -5,7 +5,8 @@ import { SectionHeading } from "@/components/premium/SectionHeading";
 import { LikeButton } from "@/components/premium/LikeButton";
 import { DemoBadge } from "@/components/premium/DemoBadge";
 import { EmptyState } from "@/components/premium/EmptyState";
-import { NowPlayingPlayer } from "@/components/audio/NowPlayingPlayer";
+import { RadioVinylStage } from "@/components/audio/RadioVinylStage";
+import { radioVinylCopy } from "@/i18n/radio-vinyl";
 import { Playlist } from "@/components/audio/Playlist";
 import { VoicePrompt } from "@/components/voice/VoicePrompt";
 import { Button } from "@/components/ui/button";
@@ -38,7 +39,7 @@ const chipIdle = "border-border text-muted-foreground hover:border-[color-mix(in
 
 function RadioPage() {
   const { t } = useI18n();
-  const { l, f } = useListening();
+  const { l, f, lang } = useListening();
   const { play } = usePlayer();
   const { recordPlay } = useLibrary();
   const [genres, setGenres] = useState<string[]>([]);
@@ -58,13 +59,13 @@ function RadioPage() {
   const label = station ? station.name : filtered ? l.selection : l.allTracks;
 
   return (
-    <div className="space-y-10">
+    <div className="radio-signature space-y-10">
       <SectionHeading eyebrow={t("radio.eyebrow")} title={t("radio.title")} description={l.radioIntro} />
 
-      <NowPlayingPlayer station={label} subtitle={`${f("tracksCount", heroQueue.length)} · ${l.demoProgramming}`} queue={heroQueue} />
+      <RadioVinylStage station={label} queue={heroQueue} />
 
       {/* SELECTION BENTO */}
-      <section className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+      <section className="radio-discovery space-y-7">
         <div className="min-w-0 space-y-6">
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-3">
@@ -72,11 +73,12 @@ function RadioPage() {
               <DemoBadge />
             </div>
             <p className="text-xs text-muted-foreground">{l.stationsNote}</p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="radio-stations">
               {stations.map((s) => {
                 const on = s.id === stationId;
                 return (
-                  <button
+                  <Button
+                    variant="ghost"
                     key={s.id}
                     type="button"
                     aria-pressed={on}
@@ -86,34 +88,35 @@ function RadioPage() {
                       if (!on) startQueue(s.tracks);
                     }}
                     className={cn(
-                      "group relative overflow-hidden rounded-2xl border text-start transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground",
+                      "radio-station group relative h-auto whitespace-normal overflow-hidden rounded-lg border p-0 text-start transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground",
                       on ? "border-[color-mix(in_oklab,var(--gold)_60%,transparent)] shadow-[var(--shadow-glow)]" : "border-border hover:border-[color-mix(in_oklab,var(--gold)_40%,transparent)]",
                     )}
                   >
-                    <div className="grid aspect-[4/3] grid-cols-2 overflow-hidden">
+                    <div className="radio-station-art grid aspect-square grid-cols-2 overflow-hidden">
                       {s.tracks.slice(0, 4).map((tr, i) => (
                         <img key={`${tr.id}-${i}`} src={tr.cover} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
                       ))}
                     </div>
                     <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
                     <div className="absolute inset-x-0 bottom-0 p-3">
-                      <p className="truncate font-display text-lg font-semibold text-foreground">{s.name}</p>
-                      <p className="truncate text-[0.7rem] text-muted-foreground">{f("tracksCount", s.tracks.length)} · {s.tags.map(moodLabel).join(" · ")}</p>
+                      <p className="font-display text-lg font-semibold leading-tight text-foreground">{s.name}</p>
+                      <p className="mt-1 text-[0.7rem] text-foreground/80">{f("tracksCount", s.tracks.length)} · {s.tags.map(moodLabel).join(" · ")}</p>
                     </div>
                     {on && <span className="absolute end-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-gold-gradient text-primary-foreground"><Play className="h-3.5 w-3.5" /></span>}
-                  </button>
+                  </Button>
                 );
               })}
             </div>
           </div>
 
           <div className="space-y-3">
-            <h2 className="font-display text-2xl font-semibold text-foreground">{l.genres}</h2>
+            <h2 className="font-display text-2xl font-semibold text-foreground">{radioVinylCopy[lang].explore}</h2>
+            <h3 className="text-sm text-muted-foreground">{l.genres}</h3>
             <div className="flex flex-wrap gap-2">
               {catalogGenres.map((g) => (
-                <button key={g} type="button" aria-pressed={genres.includes(g)}
+                <Button variant="ghost" key={g} type="button" aria-pressed={genres.includes(g)}
                   onClick={() => { setStationId(null); setGenres((c) => flip(c, g)); }}
-                  className={cn(chipBase, genres.includes(g) ? chipActive : chipIdle)}>{g}</button>
+                  className={cn(chipBase, genres.includes(g) ? chipActive : chipIdle)}>{g}</Button>
               ))}
             </div>
           </div>
@@ -122,9 +125,9 @@ function RadioPage() {
             <h2 className="font-display text-2xl font-semibold text-foreground">{l.moods}</h2>
             <div className="flex flex-wrap gap-2">
               {catalogMoods.map((m) => (
-                <button key={m} type="button" aria-pressed={moods.includes(m)}
+                <Button variant="ghost" key={m} type="button" aria-pressed={moods.includes(m)}
                   onClick={() => { setStationId(null); setMoods((c) => flip(c, m)); }}
-                  className={cn(chipBase, moods.includes(m) ? chipActive : chipIdle)}>{moodLabel(m)}</button>
+                  className={cn(chipBase, moods.includes(m) ? chipActive : chipIdle)}>{moodLabel(m)}</Button>
               ))}
             </div>
           </div>

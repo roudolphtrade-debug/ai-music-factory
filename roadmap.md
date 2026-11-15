@@ -11,7 +11,8 @@
 - [x] Lot 1.1: deliver captures and factual Muify comparison.
 - [x] Lot 2: player shuffle/repeat/queue/error states, Radio filters and demo stations, Library playlists editing.
 - [x] Lot 2: player shuffle/repeat/queue/error states, Radio filters and demo stations, Library playlists editing.
-- [ ] Lot 2.2-A: Radio Signature UX/UI composition with static monumental spectrum (blocked: Lot 2.1-A branch integration + user execution approval).
+- [x] Lot 2A authorized 2026-11-15: isolated Radio vinyl stage, optional needle ambience, decorative spectrum, existing queue/controls/stations; Chromium responsive/interaction checks and 1778 tests passed, comparisons delivered; stop for validation.
+- [ ] Radio 2A final visual approval and official B3 pack integration (blocked: director approval and official raster files).
 - [ ] Lot 2.2-B: real Web Audio frequency analysis and synced animations (blocked: 2.2-A done; graceful fallback if CORS blocks AnalyserNode).
 - [ ] Lot 2.2-C: responsive/a11y/performance recipe across six languages (blocked: 2.2-B done).
 - [ ] Lot 3: start only after Lot 2 validation (blocked: user approval).
@@ -28,5 +29,5 @@
 - [x] Étape 3 (relance) : 5 destinations, carrousel « Sélections du moment », Top communauté compact, « Rejoindre la communauté » déplacé ; page plus courte
 - [ ] Étape 4 : barre mobile + en-tête mobile une ligne, mini-lecteur 320 px, flèche RTL du CTA (bloqué : validation visuelle étape 3)
 - [x] Dernière passe Accueil : lumière chromatique locale, composition inchangée, contrôle de « Tout voir », mesures FR/AR/ZH et six langues, lecture/favoris, comparaisons et tests ; arrêt pour validation.
-- [ ] Validation graphique finale Accueil et décision sur « Tout voir » (bloqué : accord du directeur de projet ; aucun démarrage Radio autorisé).
+- [ ] Validation graphique finale Accueil (awaiting director approval; Radio 2A independently authorized 2026-11-15).
 - [x] Nouvelle passe Accueil : lumière plus expressive, état honnête de « Tout voir », captures avant/après, recette et bilan ; aucun autre lot.
