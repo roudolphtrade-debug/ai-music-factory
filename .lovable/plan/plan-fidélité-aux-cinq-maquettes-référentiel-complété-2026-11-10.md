@@ -38,10 +38,24 @@ Livrable : captures comparatives maquette / rendu côte à côte, desktop et mob
 - Carte crédits avec solde réel.
 
 ## Règles communes
-- Logo architectural A conservé ; le logo « barres » des maquettes n'est pas repris.
+- Logo officiel **B3 à ondes** : remplace le A architectural par décision expresse du 15/11/2026. Le pack B3 fait autorité ; ses fichiers doivent être audités avant intégration. Les marques différentes visibles sur les anciennes maquettes ne sont pas la source d'identité.
 - Sélecteur de langue au globe conservé (pas de drapeaux).
 - Noms et chiffres des maquettes = données « Démo ».
 - Diversité sans stéréotypes, six langues, arabe RTL, accessibilité clavier.
 
 ## Recette par lot
 Captures 1440 / 1024 / 390 / 320 px en FR, AR, ZH, à côté de la maquette ; débordements ; lecture/pause/suivant, favoris, connexion, crédits ; tests relancés ; arrêt pour validation.
+
+## Addendum transversal — Décisions confirmées le 15/11/2026
+
+**Identité B3 :** utiliser le nouveau logo à ondes comme marque officielle sur les cinq maquettes, favicon, partages et animation d'entrée, après contrôle des assets. Ne pas lancer de remplacement en production sans lot de recette distinct.
+
+**Typographie :** préserver l'ossature noir/blanc/or et le Hero validé ; éviter les titres uniformément blancs en introduisant un blanc cassé chaud, un or champagne limité aux accents et une hiérarchie de gris chauds lisibles. Ne pas mettre tous les titres en or et vérifier le contraste sur photographie.
+
+**Animations :** signature d'entrée facultative 2–3 s, film de marque volontaire ~15 s ; sur l'Accueil, onde/halo/reflet casque ; sur AI Radio, vinyle tournant + bras/diamant à l'action de lecture, crépitement discret uniquement avec geste utilisateur, pause et réduction de mouvement respectées. Les trois autres lots héritent de la même doctrine de mouvement. Les effets proposés sont des spécifications à prototyper, pas des fonctions déjà présentes.
+
+**Fonctionnalités futures :** ne pas supprimer les capacités des maquettes au prétexte qu'elles sont non implémentées. Préserver les affordances avec mention « Démo » ou « Bientôt disponible » honnête, sans clic trompeur ni promesse de capacité inexistante.
+
+**SEO/GEO transversal :** pages publiques, métadonnées, SEO international FR/EN/ES/PT/ZH/AR, HTML SSR indexable, canonicals, hreflang, sitemap, données structurées sincères, B3 en partage, descriptifs œuvres/artistes et performances. Contrôler confidentialité et non-indexation des données démo/privées avant mise en ligne. Référentiels : [SEO/GEO fonctionnel](../../docs/seo/REFERENTIEL_SEO_GEO_FONCTIONNEL.md) et [SEO/GEO technique](../../docs/seo/PLAN_SEO_GEO_TECHNIQUE.md).
+
+Référentiels DA : [fonctionnel](../../docs/design/DIRECTION_ARTISTIQUE_FONCTIONNELLE.md) et [technique](../../docs/design/DESIGN_SYSTEM_TECHNIQUE.md). L'addendum est documentaire, sans code ni déploiement.
