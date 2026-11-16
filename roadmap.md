@@ -13,6 +13,8 @@
 - [x] Lot 2: player shuffle/repeat/queue/error states, Radio filters and demo stations, Library playlists editing.
 - [x] Lot 2A authorized 2026-11-15: isolated Radio vinyl stage, optional needle ambience, decorative spectrum, existing queue/controls/stations; Chromium responsive/interaction checks and 1778 tests passed, comparisons delivered; stop for validation.
 - [ ] Radio 2A final visual approval and official B3 pack integration (blocked: director approval and official raster files).
+- [x] Radio 2B: reopen original reference and 2A comparisons; diagnose missing independent photorealistic layers; verify unchanged 2A with 1778 tests and Chromium.
+- [ ] Radio 2B photorealistic implementation (blocked: production-quality independent deck, record and tonearm assets or a validated local rendering workflow; no billed generation authorized). Deliver asset diagnosis, not graphical conformity.
 - [ ] Lot 2.2-B: real Web Audio frequency analysis and synced animations (blocked: 2.2-A done; graceful fallback if CORS blocks AnalyserNode).
 - [ ] Lot 2.2-C: responsive/a11y/performance recipe across six languages (blocked: 2.2-B done).
 - [ ] Lot 3: start only after Lot 2 validation (blocked: user approval).
