@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Repeat, Repeat1, Shuffle, SkipBack, SkipForward } from "lucide-react";
 import { usePlayer } from "@/audio/PlayerProvider";
 import type { PlayableTrack } from "@/audio/tracks";
@@ -13,6 +13,26 @@ import { Seekbar } from "./Seekbar";
 import { VolumeControl } from "./VolumeControl";
 import { QueuePanel } from "./QueuePanel";
 import { needleAllowed, vinylRunning } from "./radio-vinyl-state";
+import { deckLayout } from "./radio-deck-layout";
+import deck640 from "@/assets/radio/radio-deck-640.webp";
+import deck1080 from "@/assets/radio/radio-deck-1080.webp";
+import record480 from "@/assets/radio/radio-record-480.webp";
+import record760 from "@/assets/radio/radio-record-760.webp";
+import sheen480 from "@/assets/radio/radio-sheen-480.webp";
+import sheen760 from "@/assets/radio/radio-sheen-760.webp";
+import arm300 from "@/assets/radio/radio-arm-300.webp";
+import arm500 from "@/assets/radio/radio-arm-500.webp";
+
+const DECK_SIZES = "(max-width: 639px) 92vw, 560px";
+const RECORD_SIZES = "(max-width: 639px) 60vw, 360px";
+const ARM_SIZES = "(max-width: 639px) 40vw, 240px";
+type Box = { left: number; top: number; width: number; height: number };
+const box = (b: Box): CSSProperties => ({ left: `${b.left}%`, top: `${b.top}%`, width: `${b.width}%`, height: `${b.height}%` });
+const armStyle = {
+  ...box(deckLayout.arm),
+  "--radio-arm-origin": `${deckLayout.arm.originX}% ${deckLayout.arm.originY}%`,
+  "--radio-arm-rest": `${deckLayout.armRestDeg}deg`,
+} as CSSProperties;
 
 export function RadioVinylStage({ station, queue }: { station: string; queue: PlayableTrack[] }) {
   const { l, lang } = useListening();
@@ -64,13 +84,23 @@ export function RadioVinylStage({ station, queue }: { station: string; queue: Pl
     <section className="radio-vinyl-stage" data-testid="radio-stage" data-running={running} aria-label={copy.turntable}>
       <div className="radio-stage-layout">
         <div className="radio-turntable" role="img" aria-label={`${copy.turntable} · ${running ? l.playing : l.paused}`}>
-          <div className="radio-platter"><div className="radio-record" data-testid="radio-record">
-            <div className="radio-label"><img src={display.cover} alt="" /><span className="radio-spindle" /></div>
-          </div></div>
-          <div className="radio-arm-pivot"><div className="radio-arm" data-testid="radio-arm">
-            <svg viewBox="0 0 90 250" aria-hidden="true"><path className="radio-arm-shadow" d="M45 16 L45 143 Q45 171 25 191 L15 201" /><path className="radio-arm-tube" d="M45 16 L45 143 Q45 171 25 191 L15 201" /><path className="radio-headshell" d="M11 192 L31 207 L14 230 L0 219 Z" /><path className="radio-diamond" d="M7 226 L11 235 L15 225" /><circle cx="14" cy="206" r="2" /><circle cx="19" cy="212" r="2" /></svg>
-          </div><span className="radio-arm-bearing" /></div>
-          <span className="radio-turntable-foot" />
+          {/* Photoreal layers rendered top-down in Blender; the tilt comes from CSS so the record turns undistorted. */}
+          <div className="radio-deck-tilt">
+            <img className="radio-deck" src={deck1080} srcSet={`${deck640} 640w, ${deck1080} 1080w`} sizes={DECK_SIZES} alt="" decoding="async" />
+            <div className="radio-record-layer" style={box(deckLayout.record)}>
+              <span className="radio-record-glow" />
+              <div className="radio-record" data-testid="radio-record">
+                <img src={record760} srcSet={`${record480} 480w, ${record760} 760w`} sizes={RECORD_SIZES} alt="" decoding="async" />
+                <div className="radio-label" style={{ width: `${deckLayout.labelPct}%`, height: `${deckLayout.labelPct}%` }}>
+                  <img src={display.cover} alt="" data-testid="radio-label-cover" /><span className="radio-spindle" />
+                </div>
+              </div>
+              <img className="radio-sheen" src={sheen760} srcSet={`${sheen480} 480w, ${sheen760} 760w`} sizes={RECORD_SIZES} alt="" decoding="async" />
+            </div>
+            <div className="radio-arm-layer" style={armStyle}>
+              <img className="radio-arm" data-testid="radio-arm" src={arm500} srcSet={`${arm300} 300w, ${arm500} 500w`} sizes={ARM_SIZES} alt="" decoding="async" />
+            </div>
+          </div>
         </div>
         <div className="radio-stage-content min-w-0">
           <img className="radio-artist-portrait" src={display.cover} alt={display.artist} />
