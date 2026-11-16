@@ -779,27 +779,28 @@ section.home-opening > .home-opening { min-height: 0; }
   --vinyl-magenta: oklch(0.65 0.16 330);
   --vinyl-shadow: 0 18px 35px color-mix(in oklab, var(--vinyl-ink) 90%, transparent);
 }
-.radio-vinyl-stage { border-block: 1px solid var(--border); padding-block: 24px; }
+.radio-vinyl-stage { border-block: 1px solid var(--border); padding-block: 24px; overflow-x: clip; }
 .radio-stage-layout { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.2fr); gap: 32px; align-items: center; }
-.radio-turntable { position: relative; width: 100%; max-width: 400px; aspect-ratio: 1; margin-inline: auto; direction: ltr; }
-.radio-platter { position: absolute; inset: 5% 7% 7% 3%; border-radius: 50%; border: 2px solid var(--gold-deep); padding: 5px; background: linear-gradient(125deg, var(--gold), var(--vinyl-ink) 26%, var(--vinyl-metal) 49%, var(--vinyl-ink) 65%, var(--gold-deep)); box-shadow: var(--vinyl-shadow), 0 0 22px -9px var(--gold); }
-.radio-record { width: 100%; height: 100%; border-radius: 50%; position: relative; background: repeating-radial-gradient(circle at center, var(--vinyl-ink) 0 2px, var(--vinyl-ridge) 2.5px 3px, var(--vinyl-ink) 3.5px 5px); box-shadow: inset 0 0 0 5px var(--vinyl-ink); animation: radio-vinyl-spin 14s linear infinite; animation-play-state: paused; }
-.radio-record::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 15deg, transparent 0 25deg, color-mix(in oklab, var(--vinyl-metal) 23%, transparent) 48deg, transparent 76deg 170deg, color-mix(in oklab, var(--vinyl-metal) 20%, transparent) 210deg, transparent 238deg); pointer-events: none; }
+.radio-turntable { position: relative; width: 100%; max-width: 560px; aspect-ratio: 1620 / 1260; margin-inline: auto; direction: ltr; perspective: 1600px; }
+/* Photoreal Blender layers, rendered top-down: the tilt is applied here so the record turns without distortion. */
+.radio-deck-tilt { position: absolute; inset: 0; transform: rotateX(20deg); transform-origin: 50% 72%; filter: drop-shadow(0 28px 28px color-mix(in oklab, var(--vinyl-ink) 85%, transparent)); }
+.radio-deck, .radio-record > img, .radio-sheen, .radio-arm { position: absolute; inset: 0; width: 100%; height: 100%; display: block; user-select: none; -webkit-user-drag: none; }
+.radio-record-layer { position: absolute; }
+.radio-record-glow { position: absolute; inset: 2.5%; border-radius: 50%; box-shadow: 0 0 18px 2px color-mix(in oklab, var(--gold) 50%, transparent), 0 0 48px 8px color-mix(in oklab, var(--vinyl-copper) 22%, transparent); pointer-events: none; }
+/* Authentic 33 1/3 RPM: one revolution takes exactly 1.8 seconds. */
+.radio-record { position: absolute; inset: 0; border-radius: 50%; animation: radio-vinyl-spin 1.8s linear infinite; animation-play-state: paused; }
 .radio-vinyl-stage[data-running="true"] .radio-record { animation-play-state: running; }
-.radio-label { position: absolute; inset: 33%; overflow: hidden; border-radius: 50%; border: 2px solid var(--gold); box-shadow: 0 0 0 5px var(--vinyl-ink), 0 0 15px -4px var(--gold); }
+.radio-label { position: absolute; top: 50%; left: 50%; overflow: hidden; border-radius: 50%; transform: translate(-50%, -50%); }
 .radio-label img { width: 100%; height: 100%; object-fit: cover; object-position: center 25%; }
-.radio-spindle { position: absolute; top: 50%; left: 50%; width: 7px; height: 7px; border-radius: 50%; transform: translate(-50%, -50%); background: var(--vinyl-metal); box-shadow: 0 1px 4px var(--vinyl-ink); }
-.radio-arm-pivot { position: absolute; left: 81%; top: 6%; width: 12%; height: 12%; }
-.radio-arm-bearing { position: absolute; inset: 0; border: 2px solid var(--gold-deep); border-radius: 50%; background: radial-gradient(circle at 35% 30%, var(--vinyl-metal), var(--gold-deep) 22%, var(--vinyl-ink) 60%); box-shadow: 0 4px 8px var(--vinyl-ink); }
-.radio-arm { position: absolute; top: 18%; left: -32%; width: 155%; aspect-ratio: 90/250; transform-origin: 50% 6.4%; transform: rotate(-10deg) translateY(-2px); transition: transform 800ms cubic-bezier(.3,.1,.2,1), filter 600ms; filter: drop-shadow(5px 9px 3px var(--vinyl-ink)); }
-.radio-vinyl-stage[data-running="true"] .radio-arm { transform: rotate(12deg) translateY(1px); filter: drop-shadow(1px 3px 1px var(--vinyl-ink)); }
-.radio-arm svg { overflow: visible; width: 100%; height: 100%; }
-.radio-arm-shadow { fill: none; stroke: var(--gold-deep); stroke-width: 9; stroke-linecap: round; }
-.radio-arm-tube { fill: none; stroke: var(--vinyl-metal); stroke-width: 5; stroke-linecap: round; }
-.radio-headshell { fill: var(--vinyl-metal); stroke: var(--gold-deep); stroke-width: 1.5; }
-.radio-diamond { fill: var(--gold-soft); stroke: var(--gold); stroke-width: 1; }
-.radio-arm circle { fill: var(--vinyl-ink); }
-.radio-turntable-foot { position: absolute; width: 26%; height: 3px; bottom: 0; left: 38%; background: var(--gold-deep); box-shadow: 0 0 14px 2px color-mix(in oklab, var(--gold) 20%, transparent); }
+.radio-spindle { position: absolute; top: 50%; left: 50%; width: 6px; height: 6px; border-radius: 50%; transform: translate(-50%, -50%); background: var(--vinyl-metal); box-shadow: 0 1px 3px var(--vinyl-ink); }
+/* Highlights stay still while the record turns, as real light does. */
+.radio-sheen { pointer-events: none; mix-blend-mode: screen; }
+@supports (mix-blend-mode: plus-lighter) { .radio-sheen { mix-blend-mode: plus-lighter; } }
+.radio-arm-layer { position: absolute; pointer-events: none; }
+.radio-arm { transform-origin: var(--radio-arm-origin); transform: rotate(var(--radio-arm-rest)); transition: transform 900ms cubic-bezier(.3,.1,.2,1), filter 600ms; filter: drop-shadow(7px 11px 4px color-mix(in oklab, var(--vinyl-ink) 80%, transparent)); }
+.radio-vinyl-stage[data-arm-position="playing"] .radio-arm { transform: rotate(0deg); filter: drop-shadow(3px 5px 2px color-mix(in oklab, var(--vinyl-ink) 85%, transparent)); }
+/* Pause: lift the cartridge slightly but keep the arm above the groove. This is a visual approximation of a cueing lever. */
+.radio-vinyl-stage[data-arm-position="lifted"] .radio-arm { transform: rotate(0deg) translateY(-2px); filter: drop-shadow(8px 14px 6px color-mix(in oklab, var(--vinyl-ink) 85%, transparent)); }
 .radio-stage-content { position: relative; min-height: 310px; padding-block: 20px; }
 .radio-artist-portrait { position: absolute; inset: 0 0 0 auto; width: 66%; height: 100%; object-fit: cover; object-position: center 25%; mask-image: linear-gradient(to right, transparent, var(--vinyl-ink) 48%); opacity: .85; }
 [dir="rtl"] .radio-artist-portrait { inset: 0 auto 0 0; mask-image: linear-gradient(to left, transparent, var(--vinyl-ink) 48%); }
@@ -820,8 +821,8 @@ section.home-opening > .home-opening { min-height: 0; }
 @media (max-width: 1199px) and (min-width: 640px) { .radio-stations { grid-template-columns: repeat(3, minmax(0, 1fr)); }.radio-stage-layout { gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
 @media (max-width: 639px) {
   .radio-stage-layout { grid-template-columns: minmax(0, 1fr); gap: 6px; }
-  .radio-turntable { max-width: 330px; }
-  .radio-label { inset: 28%; }
+  .radio-turntable { max-width: 380px; }
+  .radio-deck-tilt { transform: rotateX(16deg); }
   .radio-stage-content { min-height: 0; padding-top: 12px; padding-bottom: 0; }
   .radio-artist-portrait { display: none; }
   .radio-track-details h2 { max-width: 100%; font-size: 2rem; }
