@@ -787,8 +787,8 @@ section.home-opening > .home-opening { min-height: 0; }
 .radio-deck, .radio-record > img, .radio-sheen, .radio-arm { position: absolute; inset: 0; width: 100%; height: 100%; display: block; user-select: none; -webkit-user-drag: none; }
 .radio-record-layer { position: absolute; }
 .radio-record-glow { position: absolute; inset: 2.5%; border-radius: 50%; box-shadow: 0 0 18px 2px color-mix(in oklab, var(--gold) 50%, transparent), 0 0 48px 8px color-mix(in oklab, var(--vinyl-copper) 22%, transparent); pointer-events: none; }
-/* Slower than a real 33 1/3 rpm turn (1.8 s) so the artist photo stays readable. */
-.radio-record { position: absolute; inset: 0; border-radius: 50%; animation: radio-vinyl-spin 4s linear infinite; animation-play-state: paused; }
+/* Authentic 33 1/3 RPM: one revolution takes exactly 1.8 seconds. */
+.radio-record { position: absolute; inset: 0; border-radius: 50%; animation: radio-vinyl-spin 1.8s linear infinite; animation-play-state: paused; }
 .radio-vinyl-stage[data-running="true"] .radio-record { animation-play-state: running; }
 .radio-label { position: absolute; top: 50%; left: 50%; overflow: hidden; border-radius: 50%; transform: translate(-50%, -50%); }
 .radio-label img { width: 100%; height: 100%; object-fit: cover; object-position: center 25%; }
@@ -798,7 +798,9 @@ section.home-opening > .home-opening { min-height: 0; }
 @supports (mix-blend-mode: plus-lighter) { .radio-sheen { mix-blend-mode: plus-lighter; } }
 .radio-arm-layer { position: absolute; pointer-events: none; }
 .radio-arm { transform-origin: var(--radio-arm-origin); transform: rotate(var(--radio-arm-rest)); transition: transform 900ms cubic-bezier(.3,.1,.2,1), filter 600ms; filter: drop-shadow(7px 11px 4px color-mix(in oklab, var(--vinyl-ink) 80%, transparent)); }
-.radio-vinyl-stage[data-running="true"] .radio-arm { transform: rotate(0deg); filter: drop-shadow(3px 5px 2px color-mix(in oklab, var(--vinyl-ink) 85%, transparent)); }
+.radio-vinyl-stage[data-arm-position="playing"] .radio-arm { transform: rotate(0deg); filter: drop-shadow(3px 5px 2px color-mix(in oklab, var(--vinyl-ink) 85%, transparent)); }
+/* Pause: lift the cartridge slightly but keep the arm above the groove. This is a visual approximation of a cueing lever. */
+.radio-vinyl-stage[data-arm-position="lifted"] .radio-arm { transform: rotate(0deg) translateY(-2px); filter: drop-shadow(8px 14px 6px color-mix(in oklab, var(--vinyl-ink) 85%, transparent)); }
 .radio-stage-content { position: relative; min-height: 310px; padding-block: 20px; }
 .radio-artist-portrait { position: absolute; inset: 0 0 0 auto; width: 66%; height: 100%; object-fit: cover; object-position: center 25%; mask-image: linear-gradient(to right, transparent, var(--vinyl-ink) 48%); opacity: .85; }
 [dir="rtl"] .radio-artist-portrait { inset: 0 auto 0 0; mask-image: linear-gradient(to left, transparent, var(--vinyl-ink) 48%); }

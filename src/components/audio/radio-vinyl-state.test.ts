@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { needleAllowed, vinylRunning } from "./radio-vinyl-state";
+import { needleAllowed, vinylArmPosition, vinylRunning } from "./radio-vinyl-state";
 
 describe("Radio vinyl honesty", () => {
   it("rotates only during confirmed playback of the displayed track", () => {
@@ -16,6 +16,18 @@ describe("Radio vinyl honesty", () => {
     expect(needleAllowed(true, false, false, true)).toBe(false);
     expect(needleAllowed(true, true, false, true)).toBe(true);
   });
+  it("leaves the cartridge above the groove during an actual pause", () => {
+    expect(vinylArmPosition("a", "a", true, "playing", 12, 240)).toBe("playing");
+    expect(vinylArmPosition("a", "a", false, "paused", 12, 240)).toBe("lifted");
+    expect(vinylArmPosition("a", "a", false, "paused", 0, 240)).toBe("rest");
+    expect(vinylArmPosition("a", "a", false, "paused", 240, 240)).toBe("rest");
+    expect(vinylArmPosition("a", "a", false, "paused", 239.9, 240)).toBe("rest");
+    expect(vinylArmPosition("b", "a", false, "paused", 12, 240)).toBe("rest");
+    expect(vinylArmPosition("a", "a", false, "error", 12, 240)).toBe("rest");
+    expect(vinylArmPosition(undefined, "a", false, "paused", 12, 240)).toBe("rest");
+    expect(vinylArmPosition("a", "a", false, "loading", 12, 240)).toBe("rest");
+  });
+
   it("never repeats automatically or sounds on failed playback", () => {
     expect(needleAllowed(true, true, true, true)).toBe(false);
     expect(needleAllowed(true, true, false, false)).toBe(false);

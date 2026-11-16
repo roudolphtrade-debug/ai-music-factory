@@ -12,7 +12,7 @@ import { PlayButton } from "./PlayButton";
 import { Seekbar } from "./Seekbar";
 import { VolumeControl } from "./VolumeControl";
 import { QueuePanel } from "./QueuePanel";
-import { needleAllowed, vinylRunning } from "./radio-vinyl-state";
+import { needleAllowed, vinylArmPosition, vinylRunning } from "./radio-vinyl-state";
 import { deckLayout } from "./radio-deck-layout";
 import deck640 from "@/assets/radio/radio-deck-640.webp";
 import deck1080 from "@/assets/radio/radio-deck-1080.webp";
@@ -37,10 +37,11 @@ const armStyle = {
 export function RadioVinylStage({ station, queue }: { station: string; queue: PlayableTrack[] }) {
   const { l, lang } = useListening();
   const copy = radioVinylCopy[lang];
-  const { current, isPlaying, status, prev, next, shuffle, toggleShuffle, repeat, cycleRepeat, retry } = usePlayer();
+  const { current, isPlaying, status, currentTime, duration, prev, next, shuffle, toggleShuffle, repeat, cycleRepeat, retry } = usePlayer();
   // The global current track wins, including when filters change; no misleading artwork.
   const display = current ?? queue[0];
   const running = vinylRunning(current?.id, display?.id, isPlaying, status);
+  const armPosition = vinylArmPosition(current?.id, display?.id, isPlaying, status, currentTime, duration);
   const [ambience, setAmbience] = useState(false);
   const [armed, setArmed] = useState(false);
   const used = useRef(false);
@@ -81,7 +82,7 @@ export function RadioVinylStage({ station, queue }: { station: string; queue: Pl
   if (!display) return <section className="py-8"><p>{l.emptyQueue}</p></section>;
 
   return (
-    <section className="radio-vinyl-stage" data-testid="radio-stage" data-running={running} aria-label={copy.turntable}>
+    <section className="radio-vinyl-stage" data-testid="radio-stage" data-running={running} data-arm-position={armPosition} aria-label={copy.turntable}>
       <div className="radio-stage-layout">
         <div className="radio-turntable" role="img" aria-label={`${copy.turntable} · ${running ? l.playing : l.paused}`}>
           {/* Photoreal layers rendered top-down in Blender; the tilt comes from CSS so the record turns undistorted. */}

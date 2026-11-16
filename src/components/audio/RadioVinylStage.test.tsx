@@ -56,10 +56,14 @@ describe("Radio vinyl stage, photoreal layers (lot 2B)", () => {
     render(<AllProviders><Harness /></AllProviders>);
     const stage = screen.getByTestId("radio-stage");
     expect(stage.dataset.running).toBe("false");
+    expect(stage.dataset.armPosition).toBe("rest");
     await act(async () => { fireEvent.click(screen.getByText("play b")); });
     expect(stage.dataset.running).toBe("true");
+    expect(stage.dataset.armPosition).toBe("playing");
     await act(async () => { fireEvent.click(screen.getByText("toggle")); });
     expect(stage.dataset.running).toBe("false");
+    // Fake audio starts at t=0: arm stays resting, not falsely showing a mid-track pause.
+    expect(stage.dataset.armPosition).toBe("rest");
   });
 
   it("places the arm around its rendered pivot and rests it off the record", () => {
